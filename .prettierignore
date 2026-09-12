@@ -1,0 +1,7 @@
+.next
+.serena
+coverage
+docs/PLAN.md
+docs/SPEC.md
+node_modules
+package-lock.json

@@ -1,0 +1,23 @@
+# dependencies
+/node_modules
+
+# Next.js output
+/.next
+/out
+
+# test output
+/coverage
+
+# local environment files
+.env*
+!.env.example
+
+# logs and operating-system files
+*.log
+.DS_Store
+
+# TypeScript build metadata
+*.tsbuildinfo
+
+# Vercel
+.vercel
