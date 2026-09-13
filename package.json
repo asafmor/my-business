@@ -23,14 +23,19 @@
     "cloud:inspect:b2": "tsx scripts/cloud/inspect-b2.ts",
     "cloud:configure:b2": "tsx scripts/cloud/configure-b2.ts",
     "cloud:finalize:b2": "tsx scripts/cloud/finalize-b2.ts",
-    "cloud:sync:neon": "tsx scripts/cloud/sync-neon-worksheet.ts"
+    "cloud:sync:neon": "tsx scripts/cloud/sync-neon-worksheet.ts",
+    "db:generate": "drizzle-kit generate",
+    "db:migrate": "tsx scripts/db/migrate.ts"
   },
   "dependencies": {
     "@aws-sdk/client-s3": "3.1131.0",
+    "drizzle-orm": "0.45.2",
     "next": "16.3.5",
     "pg": "8.23.0",
     "react": "19.3.0",
-    "react-dom": "19.3.0"
+    "react-dom": "19.3.0",
+    "server-only": "0.0.1",
+    "zod": "4.6.4"
   },
   "devDependencies": {
     "@eslint/js": "10.0.1",
@@ -39,6 +44,7 @@
     "@types/pg": "8.23.1",
     "@types/react": "19.3.0",
     "@types/react-dom": "19.3.0",
+    "drizzle-kit": "0.31.10",
     "eslint": "10.10.0",
     "prettier": "3.9.6",
     "tsx": "4.23.13",

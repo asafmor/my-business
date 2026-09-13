@@ -39,6 +39,25 @@ npm run build
 Use `npm run format` to format supported files and `npm run format:check` to
 check formatting without changing files.
 
+## Database migrations
+
+Drizzle schema definitions and generated SQL migrations are committed under
+`src/server/db/` and `drizzle/`. `DATABASE_URL` is exclusively for the normal
+server runtime. Applying a migration is a deliberate production operation and
+uses the direct `NEON_BACKUP_DATABASE_URL` from the protected local worksheet
+or GitHub Actions, never the request path:
+
+```bash
+# Generate a migration after changing src/server/db/schema.ts.
+npm run db:generate
+
+# Apply committed migrations to the production database.
+APP_ENV=production node --env-file=.env.cloud.local --import tsx scripts/db/migrate.ts
+```
+
+The migration command rejects non-production environments and missing direct
+URLs. Do not run it automatically from Next.js or a request handler.
+
 ## Project structure
 
 ```text
