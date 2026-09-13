@@ -1,13 +1,19 @@
-import { ProtectedPlaceholderPage } from "../../../components/layout/protected-placeholder-page";
+import { UploadForm } from "../../../components/documents/upload-form";
 import { requireSession } from "../../../server/auth/service";
 
 export default async function UploadPage() {
   await requireSession();
 
   return (
-    <ProtectedPlaceholderPage
-      description="The secure document upload flow is being prepared."
-      title="Upload documents"
-    />
+    <>
+      <header className="page-heading">
+        <h1>Upload documents</h1>
+        <p>
+          Keep the original document intact while adding it to your private
+          archive.
+        </p>
+      </header>
+      <UploadForm />
+    </>
   );
 }

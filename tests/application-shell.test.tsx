@@ -117,6 +117,17 @@ describe("application UI states", () => {
     expect(loadingMarkup).toContain('role="status"');
     expect(loadingMarkup).toContain('aria-live="polite"');
   });
+
+  it("renders a multi-file upload queue with camera and duplicate affordances", async () => {
+    const markup = renderToStaticMarkup(await UploadPage());
+
+    expect(markup).toContain("Upload documents");
+    expect(markup).toContain(
+      'accept="image/jpeg,image/png,image/webp,application/pdf"',
+    );
+    expect(markup).toContain("Choose files");
+    expect(markup).toContain("Take photo");
+  });
 });
 
 describe("logout action", () => {
