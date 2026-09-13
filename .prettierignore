@@ -1,6 +1,9 @@
 .next
+.agents
 .serena
 coverage
+.env.example
+.env.cloud.example
 docs/PLAN.md
 docs/SPEC.md
 node_modules

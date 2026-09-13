@@ -55,6 +55,9 @@ authentication. Infrastructure integrations belong behind modules in
 `src/server`; UI modules must not access service credentials or providers
 directly.
 
+Cloud resource boundaries, secret scopes, provisioning steps, and smoke checks
+are documented in [docs/CLOUD_FOUNDATION.md](docs/CLOUD_FOUNDATION.md).
+
 ## Contributing
 
 The repository uses npm and commits its lockfile. Keep pull requests focused,

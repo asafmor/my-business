@@ -2,6 +2,7 @@
   "name": "my-business",
   "version": "0.1.0",
   "private": true,
+  "type": "module",
   "engines": {
     "node": ">=24"
   },
@@ -14,10 +15,20 @@
     "lint": "eslint . --max-warnings=0",
     "test": "vitest run",
     "format": "prettier --write .",
-    "format:check": "prettier --check ."
+    "format:check": "prettier --check .",
+    "cloud:check:environment": "tsx scripts/cloud/verify-environment.ts",
+    "cloud:check:postgres": "tsx scripts/cloud/verify-postgres.ts",
+    "cloud:check:r2": "tsx scripts/cloud/verify-object-store.ts r2",
+    "cloud:check:b2": "tsx scripts/cloud/verify-object-store.ts b2",
+    "cloud:inspect:b2": "tsx scripts/cloud/inspect-b2.ts",
+    "cloud:configure:b2": "tsx scripts/cloud/configure-b2.ts",
+    "cloud:finalize:b2": "tsx scripts/cloud/finalize-b2.ts",
+    "cloud:sync:neon": "tsx scripts/cloud/sync-neon-worksheet.ts"
   },
   "dependencies": {
+    "@aws-sdk/client-s3": "3.1131.0",
     "next": "16.3.5",
+    "pg": "8.23.0",
     "react": "19.3.0",
     "react-dom": "19.3.0"
   },
@@ -25,10 +36,12 @@
     "@eslint/js": "10.0.1",
     "@next/eslint-plugin-next": "16.3.5",
     "@types/node": "24.13.4",
+    "@types/pg": "8.23.1",
     "@types/react": "19.3.0",
     "@types/react-dom": "19.3.0",
     "eslint": "10.10.0",
     "prettier": "3.9.6",
+    "tsx": "4.23.13",
     "typescript": "5.9.3",
     "typescript-eslint": "8.70.0",
     "vitest": "5.0.0"
