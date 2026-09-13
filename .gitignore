@@ -24,3 +24,7 @@
 .vercel
 
 .serena/
+
+# Local receipt samples
+/receipt-examples/
+/receipts-examples/
