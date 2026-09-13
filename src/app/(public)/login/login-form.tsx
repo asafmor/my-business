@@ -10,7 +10,7 @@ export function LoginForm() {
   const [state, formAction, pending] = useActionState(login, initialState);
 
   return (
-    <form action={formAction}>
+    <form action={formAction} className="auth-form">
       <label htmlFor="password">Password</label>
       <input
         autoComplete="current-password"
@@ -20,7 +20,11 @@ export function LoginForm() {
         type="password"
       />
       {state.error ? <p role="alert">{state.error}</p> : null}
-      <button disabled={pending} type="submit">
+      <button
+        className="button button--primary"
+        disabled={pending}
+        type="submit"
+      >
         Sign in
       </button>
     </form>

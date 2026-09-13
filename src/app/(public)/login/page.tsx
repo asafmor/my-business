@@ -12,10 +12,12 @@ export default async function LoginPage() {
   }
 
   return (
-    <main>
-      <h1>My Business</h1>
-      <p>Sign in to continue.</p>
-      <LoginForm />
+    <main className="login-page">
+      <section aria-labelledby="login-title" className="login-panel">
+        <h1 id="login-title">My Business</h1>
+        <p>Sign in to continue.</p>
+        <LoginForm />
+      </section>
     </main>
   );
 }
