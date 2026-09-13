@@ -1,13 +1,15 @@
 import { renderToStaticMarkup } from "react-dom/server";
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 
-import HomePage from "../src/app/(public)/page";
+vi.mock("server-only", () => ({}));
 
-describe("public home page", () => {
-  it("identifies the application and its purpose", () => {
-    const markup = renderToStaticMarkup(<HomePage />);
+import { LoginForm } from "../src/app/(public)/login/login-form";
 
-    expect(markup).toContain("<h1>My Business</h1>");
-    expect(markup).toContain("Private document and expense management.");
+describe("login page", () => {
+  it("only requests a password", () => {
+    const markup = renderToStaticMarkup(<LoginForm />);
+
+    expect(markup).toContain('name="password"');
+    expect(markup).not.toContain('name="username"');
   });
 });

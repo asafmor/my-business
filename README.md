@@ -39,6 +39,27 @@ npm run build
 Use `npm run format` to format supported files and `npm run format:check` to
 check formatting without changing files.
 
+## Authentication setup
+
+Authentication uses bcrypt with cost 12 because its pure-JavaScript
+implementation runs consistently in the Next.js server runtime on Vercel. Do
+not store the raw password in source control, local environment files, or
+Vercel. Generate a unique password of at least 16 characters with a password
+manager, then generate the two Vercel Production-only variables interactively:
+
+```bash
+npm run auth:hash-password
+npm run auth:generate-session-secret
+```
+
+The password command does not echo input and prints the value for
+`AUTH_PASSWORD_HASH`; copy it directly to Vercel, then discard terminal
+history or output that captured it. The session-secret command prints a
+separate 384-bit value for `AUTH_SESSION_SECRET`. Configure both as encrypted
+Vercel Production environment variables only. Never add either value to an
+`.env` file or GitHub Actions; B2 credentials also remain unavailable to the
+application runtime.
+
 ## Database migrations
 
 Drizzle schema definitions and generated SQL migrations are committed under

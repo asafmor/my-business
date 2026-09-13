@@ -13,6 +13,7 @@ const productionEnvironment = {
   R2_ACCESS_KEY_ID: "key",
   R2_SECRET_ACCESS_KEY: "secret",
   R2_BUCKET: "rotem",
+  AUTH_PASSWORD_HASH: "$2b$12$example-password-hash-not-a-real-credential",
   AUTH_SESSION_SECRET: "a-long-enough-secret-value-for-production",
 };
 

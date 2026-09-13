@@ -59,6 +59,10 @@ export function assertCloudEnvironment(environment: Environment): void {
     throw new Error("Missing application variable: AUTH_SESSION_SECRET.");
   }
 
+  if (!environment.AUTH_PASSWORD_HASH) {
+    throw new Error("Missing application variable: AUTH_PASSWORD_HASH.");
+  }
+
   const exposedB2Variables = b2RuntimeVariables.filter(
     (name) => environment[name],
   );

@@ -16,6 +16,8 @@
     "test": "vitest run",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
+    "auth:hash-password": "tsx scripts/auth/generate-password-hash.ts",
+    "auth:generate-session-secret": "tsx scripts/auth/generate-session-secret.ts",
     "cloud:check:environment": "tsx scripts/cloud/verify-environment.ts",
     "cloud:check:postgres": "tsx scripts/cloud/verify-postgres.ts",
     "cloud:check:r2": "tsx scripts/cloud/verify-object-store.ts r2",
@@ -29,6 +31,7 @@
   },
   "dependencies": {
     "@aws-sdk/client-s3": "3.1131.0",
+    "bcryptjs": "3.0.3",
     "drizzle-orm": "0.45.2",
     "next": "16.3.5",
     "pg": "8.23.0",
