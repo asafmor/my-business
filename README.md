@@ -65,11 +65,13 @@ npm run auth:generate-session-secret
 ```
 
 The password command does not echo input and prints `AUTH_PASSWORD_HASH`; the
-session command prints a separate 384-bit `AUTH_SESSION_SECRET`. Use distinct
-values for Development and Production. Vercel does not support Sensitive values
-for its Development target, so restrict project membership and use only
-development-only values there. Never add raw passwords or B2 credentials to an
-environment file or GitHub Actions.
+session command prints a separate 384-bit `AUTH_SESSION_SECRET`. Use a distinct
+session secret per environment. The password hash may be shared when both
+environments intentionally use the same login password. In local `.env` files,
+escape the hash's dollar signs as `\$`; enter the raw, unescaped hash in Vercel.
+Vercel does not support Sensitive values for its Development target, so restrict
+project membership and use only development-only values there. Never add raw
+passwords or B2 credentials to an environment file or GitHub Actions.
 
 ## Database migrations
 
