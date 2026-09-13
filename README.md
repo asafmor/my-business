@@ -87,6 +87,23 @@ document bytes to the browser. `OPENAI_MODEL` is optional; it defaults to
 `gpt-4.1-mini` and accepts only the approved server-side models listed in
 `src/server/ai/openai-document-analyzer.ts`.
 
+## Background processing
+
+Uploads write a durable `processing_tasks` row in the same database transaction
+as the document record. Vercel Cron invokes the protected
+`/api/cron/process-documents` route every minute to lease and process due tasks;
+processing therefore does not depend on the upload page remaining open. Set a
+high-entropy `CRON_SECRET` as a Vercel Production environment variable. Vercel
+uses it to authorize cron invocations; the route rejects all other requests.
+
+The executor retries transient storage and provider failures at most three
+times, with one- and five-minute delays. Invalid AI responses fail immediately.
+V1 has at-least-once execution and up to one minute dispatch latency; task
+leases recover after a function interruption, while the document state and
+transactional extraction persistence remain authoritative. Each cron invocation
+processes at most ten tasks within a 60-second function budget; V1 has no
+dedicated worker fleet or real-time push updates.
+
 ## Project structure
 
 ```text

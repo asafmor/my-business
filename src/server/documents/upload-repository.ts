@@ -3,7 +3,12 @@ import "server-only";
 import { eq } from "drizzle-orm";
 
 import { getDatabase } from "../db/client";
-import { auditEvents, documentFiles, documents } from "../db/schema";
+import {
+  auditEvents,
+  documentFiles,
+  documents,
+  processingTasks,
+} from "../db/schema";
 
 export type UploadRecord = {
   audit: {
@@ -71,6 +76,9 @@ export class DrizzleDocumentUploadRepository implements DocumentUploadRepository
         entityType: "DOCUMENT",
         newValue: record.audit.newValue,
         source: "USER",
+      });
+      await transaction.insert(processingTasks).values({
+        documentId: record.document.id,
       });
     });
   }

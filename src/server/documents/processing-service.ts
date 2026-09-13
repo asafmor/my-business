@@ -24,6 +24,11 @@ export type ProcessDocumentResult =
   | { status: "needs-review"; reviewReasons: readonly string[] }
   | { status: "ready" };
 
+export type ProcessDocumentOptions = {
+  onFailure?: (failure: FailedProcessing) => Promise<void>;
+  resumeProcessing?: boolean;
+};
+
 function supportedMimeType(
   mimeType: string,
 ): mimeType is "application/pdf" | "image/jpeg" | "image/png" | "image/webp" {
@@ -45,11 +50,18 @@ export class DocumentProcessingService {
   async process(
     documentId: string,
     reprocessing = false,
+    options: ProcessDocumentOptions = {},
   ): Promise<ProcessDocumentResult> {
-    const document = await this.dependencies.repository.beginProcessing(
-      documentId,
-      reprocessing,
-    );
+    const document = options.resumeProcessing
+      ? await this.dependencies.repository.beginProcessing(
+          documentId,
+          reprocessing,
+          true,
+        )
+      : await this.dependencies.repository.beginProcessing(
+          documentId,
+          reprocessing,
+        );
     if (!document) return { status: "already-processing" };
 
     let failureCode: FailedProcessing["errorCode"] = "STORAGE_FAILURE";
@@ -95,9 +107,9 @@ export class DocumentProcessingService {
         ? { status: "ready" }
         : { status: "needs-review", reviewReasons };
     } catch (error) {
-      await this.dependencies.repository.failProcessing(
-        this.failure(document, reprocessing, error, failureCode),
-      );
+      const failure = this.failure(document, reprocessing, error, failureCode);
+      if (options.onFailure) await options.onFailure(failure);
+      else await this.dependencies.repository.failProcessing(failure);
       throw error;
     }
   }

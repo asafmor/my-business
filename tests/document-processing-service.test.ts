@@ -119,6 +119,44 @@ describe("document processing", () => {
     );
   });
 
+  it("does not analyze or persist a duplicate processing claim", async () => {
+    const claimedDocument = {
+      activeCategories: [
+        { id: "880e8400-e29b-41d4-a716-446655440000", name: "Office supplies" },
+      ],
+      id: documentId,
+      manualDocumentFields: [],
+      manualExpenseFields: [],
+      original: {
+        key: "documents/opaque/original" as const,
+        mimeType: "application/pdf" as const,
+      },
+      type: "OTHER" as const,
+    };
+    const repository = createRepository({
+      beginProcessing: vi
+        .fn()
+        .mockResolvedValueOnce(claimedDocument)
+        .mockResolvedValueOnce(null),
+    });
+    const analyzer = createAnalyzer();
+
+    await expect(
+      Promise.all([
+        createService(repository, analyzer).process(documentId),
+        createService(repository, analyzer).process(documentId),
+      ]),
+    ).resolves.toEqual(
+      expect.arrayContaining([
+        { status: "already-processing" },
+        { status: "ready" },
+      ]),
+    );
+
+    expect(analyzer.analyze).toHaveBeenCalledOnce();
+    expect(repository.completeProcessing).toHaveBeenCalledOnce();
+  });
+
   it("marks missing required extraction fields for review instead of inventing them", async () => {
     const repository = createRepository();
     const extraction = { ...validExtraction, total: null };

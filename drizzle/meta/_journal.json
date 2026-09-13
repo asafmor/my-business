@@ -8,6 +8,13 @@
       "when": 1789303120886,
       "tag": "0000_good_mojo",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1789324553203,
+      "tag": "0002_background_processing",
+      "breakpoints": true
     }
   ]
 }

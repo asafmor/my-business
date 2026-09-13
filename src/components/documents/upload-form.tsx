@@ -1,13 +1,30 @@
 "use client";
 
-import { useRef, useState, type ChangeEvent, type DragEvent } from "react";
+import {
+  useEffect,
+  useRef,
+  useState,
+  type ChangeEvent,
+  type DragEvent,
+} from "react";
+
+import type { DocumentStatus } from "@/domain/documents/types";
 
 const acceptedMimeTypes = "image/jpeg,image/png,image/webp,application/pdf";
 
 type UploadStatus =
-  "complete" | "duplicate" | "failed" | "queued" | "rejected" | "uploading";
+  | "complete"
+  | "duplicate"
+  | "failed"
+  | "needs-review"
+  | "processing"
+  | "processing-failed"
+  | "queued"
+  | "rejected"
+  | "uploading";
 
 type UploadCard = {
+  documentId?: string;
   file: File;
   id: string;
   message?: string;
@@ -16,8 +33,14 @@ type UploadCard = {
 };
 
 type UploadApiResult = {
+  documentId?: string;
   message?: string;
   status: "duplicate" | "failed" | "rejected" | "uploaded";
+};
+
+type ProcessingStatusResult = {
+  id: string;
+  status: DocumentStatus;
 };
 
 function createCard(file: File): UploadCard {
@@ -74,6 +97,9 @@ function statusLabel(status: UploadStatus): string {
     complete: "Uploaded",
     duplicate: "Possible duplicate",
     failed: "Upload failed",
+    "needs-review": "Needs review",
+    processing: "Processing",
+    "processing-failed": "Processing failed",
     queued: "Ready to upload",
     rejected: "Not accepted",
     uploading: "Uploading",
@@ -85,6 +111,64 @@ export function UploadForm() {
   const cameraInputRef = useRef<HTMLInputElement>(null);
   const [cards, setCards] = useState<UploadCard[]>([]);
   const [isDragging, setIsDragging] = useState(false);
+
+  useEffect(() => {
+    const documentIds = cards.flatMap((card) =>
+      card.documentId && card.status === "processing" ? [card.documentId] : [],
+    );
+    if (documentIds.length === 0) return;
+
+    let cancelled = false;
+    async function refresh(): Promise<void> {
+      try {
+        const response = await fetch("/api/documents/processing/status", {
+          body: JSON.stringify({ documentIds }),
+          headers: { "content-type": "application/json" },
+          method: "POST",
+        });
+        if (!response.ok || cancelled) return;
+        const { documents } = (await response.json()) as {
+          documents: ProcessingStatusResult[];
+        };
+        const statuses = new Map(
+          documents.map((document) => [document.id, document.status]),
+        );
+        setCards((current) => {
+          let changed = false;
+          const updated = current.map((card) => {
+            const status = card.documentId
+              ? statuses.get(card.documentId)
+              : undefined;
+            if (!status) return card;
+            const nextStatus: UploadStatus =
+              status === "READY"
+                ? "complete"
+                : status === "NEEDS_REVIEW"
+                  ? "needs-review"
+                  : status === "FAILED"
+                    ? "processing-failed"
+                    : "processing";
+            if (card.status === nextStatus) return card;
+            changed = true;
+            return {
+              ...card,
+              status: nextStatus,
+            };
+          });
+          return changed ? updated : current;
+        });
+      } catch {
+        // A missed poll does not change the durable processing task.
+      }
+    }
+
+    void refresh();
+    const interval = window.setInterval(() => void refresh(), 5_000);
+    return () => {
+      cancelled = true;
+      window.clearInterval(interval);
+    };
+  }, [cards]);
 
   function updateCard(id: string, update: Partial<UploadCard>): void {
     setCards((current) =>
@@ -125,14 +209,15 @@ export function UploadForm() {
       updateCard(card.id, { progress });
     });
     const status: UploadStatus =
-      result.status === "uploaded" ? "complete" : result.status;
+      result.status === "uploaded" ? "processing" : result.status;
     updateCard(card.id, {
+      documentId: result.documentId,
       message:
         result.message ??
         (status === "duplicate"
           ? "An identical original is already in your document archive."
           : undefined),
-      progress: status === "complete" ? 100 : 0,
+      progress: status === "processing" ? 100 : 0,
       status,
     });
   }
@@ -140,6 +225,30 @@ export function UploadForm() {
   async function submitQueuedFiles(): Promise<void> {
     for (const card of cards.filter((card) => card.status === "queued")) {
       await submit(card);
+    }
+  }
+
+  async function retryProcessing(card: UploadCard): Promise<void> {
+    if (!card.documentId) return;
+    updateCard(card.id, { message: undefined, status: "processing" });
+    try {
+      const response = await fetch("/api/documents/processing/retry", {
+        body: JSON.stringify({ documentId: card.documentId }),
+        headers: { "content-type": "application/json" },
+        method: "POST",
+      });
+      const result = (await response.json()) as { queued?: boolean };
+      if (!response.ok || !result.queued) {
+        updateCard(card.id, {
+          message: "Processing could not be queued. Please try again.",
+          status: "processing-failed",
+        });
+      }
+    } catch {
+      updateCard(card.id, {
+        message: "Processing could not be queued. Please try again.",
+        status: "processing-failed",
+      });
     }
   }
 
@@ -251,7 +360,19 @@ export function UploadForm() {
                       Retry
                     </button>
                   ) : null}
-                  {card.status !== "uploading" && card.status !== "complete" ? (
+                  {card.status === "processing-failed" ? (
+                    <button
+                      className="button button--secondary"
+                      onClick={() => retryProcessing(card)}
+                      type="button"
+                    >
+                      Retry processing
+                    </button>
+                  ) : null}
+                  {card.status !== "uploading" &&
+                  card.status !== "complete" &&
+                  card.status !== "processing" &&
+                  card.status !== "needs-review" ? (
                     <button
                       className="text-button"
                       onClick={() =>

@@ -57,6 +57,7 @@ export interface DocumentProcessingRepository {
   beginProcessing(
     documentId: string,
     reprocessing: boolean,
+    resumeProcessing?: boolean,
   ): Promise<ProcessingDocument | null>;
   completeProcessing(input: CompletedProcessing): Promise<void>;
   failProcessing(input: FailedProcessing): Promise<void>;
@@ -72,10 +73,12 @@ export class DrizzleDocumentProcessingRepository implements DocumentProcessingRe
   async beginProcessing(
     documentId: string,
     reprocessing: boolean,
+    resumeProcessing = false,
   ): Promise<ProcessingDocument | null> {
     const allowedStatuses: DocumentStatus[] = reprocessing
       ? ["UPLOADED", "READY", "NEEDS_REVIEW", "FAILED"]
       : ["UPLOADED"];
+    if (resumeProcessing) allowedStatuses.push("PROCESSING");
 
     return this.database().transaction(async (transaction) => {
       const [claimed] = await transaction
@@ -153,6 +156,16 @@ export class DrizzleDocumentProcessingRepository implements DocumentProcessingRe
 
   async completeProcessing(input: CompletedProcessing): Promise<void> {
     await this.database().transaction(async (transaction) => {
+      // A recovered lease may overlap a slow prior invocation. Locking the
+      // document makes the terminal state check gate all derived writes.
+      const [currentDocument] = await transaction
+        .select({ status: documents.status })
+        .from(documents)
+        .where(eq(documents.id, input.document.id))
+        .limit(1)
+        .for("update");
+      if (currentDocument?.status !== "PROCESSING") return;
+
       const [extraction] = await transaction
         .insert(extractions)
         .values({
@@ -282,6 +295,14 @@ export class DrizzleDocumentProcessingRepository implements DocumentProcessingRe
 
   async failProcessing(input: FailedProcessing): Promise<void> {
     await this.database().transaction(async (transaction) => {
+      const [currentDocument] = await transaction
+        .select({ status: documents.status })
+        .from(documents)
+        .where(eq(documents.id, input.documentId))
+        .limit(1)
+        .for("update");
+      if (currentDocument?.status !== "PROCESSING") return;
+
       if (
         input.rawResult &&
         input.provider &&

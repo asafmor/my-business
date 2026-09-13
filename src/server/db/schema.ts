@@ -44,6 +44,12 @@ export const auditEntityTypeEnum = pgEnum(
 );
 export const auditActionEnum = pgEnum("audit_action", auditActions);
 export const reportFormatEnum = pgEnum("report_format", reportFormats);
+export const processingTaskStatusEnum = pgEnum("processing_task_status", [
+  "PENDING",
+  "PROCESSING",
+  "COMPLETE",
+  "FAILED",
+]);
 
 export const documents = pgTable(
   "documents",
@@ -205,6 +211,39 @@ export const extractions = pgTable(
       table.documentId,
       table.createdAt,
     ),
+  ],
+);
+
+// This durable outbox is the handoff from upload requests to Vercel Cron.
+export const processingTasks = pgTable(
+  "processing_tasks",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    documentId: uuid("document_id")
+      .notNull()
+      .references(() => documents.id, { onDelete: "restrict" }),
+    status: processingTaskStatusEnum("status").notNull().default("PENDING"),
+    reprocessing: boolean("reprocessing").notNull().default(false),
+    attempts: integer("attempts").notNull().default(0),
+    nextAttemptAt: timestamp("next_attempt_at", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+    leaseToken: uuid("lease_token"),
+    leaseExpiresAt: timestamp("lease_expires_at", { withTimezone: true }),
+    lastErrorCode: varchar("last_error_code", { length: 100 }),
+    completedAt: timestamp("completed_at", { withTimezone: true }),
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+    updatedAt: timestamp("updated_at", { withTimezone: true })
+      .notNull()
+      .defaultNow()
+      .$onUpdate(() => new Date()),
+  },
+  (table) => [
+    uniqueIndex("processing_tasks_document_id_idx").on(table.documentId),
+    index("processing_tasks_due_idx").on(table.status, table.nextAttemptAt),
+    check("processing_tasks_attempts_nonnegative", sql`${table.attempts} >= 0`),
   ],
 );
 
