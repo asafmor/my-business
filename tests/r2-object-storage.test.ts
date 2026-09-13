@@ -153,4 +153,20 @@ describe("R2 object storage", () => {
     await storage.deleteObjectInternally(key);
     expect(send.mock.calls[0][0]).toBeInstanceOf(DeleteObjectCommand);
   });
+
+  it("reads original bytes only through the server-side storage adapter", async () => {
+    const send = vi.fn().mockResolvedValue({
+      Body: {
+        transformToByteArray: () => Promise.resolve(new Uint8Array([1, 2])),
+      },
+      ContentType: "application/pdf",
+    });
+    const { storage } = createStorage(send);
+
+    await expect(storage.getStoredDocumentContent(key)).resolves.toEqual({
+      body: new Uint8Array([1, 2]),
+      contentType: "application/pdf",
+    });
+    expect(send.mock.calls[0][0]).toBeInstanceOf(GetObjectCommand);
+  });
 });

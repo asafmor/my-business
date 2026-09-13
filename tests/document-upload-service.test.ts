@@ -18,6 +18,7 @@ function createStorage(overrides: Partial<ObjectStorage> = {}): ObjectStorage {
     createSignedReadUrl: vi.fn(),
     deleteObjectInternally: vi.fn(),
     getObjectMetadata: vi.fn(),
+    getStoredDocumentContent: vi.fn(),
     objectExists: vi.fn(),
     putImmutableObject: vi.fn(async (input) => ({
       bucket: "private-documents",

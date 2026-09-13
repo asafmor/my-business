@@ -79,6 +79,14 @@ APP_ENV=production node --env-file=.env.cloud.local --import tsx scripts/db/migr
 The migration command rejects non-production environments and missing direct
 URLs. Do not run it automatically from Next.js or a request handler.
 
+## AI extraction setup
+
+Configure `OPENAI_API_KEY` only in Vercel Production. Document analysis uses
+the server-side OpenAI Responses API and never exposes the key or original
+document bytes to the browser. `OPENAI_MODEL` is optional; it defaults to
+`gpt-4.1-mini` and accepts only the approved server-side models listed in
+`src/server/ai/openai-document-analyzer.ts`.
+
 ## Project structure
 
 ```text

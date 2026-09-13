@@ -40,6 +40,11 @@ export type StoredImmutableObject = {
   sizeBytes: number;
 };
 
+export type StoredDocumentContent = {
+  body: Uint8Array;
+  contentType: string;
+};
+
 export type SignedReadUrl = {
   expiresAt: Date;
   url: string;
@@ -51,8 +56,22 @@ export interface ObjectStorage {
   ): Promise<StoredImmutableObject>;
   objectExists(key: ObjectKey): Promise<boolean>;
   getObjectMetadata(key: ObjectKey): Promise<ObjectMetadata | null>;
+  getStoredDocumentContent(key: ObjectKey): Promise<StoredDocumentContent>;
   createSignedReadUrl(key: ObjectKey): Promise<SignedReadUrl>;
   deleteObjectInternally(key: ObjectKey): Promise<void>;
+}
+
+async function responseBodyToBytes(body: unknown): Promise<Uint8Array> {
+  if (
+    typeof body === "object" &&
+    body !== null &&
+    "transformToByteArray" in body &&
+    typeof body.transformToByteArray === "function"
+  ) {
+    return body.transformToByteArray();
+  }
+  if (body instanceof Uint8Array) return body;
+  throw new Error("Object storage returned an unreadable document body.");
 }
 
 export class ObjectAlreadyExistsError extends Error {
@@ -210,6 +229,23 @@ export class R2ObjectStorage implements ObjectStorage {
       }
       throw error;
     }
+  }
+
+  // Original content is read only by server-side processing, never exposed as a URL.
+  async getStoredDocumentContent(
+    key: ObjectKey,
+  ): Promise<StoredDocumentContent> {
+    const { bucket, client } = this.getConnection();
+    const response = (await client.send(
+      new GetObjectCommand({ Bucket: bucket, Key: key }),
+    )) as { Body?: unknown; ContentType?: string };
+    if (!response.Body || !response.ContentType) {
+      throw new Error("Stored document is missing content or content type.");
+    }
+    return {
+      body: await responseBodyToBytes(response.Body),
+      contentType: response.ContentType,
+    };
   }
 
   async createSignedReadUrl(key: ObjectKey): Promise<SignedReadUrl> {
