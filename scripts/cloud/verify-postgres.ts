@@ -1,8 +1,8 @@
 import { Client } from "pg";
 
-import { assertProductionDatabaseEnvironment } from "../../src/server/config/cloud-environment";
+import { assertDatabaseEnvironment } from "../../src/server/config/cloud-environment";
 
-assertProductionDatabaseEnvironment(process.env);
+assertDatabaseEnvironment(process.env);
 const client = new Client({ connectionString: process.env.DATABASE_URL });
 
 try {
@@ -15,7 +15,7 @@ try {
     throw new Error("PostgreSQL returned an unexpected connectivity result.");
   }
 
-  console.log("Server-side PostgreSQL connectivity verified for production.");
+  console.log("Server-side PostgreSQL connectivity verified.");
 } finally {
   await client.end().catch(() => undefined);
 }

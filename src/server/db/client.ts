@@ -3,7 +3,7 @@ import "server-only";
 import { drizzle } from "drizzle-orm/node-postgres";
 import { Pool } from "pg";
 
-import { assertProductionDatabaseEnvironment } from "@/server/config/cloud-environment";
+import { assertDatabaseEnvironment } from "@/server/config/cloud-environment";
 
 import * as schema from "./schema";
 
@@ -12,7 +12,7 @@ const globalForDatabase = globalThis as typeof globalThis & {
 };
 
 function getPool(): Pool {
-  assertProductionDatabaseEnvironment(process.env);
+  assertDatabaseEnvironment(process.env);
 
   if (!globalForDatabase.databasePool) {
     globalForDatabase.databasePool = new Pool({

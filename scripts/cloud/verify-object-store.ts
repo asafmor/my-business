@@ -7,7 +7,7 @@ import {
 } from "@aws-sdk/client-s3";
 import { randomUUID } from "node:crypto";
 
-import { assertProductionR2Environment } from "../../src/server/config/cloud-environment";
+import { assertR2Environment } from "../../src/server/config/cloud-environment";
 
 type Target = "r2" | "b2";
 
@@ -23,7 +23,7 @@ if (target !== "r2" && target !== "b2") {
 }
 
 if (target === "r2") {
-  assertProductionR2Environment(process.env);
+  assertR2Environment(process.env);
 }
 
 const prefix = target.toUpperCase();

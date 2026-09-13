@@ -1,18 +1,16 @@
 # Cloud foundation
 
-The application uses one production cloud environment:
+The application has isolated Development and Production cloud environments:
 
-- Vercel hosts the Next.js application.
-- Neon Postgres stores structured data.
-- Private Cloudflare R2 bucket `rotem` stores primary files.
+- Vercel hosts the Next.js application in both environments.
+- Neon Postgres stores structured data in a dedicated project per environment.
+- Private Cloudflare R2 buckets store primary files in a dedicated bucket per
+  environment.
 - Private Backblaze B2 bucket `rotem-backup` stores independent backups.
 
-This single-environment design is an explicit owner decision and is
-authoritative for cloud-foundation work. Automatic Vercel deployments are
-limited to `main`. Vercel Preview and Development deployments and cloud
-environment variables are intentionally disabled, so they cannot automatically
-use production data. Routine local development uses mocks, empty fixtures, or
-sample data rather than cloud resources.
+This supersedes the earlier production-only decision. Local work and Vercel
+Development must use the development resources only. Automatic Git deployments
+remain limited to `main`; Preview receives no cloud resource configuration.
 
 ## Verified state
 
@@ -22,14 +20,20 @@ As of September 13, 2026:
   Next.js on Node.js 24, and has ready Production deployments from `main`.
 - Dedicated Neon resource `my-business-production` runs on the Free plan in
   Frankfurt and is attached only to Vercel Production.
-- Vercel Production retains only the pooled Neon `DATABASE_URL`. The direct,
-  unpooled Neon URL is stored only as `NEON_BACKUP_DATABASE_URL` in GitHub
-  Actions.
+- Dedicated Neon resource `my-business-development` runs on the Free plan in
+  Frankfurt and is attached only to Vercel Development. Its project identifier
+  is `young-poetry-39424785`, which the runtime validates for development.
+- Vercel Production and Development retain only their pooled `DATABASE_URL`.
+  The direct production URL is stored only as `NEON_BACKUP_DATABASE_URL` in
+  GitHub Actions.
 - The unrelated Neon resource `neon-charcoal-horizon` remains attached to
   `waypoint` and is not attached to `my-business`.
 - R2 bucket `rotem` is private. Its public development URL is disabled, and it
   has no custom domain, CORS configuration, or lock rule. Signed
   write/head/read/list checks pass and anonymous reads fail.
+- R2 bucket `my-business-development` is private, empty, located in Western
+  Europe, and has no public development URL, custom domain, CORS configuration,
+  or lock rule. It is not production storage.
 - B2 bucket `rotem-backup` is private. Signed write/head/read/list checks pass
   and anonymous reads fail. It has two lifecycle rules.
 - The B2 GitHub Actions key is restricted to `rotem-backup` and has exactly
@@ -41,36 +45,68 @@ As of September 13, 2026:
   Object Lock flag is not independently visible through that credential.
 - GitHub Actions has the direct Neon backup URL and the R2 and B2 credentials
   and metadata. B2 credentials are not stored in Vercel.
-- `OPENAI_API_KEY` is a Sensitive Vercel Production variable. Live API
-  verification is deferred to GitHub Issue #8.
+- Production variables are unchanged. Development has its isolated Neon URL,
+  Neon project identifier, R2 account and bucket identifiers, development auth
+  values, and `OPENAI_MODEL`. The owner deliberately reuses the existing
+  account-wide R2 credential and may reuse the existing OpenAI key.
 
 Never put credentials, connection URLs, or command output containing them in
 Git, GitHub issues, or CI logs.
 
 ## Vercel environment boundary
 
-`vercel.json` permits Git deployments only from `main`. It also uses an
-ignore command as a second guard against building another branch. Preview and
-Development deployments are intentionally not configured.
+`vercel.json` permits Git deployments only from `main`. It also uses an ignore
+command as a second guard against building another branch. Preview has no cloud
+configuration. Vercel Development exists to support local `vercel env pull`.
 
-`src/server/config/cloud-environment.ts` requires `APP_ENV=production` and,
-on Vercel, `VERCEL_ENV=production` before creating a database or R2 client. It
-also rejects B2 variables in application runtime because B2 is backup-only.
+`src/server/config/cloud-environment.ts` accepts only `APP_ENV=development` or
+`APP_ENV=production`. When `VERCEL_ENV` is set, it must match `APP_ENV` exactly.
+Development also requires the development Neon project identifier and R2 bucket
+`my-business-development`; Production requires R2 bucket `rotem`. The runtime
+rejects B2 variables and direct/unpooled database variables in either app
+environment.
 
-Local development must prefer mocks and empty fixtures. A deliberate local
-connection to production requires a git-ignored local environment with
-`APP_ENV=production`; treat such commands as production operations. Never make
-schema changes by hand; commit migrations and run the project migration command
-once migration tooling exists.
+Local development must use `APP_ENV=development` and the isolated resources.
+There is no local production application mode. A production migration or backup
+is an explicit operational command outside local app runtime. Never make schema
+changes by hand; commit migrations and use the project migration command.
 
-## Local provisioning worksheet
+## Development setup
 
-Copy `.env.cloud.example` to `.env.cloud.local`. The local worksheet is
-ignored by Git and must remain mode `0600`. Fill secrets only in that file,
-never in command arguments or issue comments.
+After all Vercel Development variables are present, pull them without printing
+their values:
+
+```bash
+vercel env pull .env.local
+chmod 600 .env.local
+```
+
+`npm run dev` then supports local login, upload, storage, and document analysis.
+The ignored file must contain only the development `APP_ENV`, pooled Neon URL,
+Neon project identifier, development R2 values, development auth values, and
+development OpenAI key/model. It must not contain B2 or a direct database URL.
+
+Verify the pulled runtime boundary without printing values:
+
+```bash
+npm run cloud:check:environment
+```
 
 `OPENAI_API_KEY` is server-only. Never expose it through a `NEXT_PUBLIC_`
 variable.
+
+### Shared credential risk
+
+The owner deliberately uses the existing account-wide R2 S3 key in both local
+Development and Production. The runtime validates `R2_BUCKET` and therefore
+prevents the development application from naming `rotem`, but this does not
+restrict the credential itself: it can access other buckets in the account.
+Keep it ignored, private, and out of logs. A future bucket-scoped key would
+reduce this residual risk without changing the application boundary.
+
+The same OpenAI key may be reused in Development and Production. Vercel does
+not offer Sensitive variables for its Development target, so keep project
+membership restricted and protect all Development values.
 
 ## Neon Postgres
 
@@ -82,26 +118,29 @@ Store the operational backup copy as `NEON_BACKUP_DATABASE_URL` only in GitHub
 Actions. A protected local worksheet may contain it only for a deliberate local
 production operation; never put the direct URL in Vercel runtime variables.
 
-The production database starts empty. Future schema work must use migrations
-committed to Git.
+Both databases start empty. Future schema work must use migrations committed to
+Git. Development migrations are deliberate and use only the pooled development
+URL:
 
 Run the connection check without printing the URL:
 
 ```bash
-APP_ENV=production node --env-file=.env.cloud.local --import tsx \
-  scripts/cloud/verify-postgres.ts
+node --env-file=.env.local --import tsx scripts/cloud/verify-postgres.ts
+npm run db:migrate
 ```
 
 ## Cloudflare R2
 
-Keep `rotem` private and keep its public development URL and custom domains
-disabled. CORS is unnecessary while server code handles uploads and downloads.
+Keep both `rotem` and `my-business-development` private and keep their public
+development URLs and custom domains disabled. CORS is unnecessary while server
+code handles uploads and downloads.
 If a later feature uploads directly from browsers, add only the required
 application origin and methods.
 
-Use an Object Read & Write S3 token restricted to `rotem`. Do not use an
-account-wide API token. Store the S3 access key and secret only as Sensitive
-Vercel Production values and GitHub Actions secrets.
+The owner uses an account-wide Object Read & Write S3 key in both environments.
+Application runtime validation requires `my-business-development` in
+Development and `rotem` in Production, but does not change the key's broader
+account access. Keep the shared key ignored, private, and out of logs.
 
 `npm run cloud:check:r2` writes, heads, lists, and reads
 `health/cloud-foundation.txt`, checks its size and content, and confirms that

@@ -11,6 +11,7 @@ import {
 } from "../../../../server/storage/file-validation";
 import { getDocumentUploadService } from "../../../../server/documents/upload";
 import type { DocumentUploadResult } from "../../../../server/documents/upload-service";
+import { dispatchDueDocumentProcessing } from "../../../../server/documents/processing-dispatcher";
 
 type UploadResponseResult =
   | ({ fileName: string } & DocumentUploadResult)
@@ -60,6 +61,7 @@ export async function POST(request: Request): Promise<NextResponse> {
   const allowDuplicate = formData.get("allowDuplicate") === "true";
   const service = getDocumentUploadService();
   const results: UploadResponseResult[] = [];
+  let processingQueued = false;
 
   for (const file of files) {
     try {
@@ -67,13 +69,15 @@ export async function POST(request: Request): Promise<NextResponse> {
         throw new FileValidationError("File exceeds the maximum upload size.");
       }
 
+      const result = await service.upload({
+        allowDuplicate,
+        bytes: new Uint8Array(await file.arrayBuffer()),
+        fileName: file.name,
+        mimeType: file.type,
+      });
+      if (result.status === "uploaded") processingQueued = true;
       results.push({
-        ...(await service.upload({
-          allowDuplicate,
-          bytes: new Uint8Array(await file.arrayBuffer()),
-          fileName: file.name,
-          mimeType: file.type,
-        })),
+        ...result,
         fileName: file.name,
       });
     } catch (error) {
@@ -95,5 +99,6 @@ export async function POST(request: Request): Promise<NextResponse> {
     }
   }
 
+  if (processingQueued) dispatchDueDocumentProcessing();
   return NextResponse.json({ results });
 }

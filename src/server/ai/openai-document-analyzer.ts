@@ -100,7 +100,11 @@ function extractOutputText(response: JsonObject): string | null {
 function documentContent(input: DocumentAnalyzerInput) {
   const dataUrl = `data:${input.mimeType};base64,${Buffer.from(input.content).toString("base64")}`;
   if (input.mimeType === "application/pdf") {
-    return { file_data: dataUrl, type: "input_file" };
+    return {
+      file_data: dataUrl,
+      filename: "document.pdf",
+      type: "input_file",
+    };
   }
   return { image_url: dataUrl, type: "input_image" };
 }

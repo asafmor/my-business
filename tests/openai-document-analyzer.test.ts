@@ -50,7 +50,9 @@ describe("OpenAI document analyzer", () => {
       schemaVersion: documentExtractionSchemaVersion,
     });
     const request = JSON.parse(fetch.mock.calls[0][1].body) as {
-      input: { content: { file_data?: string; type: string }[] }[];
+      input: {
+        content: { file_data?: string; filename?: string; type: string }[];
+      }[];
       text: { format: { strict: boolean; type: string } };
     };
     expect(fetch.mock.calls[0][1].headers.Authorization).toBe(
@@ -58,6 +60,7 @@ describe("OpenAI document analyzer", () => {
     );
     expect(request.input[0].content[1]).toMatchObject({
       file_data: "data:application/pdf;base64,AQID",
+      filename: "document.pdf",
       type: "input_file",
     });
     expect(request.text.format).toMatchObject({

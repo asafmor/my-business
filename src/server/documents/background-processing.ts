@@ -101,7 +101,7 @@ export class BackgroundProcessingService {
         );
         await this.dependencies.repository.settle(task);
       } catch {
-        // Failure state is persisted by the onFailure callback. Cron retries the task.
+        // Failure state is persisted by the onFailure callback for later dispatch.
       }
     }
     return processed;

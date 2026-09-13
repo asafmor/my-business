@@ -16,10 +16,14 @@ const guards = vi.hoisted(() => {
 const upload = vi.hoisted(() => ({
   getDocumentUploadService: vi.fn(),
 }));
+const dispatcher = vi.hoisted(() => ({
+  dispatchDueDocumentProcessing: vi.fn(),
+}));
 
 vi.mock("server-only", () => ({}));
 vi.mock("../src/server/auth/guards", () => guards);
 vi.mock("../src/server/documents/upload", () => upload);
+vi.mock("../src/server/documents/processing-dispatcher", () => dispatcher);
 
 import { POST } from "../src/app/api/documents/upload/route";
 import { FileValidationError } from "../src/server/storage/file-validation";
@@ -28,6 +32,7 @@ afterEach(() => {
   guards.assertPostFromSameOrigin.mockReset();
   guards.requireRequestSession.mockReset();
   upload.getDocumentUploadService.mockReset();
+  dispatcher.dispatchDueDocumentProcessing.mockReset();
 });
 
 function uploadRequest(formData: FormData): Request {
@@ -91,6 +96,7 @@ describe("document upload route", () => {
     expect(guards.assertPostFromSameOrigin).toHaveBeenCalledOnce();
     expect(guards.requireRequestSession).toHaveBeenCalledOnce();
     expect(service.upload).toHaveBeenCalledTimes(2);
+    expect(dispatcher.dispatchDueDocumentProcessing).toHaveBeenCalledOnce();
     await expect(response.json()).resolves.toMatchObject({
       results: [
         { fileName: "receipt.jpg", status: "uploaded" },
@@ -124,5 +130,6 @@ describe("document upload route", () => {
         },
       ],
     });
+    expect(dispatcher.dispatchDueDocumentProcessing).not.toHaveBeenCalled();
   });
 });

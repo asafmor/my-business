@@ -214,7 +214,7 @@ export const extractions = pgTable(
   ],
 );
 
-// This durable outbox is the handoff from upload requests to Vercel Cron.
+// This durable outbox is the handoff from uploads to post-response dispatch.
 export const processingTasks = pgTable(
   "processing_tasks",
   {

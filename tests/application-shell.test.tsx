@@ -8,6 +8,9 @@ const authMocks = vi.hoisted(() => ({
 const navigationMocks = vi.hoisted(() => ({
   redirect: vi.fn(),
 }));
+const dispatcherMocks = vi.hoisted(() => ({
+  dispatchDueDocumentProcessing: vi.fn(),
+}));
 
 vi.mock("server-only", () => ({}));
 vi.mock("next/navigation", () => ({
@@ -15,6 +18,7 @@ vi.mock("next/navigation", () => ({
   usePathname: () => "/documents",
 }));
 vi.mock("../src/server/auth/service", () => authMocks);
+vi.mock("../src/server/documents/processing-dispatcher", () => dispatcherMocks);
 
 import { logoutAction } from "../src/app/(protected)/actions";
 import DashboardPage from "../src/app/(protected)/page";
@@ -48,6 +52,9 @@ describe("protected application shell", () => {
     await Promise.all(pages.map((Page) => Page()));
 
     expect(authMocks.requireSession).toHaveBeenCalledTimes(8);
+    expect(
+      dispatcherMocks.dispatchDueDocumentProcessing,
+    ).toHaveBeenCalledOnce();
   });
 
   it("renders a semantic shell with upload, logout, and a skip link", async () => {

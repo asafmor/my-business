@@ -6,6 +6,7 @@ import {
   parseProtectedMutation,
 } from "../../../../../server/auth/guards";
 import { getBackgroundProcessingService } from "../../../../../server/documents/background-processing-runtime";
+import { dispatchDueDocumentProcessing } from "../../../../../server/documents/processing-dispatcher";
 
 const statusRequestSchema = z.object({
   documentIds: z.array(z.string().uuid()).min(1).max(50),
@@ -21,6 +22,7 @@ export async function POST(request: Request): Promise<NextResponse> {
       await getBackgroundProcessingService().getDocumentStatuses(
         input.documentIds,
       );
+    dispatchDueDocumentProcessing();
     return NextResponse.json({ documents });
   } catch (error) {
     if (error instanceof RequestGuardError) {

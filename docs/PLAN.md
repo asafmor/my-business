@@ -85,22 +85,27 @@ A task is considered complete only when its implementation, automated tests wher
 │   ├── create-vercel-project
 │   ├── connect-github-repository
 │   ├── configure-production-environment
-│   ├── enforce-production-only-deployments
+│   ├── configure-development-environment
+│   ├── restrict-automatic-deployments-to-main
 │   └── verify-production-deployments
 │
 ├── 1.2-neon/
 │   ├── provision-neon-postgres
 │   ├── connect-neon-to-vercel
 │   ├── configure-production-database-url
+│   ├── provision-isolated-development-database
+│   ├── configure-development-database-url
 │   ├── define-connection-pooling-strategy
 │   ├── reserve-direct-database-url-for-backups
 │   └── verify-server-side-connectivity
 │
 ├── 1.3-r2/
 │   ├── create-private-r2-bucket
+│   ├── create-private-development-r2-bucket
 │   ├── create-application-service-credentials
 │   ├── limit-credentials-to-required-permissions
 │   ├── configure-vercel-r2-secrets
+│   ├── configure-development-r2-secrets
 │   ├── configure-cors-if-required
 │   └── verify-private-object-read-write
 │
@@ -113,10 +118,11 @@ A task is considered complete only when its implementation, automated tests wher
 │   └── verify-s3-compatible-access
 │
 └── 1.5-environment-isolation/
-    ├── define-mocked-local-development-environment
-    ├── disable-preview-and-development-cloud-environments
+    ├── define-isolated-local-development-environment
+    ├── define-isolated-vercel-development-environment
+    ├── keep-preview-cloud-environments-disabled
     ├── define-production-environment
-    └── prevent-production-data-from-automatic-non-production-use
+    └── prevent-production-data-from-development-use
 ```
 
 ---

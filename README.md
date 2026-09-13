@@ -15,15 +15,27 @@ planned scope.
 
 ## Local development
 
-Install the exact dependency versions recorded in `package-lock.json`, then
-start the Next.js development server:
+Install the exact dependency versions recorded in `package-lock.json`. Local
+development uses the isolated Vercel Development Neon project and R2 bucket,
+never Production. After Development variables are complete, pull them through
+the Vercel CLI and start the server:
 
 ```bash
 npm ci
+vercel env pull .env.local
 npm run dev
 ```
 
 Open <http://localhost:3000>.
+
+`.env.local` is ignored and must remain private. It needs `APP_ENV=development`,
+the pooled development `DATABASE_URL`, `NEON_PROJECT_ID`, development R2 values,
+`AUTH_PASSWORD_HASH`, `AUTH_SESSION_SECRET`, `OPENAI_API_KEY`, and
+`OPENAI_MODEL`. It must not contain B2 credentials or a direct database URL.
+The owner uses an account-wide R2 key for both environments. Runtime validation
+prevents the development app from naming the production bucket, but the key can
+access more than the development bucket and must remain ignored and private.
+See [Cloud foundation](docs/CLOUD_FOUNDATION.md) for the one-time provider setup.
 
 ## Validation
 
@@ -45,64 +57,67 @@ Authentication uses bcrypt with cost 12 because its pure-JavaScript
 implementation runs consistently in the Next.js server runtime on Vercel. Do
 not store the raw password in source control, local environment files, or
 Vercel. Generate a unique password of at least 16 characters with a password
-manager, then generate the two Vercel Production-only variables interactively:
+manager, then generate the two environment-specific variables interactively:
 
 ```bash
 npm run auth:hash-password
 npm run auth:generate-session-secret
 ```
 
-The password command does not echo input and prints the value for
-`AUTH_PASSWORD_HASH`; copy it directly to Vercel, then discard terminal
-history or output that captured it. The session-secret command prints a
-separate 384-bit value for `AUTH_SESSION_SECRET`. Configure both as encrypted
-Vercel Production environment variables only. Never add either value to an
-`.env` file or GitHub Actions; B2 credentials also remain unavailable to the
-application runtime.
+The password command does not echo input and prints `AUTH_PASSWORD_HASH`; the
+session command prints a separate 384-bit `AUTH_SESSION_SECRET`. Use distinct
+values for Development and Production. Vercel does not support Sensitive values
+for its Development target, so restrict project membership and use only
+development-only values there. Never add raw passwords or B2 credentials to an
+environment file or GitHub Actions.
 
 ## Database migrations
 
 Drizzle schema definitions and generated SQL migrations are committed under
-`src/server/db/` and `drizzle/`. `DATABASE_URL` is exclusively for the normal
-server runtime. Applying a migration is a deliberate production operation and
-uses the direct `NEON_BACKUP_DATABASE_URL` from the protected local worksheet
-or GitHub Actions, never the request path:
+`src/server/db/` and `drizzle/`. `DATABASE_URL` is exclusively for normal
+application runtime. Development migrations use the isolated pooled development
+URL and remain a deliberate command. Production migrations use the direct
+`NEON_BACKUP_DATABASE_URL` from GitHub Actions or a protected operational
+worksheet, never a request path:
 
 ```bash
 # Generate a migration after changing src/server/db/schema.ts.
 npm run db:generate
 
-# Apply committed migrations to the production database.
-APP_ENV=production node --env-file=.env.cloud.local --import tsx scripts/db/migrate.ts
+# Apply committed migrations to the development database.
+npm run db:migrate
 ```
 
-The migration command rejects non-production environments and missing direct
-URLs. Do not run it automatically from Next.js or a request handler.
+The command validates the target before connecting. It rejects Preview, a
+development configuration that names production resources, and direct database
+runtime variables. Do not run migrations automatically from Next.js or a
+request handler.
 
 ## AI extraction setup
 
-Configure `OPENAI_API_KEY` only in Vercel Production. Document analysis uses
-the server-side OpenAI Responses API and never exposes the key or original
-document bytes to the browser. `OPENAI_MODEL` is optional; it defaults to
-`gpt-4.1-mini` and accepts only the approved server-side models listed in
-`src/server/ai/openai-document-analyzer.ts`.
+Configure a development-scoped `OPENAI_API_KEY` for Vercel Development and a
+production key for Production, or reuse the existing key where that is the
+owner's choice. Document analysis uses the server-side OpenAI Responses API and
+never exposes the key or original document bytes to the browser. `OPENAI_MODEL`
+defaults to `gpt-4.1-mini` and accepts only the approved server-side models
+listed in `src/server/ai/openai-document-analyzer.ts`.
 
 ## Background processing
 
 Uploads write a durable `processing_tasks` row in the same database transaction
-as the document record. Vercel Cron invokes the protected
-`/api/cron/process-documents` route every minute to lease and process due tasks;
-processing therefore does not depend on the upload page remaining open. Set a
-high-entropy `CRON_SECRET` as a Vercel Production environment variable. Vercel
-uses it to authorize cron invocations; the route rejects all other requests.
+as the document record. After a successful upload or retry, the application
+uses Next.js post-response work to make an immediate best-effort processing
+attempt. Authenticated page requests and processing-status refreshes also
+schedule recovery of due tasks. This does not make the user wait or expose
+provider credentials or document data to the browser.
 
 The executor retries transient storage and provider failures at most three
 times, with one- and five-minute delays. Invalid AI responses fail immediately.
-V1 has at-least-once execution and up to one minute dispatch latency; task
-leases recover after a function interruption, while the document state and
-transactional extraction persistence remain authoritative. Each cron invocation
-processes at most ten tasks within a 60-second function budget; V1 has no
-dedicated worker fleet or real-time push updates.
+V1 has no scheduled jobs: durable pending work is recovered on the next
+authenticated application request. Consequently, processing can remain pending
+while nobody opens the app. Task leases recover after a function interruption,
+while document state and transactional extraction persistence remain
+authoritative. V1 has no dedicated worker fleet or real-time push updates.
 
 ## Project structure
 

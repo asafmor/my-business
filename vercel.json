@@ -7,11 +7,5 @@
       "*": false,
       "main": true
     }
-  },
-  "crons": [
-    {
-      "path": "/api/cron/process-documents",
-      "schedule": "* * * * *"
-    }
-  ]
+  }
 }

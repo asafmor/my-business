@@ -9,7 +9,7 @@ import {
 } from "@aws-sdk/client-s3";
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 
-import { assertProductionR2Environment } from "../config/cloud-environment";
+import { assertR2Environment } from "../config/cloud-environment";
 
 import type { ObjectKey } from "./object-keys";
 
@@ -285,7 +285,7 @@ export function getR2ObjectStorage(
   environment: Record<string, string | undefined> = process.env,
 ): R2ObjectStorage {
   return new R2ObjectStorage(() => {
-    assertProductionR2Environment(environment);
+    assertR2Environment(environment);
     return {
       accountId: environment.R2_ACCOUNT_ID as string,
       accessKeyId: environment.R2_ACCESS_KEY_ID as string,

@@ -48,11 +48,11 @@ afterEach(() => {
 });
 
 describe("R2 object storage", () => {
-  it("defers production configuration validation until storage is used", async () => {
+  it("defers cloud configuration validation until storage is used", async () => {
     const storage = getR2ObjectStorage({});
 
     await expect(storage.objectExists(key)).rejects.toThrow(
-      "APP_ENV must be production",
+      "APP_ENV must be either development or production",
     );
   });
 

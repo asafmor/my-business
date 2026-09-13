@@ -1334,7 +1334,9 @@ The login form can simply ask for:
 
 ## Vercel environment variables
 
-Application runtime secrets:
+Application runtime values are configured separately for Development and
+Production. Development must use only development database and object-storage
+resources:
 
 ```text
 DATABASE_URL
@@ -1347,10 +1349,12 @@ R2_ACCESS_KEY_ID
 R2_SECRET_ACCESS_KEY
 R2_BUCKET
 
-AI_API_KEY
+OPENAI_API_KEY
+OPENAI_MODEL
 ```
 
-The application should **not** receive B2 backup credentials unless some future runtime feature genuinely needs B2.
+The application must not receive B2 backup credentials or an unpooled/direct
+database URL. Vercel Development values must never name production resources.
 
 ---
 
@@ -1572,11 +1576,10 @@ GitHub notification mechanisms can then make failures visible.
 
 ---
 
-# 54. Why GitHub Actions instead of application cron
+# 54. Why GitHub Actions instead of application scheduling
 
-Vercel supports scheduled cron invocations and recommends protecting cron handlers using a `CRON_SECRET`.
-
-However, backups are intentionally placed outside Vercel.
+Backups are intentionally placed outside Vercel rather than relying on
+application-managed schedules.
 
 This gives the system failure independence:
 
@@ -1611,22 +1614,25 @@ B2
 
 ---
 
-# 56. Production-only environment policy
+# 56. Development and production environment policy
 
-V1 has one deployed cloud environment: Vercel Production. Git deployments are
-limited to `main`; Vercel Preview and Development deployments and cloud
-environment variables are intentionally disabled.
+V1 has isolated Development and Production cloud environments. Automatic Git
+deployments remain limited to `main`; Preview receives no cloud resources.
+Local development and Vercel Development use the development Neon project and
+private development R2 bucket only. They must never access production financial
+data or production object identifiers.
 
-Routine local development must use mocks, empty fixtures, or sample data. It
-must not automatically access production financial data. A deliberate local
-production operation is allowed only through an ignored local environment file
-with an explicit production designation, and must be treated as a production
-operation.
+`APP_ENV` is either `development` or `production`. On Vercel, `VERCEL_ENV` must
+match it exactly. Development requires the designated development Neon project,
+pooled `DATABASE_URL`, and development R2 bucket. Production retains the same
+strict pooled-resource boundary. The application rejects B2 credentials and
+direct database runtime variables in both environments.
 
-The Vercel runtime uses the pooled Neon `DATABASE_URL`. GitHub Actions stores
-the direct Neon URL as its backup secret for backups, migrations, and restore
-tooling; it is never stored in Vercel. A protected local worksheet may contain
-it only for a deliberate local production operation.
+The application runtime uses only pooled `DATABASE_URL`. GitHub Actions stores
+the direct production Neon URL as its backup secret for backups, production
+migrations, and restore tooling; it is never stored in Vercel or local
+development configuration. Development migrations are deliberate and run only
+against the isolated development `DATABASE_URL`.
 
 ---
 

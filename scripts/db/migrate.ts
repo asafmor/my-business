@@ -2,17 +2,27 @@ import { drizzle } from "drizzle-orm/node-postgres";
 import { migrate } from "drizzle-orm/node-postgres/migrator";
 import { Pool } from "pg";
 
-import { assertProductionDeployment } from "@/server/config/cloud-environment";
+import {
+  assertDatabaseEnvironment,
+  assertProductionDeployment,
+} from "@/server/config/cloud-environment";
 
 async function run(): Promise<void> {
-  assertProductionDeployment(process.env);
-
-  const connectionString = process.env.NEON_BACKUP_DATABASE_URL;
-  if (!connectionString) {
-    throw new Error(
-      "NEON_BACKUP_DATABASE_URL is required to run database migrations.",
-    );
-  }
+  const connectionString =
+    process.env.APP_ENV === "production"
+      ? (() => {
+          assertProductionDeployment(process.env);
+          if (!process.env.NEON_BACKUP_DATABASE_URL) {
+            throw new Error(
+              "NEON_BACKUP_DATABASE_URL is required for a production migration.",
+            );
+          }
+          return process.env.NEON_BACKUP_DATABASE_URL;
+        })()
+      : (() => {
+          assertDatabaseEnvironment(process.env);
+          return process.env.DATABASE_URL as string;
+        })();
 
   const pool = new Pool({ connectionString, max: 1 });
 
