@@ -85,15 +85,15 @@ A task is considered complete only when its implementation, automated tests wher
 │   ├── create-vercel-project
 │   ├── connect-github-repository
 │   ├── configure-production-environment
-│   ├── configure-preview-environment
-│   └── verify-preview-deployments
+│   ├── enforce-production-only-deployments
+│   └── verify-production-deployments
 │
 ├── 1.2-neon/
 │   ├── provision-neon-postgres
 │   ├── connect-neon-to-vercel
 │   ├── configure-production-database-url
-│   ├── create-separate-development-database
 │   ├── define-connection-pooling-strategy
+│   ├── reserve-direct-database-url-for-backups
 │   └── verify-server-side-connectivity
 │
 ├── 1.3-r2/
@@ -113,12 +113,10 @@ A task is considered complete only when its implementation, automated tests wher
 │   └── verify-s3-compatible-access
 │
 └── 1.5-environment-isolation/
-    ├── define-local-environment
-    ├── define-preview-environment
+    ├── define-mocked-local-development-environment
+    ├── disable-preview-and-development-cloud-environments
     ├── define-production-environment
-    ├── isolate-preview-database
-    ├── isolate-preview-object-storage
-    └── prevent-production-data-from-automatic-preview-use
+    └── prevent-production-data-from-automatic-non-production-use
 ```
 
 ---

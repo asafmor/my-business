@@ -7,19 +7,24 @@ The application uses one production cloud environment:
 - Private Cloudflare R2 bucket `rotem` stores primary files.
 - Private Backblaze B2 bucket `rotem-backup` stores independent backups.
 
-This single-environment design is an explicit owner decision. Automatic Vercel
-deployments are limited to `main`. Preview and Development have no database,
-object-storage, authentication, or AI secrets, so they cannot automatically use
-production data.
+This single-environment design is an explicit owner decision and is
+authoritative for cloud-foundation work. Automatic Vercel deployments are
+limited to `main`. Vercel Preview and Development deployments and cloud
+environment variables are intentionally disabled, so they cannot automatically
+use production data. Routine local development uses mocks, empty fixtures, or
+sample data rather than cloud resources.
 
 ## Verified state
 
 As of September 13, 2026:
 
-- Vercel project `my-business` is connected to `asafmor/my-business` and uses
-  Next.js on Node.js 24. It has no deployments yet.
+- Vercel project `my-business` is connected to `asafmor/my-business`, uses
+  Next.js on Node.js 24, and has ready Production deployments from `main`.
 - Dedicated Neon resource `my-business-production` runs on the Free plan in
   Frankfurt and is attached only to Vercel Production.
+- Vercel Production retains only the pooled Neon `DATABASE_URL`. The direct,
+  unpooled Neon URL is stored only as `NEON_BACKUP_DATABASE_URL` in GitHub
+  Actions.
 - The unrelated Neon resource `neon-charcoal-horizon` remains attached to
   `waypoint` and is not attached to `my-business`.
 - R2 bucket `rotem` is private. Its public development URL is disabled, and it
@@ -45,17 +50,18 @@ Git, GitHub issues, or CI logs.
 ## Vercel environment boundary
 
 `vercel.json` permits Git deployments only from `main`. It also uses an
-ignore command as a second guard against building another branch.
+ignore command as a second guard against building another branch. Preview and
+Development deployments are intentionally not configured.
 
 `src/server/config/cloud-environment.ts` requires `APP_ENV=production` and,
 on Vercel, `VERCEL_ENV=production` before creating a database or R2 client. It
 also rejects B2 variables in application runtime because B2 is backup-only.
 
-Local development may connect to production only through a deliberate,
-git-ignored local environment with `APP_ENV=production`. Treat such commands
-as production operations. Prefer mocks and empty fixtures for routine
-development. Never make schema changes by hand; commit migrations and run the
-project migration command once migration tooling exists.
+Local development must prefer mocks and empty fixtures. A deliberate local
+connection to production requires a git-ignored local environment with
+`APP_ENV=production`; treat such commands as production operations. Never make
+schema changes by hand; commit migrations and run the project migration command
+once migration tooling exists.
 
 ## Local provisioning worksheet
 
@@ -72,8 +78,9 @@ Use the pooled `DATABASE_URL` for normal server runtime. Its hostname contains
 `-pooler`, allowing PgBouncer to absorb short-lived serverless connections.
 
 Use the direct, unpooled URL for migrations, `pg_dump`, and `pg_restore`.
-Store it as `NEON_BACKUP_DATABASE_URL` only in GitHub Actions. Do not put the
-direct URL in Vercel runtime variables.
+Store the operational backup copy as `NEON_BACKUP_DATABASE_URL` only in GitHub
+Actions. A protected local worksheet may contain it only for a deliberate local
+production operation; never put the direct URL in Vercel runtime variables.
 
 The production database starts empty. Future schema work must use migrations
 committed to Git.

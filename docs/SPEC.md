@@ -1611,23 +1611,22 @@ B2
 
 ---
 
-# 56. Environment separation
+# 56. Production-only environment policy
 
-At minimum support:
+V1 has one deployed cloud environment: Vercel Production. Git deployments are
+limited to `main`; Vercel Preview and Development deployments and cloud
+environment variables are intentionally disabled.
 
-* local development
-* Vercel Preview
-* Vercel Production
+Routine local development must use mocks, empty fixtures, or sample data. It
+must not automatically access production financial data. A deliberate local
+production operation is allowed only through an ignored local environment file
+with an explicit production designation, and must be treated as a production
+operation.
 
-Production financial data should not be copied automatically into preview deployments.
-
-Preview should use:
-
-* separate database
-* separate R2 bucket/prefix
-* separate auth secret
-
-or deliberately mocked/sample data.
+The Vercel runtime uses the pooled Neon `DATABASE_URL`. GitHub Actions stores
+the direct Neon URL as its backup secret for backups, migrations, and restore
+tooling; it is never stored in Vercel. A protected local worksheet may contain
+it only for a deliberate local production operation.
 
 ---
 
