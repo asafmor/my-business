@@ -58,5 +58,5 @@ jobs:
       - name: Dump database and upload backup
         run: npm run backup:dump-database
 
-      # Future issue (#19 r2-to-b2-backup) adds the R2 -> B2 object sync
-      # steps to this job.
+      - name: Sync R2 objects to B2
+        run: npm run backup:sync-r2-to-b2

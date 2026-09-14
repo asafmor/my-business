@@ -5,9 +5,11 @@ import {
   databaseMonthlyBackupKey,
   databaseWeeklyBackupKey,
   manifestBackupKey,
+  objectBackupKeyForSourceKey,
   objectDocumentOriginalBackupKey,
   objectDocumentPreviewBackupKey,
   objectReportPdfBackupKey,
+  objectsManifestBackupKey,
 } from "../scripts/backup/layout";
 
 const documentId = "de305d54-75b4-431b-adb2-eb6b9e546013";
@@ -50,5 +52,29 @@ describe("backup layout", () => {
     expect(manifestBackupKey(new Date(Date.UTC(2026, 8, 14)))).toBe(
       "manifests/2026-09-14.json",
     );
+  });
+
+  it("names the object-sync manifest separately from the database manifest", () => {
+    expect(objectsManifestBackupKey(new Date(Date.UTC(2026, 8, 14)))).toBe(
+      "manifests/objects-2026-09-14.json",
+    );
+  });
+
+  it("mirrors a listed R2 source key under objects/", () => {
+    expect(
+      objectBackupKeyForSourceKey(`documents/${documentId}/original`),
+    ).toBe(`objects/documents/${documentId}/original`);
+    expect(
+      objectBackupKeyForSourceKey(`documents/${documentId}/preview.webp`),
+    ).toBe(`objects/documents/${documentId}/preview.webp`);
+    expect(objectBackupKeyForSourceKey(`reports/2026/09/${reportId}.pdf`)).toBe(
+      `objects/reports/2026/09/${reportId}.pdf`,
+    );
+  });
+
+  it("rejects source keys outside the recognized namespaces", () => {
+    expect(() =>
+      objectBackupKeyForSourceKey("health/cloud-foundation.txt"),
+    ).toThrow();
   });
 });

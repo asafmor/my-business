@@ -22,6 +22,17 @@ export type BackupKey = string & {
 const uuidExpression =
   "[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}";
 const uuidPattern = new RegExp(`^${uuidExpression}$`, "i");
+// Mirrors src/server/storage/object-keys.ts's key shapes (that file is
+// server-only and cannot be imported from scripts/), so the R2 -> B2 sync
+// script can validate a listed R2 key before mirroring it under objects/.
+const documentSourceKeyPattern = new RegExp(
+  `^documents/(${uuidExpression})/(original|preview\\.webp)$`,
+  "i",
+);
+const reportSourceKeyPattern = new RegExp(
+  `^reports/\\d{4}/\\d{2}/${uuidExpression}\\.pdf$`,
+  "i",
+);
 
 function asBackupKey(value: string): BackupKey {
   return value as BackupKey;
@@ -119,4 +130,28 @@ export function objectReportPdfBackupKey(
 
 export function manifestBackupKey(date: Date): BackupKey {
   return asBackupKey(`manifests/${isoDate(date)}.json`);
+}
+
+// One manifest per R2 -> B2 object-sync run, kept separate from the
+// database backup's manifestBackupKey so neither run overwrites the other's
+// manifest for the same day.
+export function objectsManifestBackupKey(date: Date): BackupKey {
+  return asBackupKey(`manifests/objects-${isoDate(date)}.json`);
+}
+
+// Generic mirror of a listed R2 object key -> its B2 backup key, for the
+// R2 -> B2 sync script (which lists live R2 keys rather than building them
+// from known document/report IDs). Throws for keys outside the recognized
+// document/report namespaces (e.g. unrelated health-check canary objects),
+// so callers can skip those.
+export function objectBackupKeyForSourceKey(sourceKey: string): BackupKey {
+  if (
+    documentSourceKeyPattern.test(sourceKey) ||
+    reportSourceKeyPattern.test(sourceKey)
+  ) {
+    return asBackupKey(`objects/${sourceKey}`);
+  }
+  throw new Error(
+    `Source object key is not in a recognized backup namespace: ${sourceKey}`,
+  );
 }
