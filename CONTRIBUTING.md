@@ -25,3 +25,23 @@ npm run lint
 npm test
 npm run build
 ```
+
+## Testing
+
+`npm test` runs the vitest unit/integration suite (`tests/*.test.ts`). It is
+fully mocked, needs no credentials, runs in seconds, and is what CI runs on
+every push.
+
+`npm run test:e2e` runs the Playwright end-to-end suite (`e2e/*.spec.ts`)
+against a real running dev server and real Development resources
+(`DATABASE_URL`, R2, session secrets - see `vercel env pull .env.local`). It
+is **not** run in CI, which has no secrets. Run it locally after
+`npm run dev` is up (or let Playwright start it for you) and Development
+credentials are pulled. It seeds/archives its own document rows directly via
+Drizzle rather than going through a real upload + AI round trip, so it never
+calls OpenAI.
+
+Responsive coverage (23.6) is three Playwright projects (desktop/tablet/
+mobile viewports, see `playwright.config.ts`) plus a structural smoke spec
+(`e2e/responsive.spec.ts`) checking for horizontal overflow and reachable
+navigation - no screenshot/visual-regression tooling.
