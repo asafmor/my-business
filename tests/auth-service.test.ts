@@ -61,7 +61,10 @@ describe("login authentication", () => {
         new Date("2026-09-13T12:00:00.000Z"),
       ),
     ).toEqual({ success: false });
-    expect(log).not.toHaveBeenCalled();
+    expect(log).toHaveBeenCalledOnce();
+    expect(log).toHaveBeenCalledWith(
+      expect.stringContaining("security.login_rate_limited"),
+    );
   });
 
   it("creates a secure cookie and expires it on logout", async () => {

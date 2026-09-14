@@ -9,6 +9,7 @@ import type {
   NormalizedDocumentExtraction,
 } from "../ai/document-analyzer";
 import type { ObjectStorage } from "../storage/object-storage";
+import { logError } from "../observability/logger";
 import type {
   DocumentProcessingRepository,
   FailedProcessing,
@@ -108,6 +109,13 @@ export class DocumentProcessingService {
         : { status: "needs-review", reviewReasons };
     } catch (error) {
       const failure = this.failure(document, reprocessing, error, failureCode);
+      // Never log failure.rawResult - it can carry raw document-derived
+      // content (SPEC.md's "raw sensitive document content" ban).
+      logError("document.processing_failed", error, {
+        documentId: failure.documentId,
+        errorCode: failure.errorCode,
+        reprocessing,
+      });
       if (options.onFailure) await options.onFailure(failure);
       else await this.dependencies.repository.failProcessing(failure);
       throw error;

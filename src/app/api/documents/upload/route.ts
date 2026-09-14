@@ -12,6 +12,7 @@ import {
 import { getDocumentUploadService } from "../../../../server/documents/upload";
 import type { DocumentUploadResult } from "../../../../server/documents/upload-service";
 import { dispatchDueDocumentProcessing } from "../../../../server/documents/processing-dispatcher";
+import { logError } from "../../../../server/observability/logger";
 
 type UploadResponseResult =
   | ({ fileName: string } & DocumentUploadResult)
@@ -90,7 +91,7 @@ export async function POST(request: Request): Promise<NextResponse> {
         continue;
       }
 
-      console.error("Document upload failed", error);
+      logError("upload.failed", error, { fileName: file.name });
       results.push({
         fileName: file.name,
         message: "The file could not be uploaded. Please try again.",

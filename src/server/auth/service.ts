@@ -105,6 +105,7 @@ export async function authenticateLogin(
 ): Promise<LoginResult> {
   const clientId = getClientIdentifier(headers);
   if (!loginRateLimit.admit(clientId, now.getTime())) {
+    logSecurityEvent("login_rate_limited");
     return { success: false };
   }
 

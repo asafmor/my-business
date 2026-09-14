@@ -1,6 +1,6 @@
 import "server-only";
 
-type SecurityEvent = "login_failed";
+type SecurityEvent = "login_failed" | "login_rate_limited";
 
 export function logSecurityEvent(event: SecurityEvent): void {
   console.warn(

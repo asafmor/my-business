@@ -11,6 +11,7 @@ import { validateUploadFile } from "../storage/file-validation";
 import { documentOriginalObjectKey } from "../storage/object-keys";
 import type { ObjectStorage } from "../storage/object-storage";
 import { calculateSha256 } from "../storage/sha256";
+import { logError } from "../observability/logger";
 
 import type {
   DocumentUploadRepository,
@@ -95,6 +96,11 @@ export class DocumentUploadService {
       try {
         await this.dependencies.storage.deleteObjectInternally(objectKey);
       } catch (cleanupError) {
+        logError("upload.persistence_failed", cleanupError, {
+          documentId,
+          objectKey,
+          recovered: false,
+        });
         throw new DocumentUploadPersistenceError(
           "Document record failed and the uploaded object needs recovery.",
           { documentId, objectKey },
@@ -102,6 +108,11 @@ export class DocumentUploadService {
         );
       }
 
+      logError("upload.persistence_failed", error, {
+        documentId,
+        objectKey,
+        recovered: true,
+      });
       throw new DocumentUploadPersistenceError(
         "Document record failed; the uploaded object was removed.",
         { documentId, objectKey },
