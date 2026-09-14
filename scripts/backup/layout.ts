@@ -4,9 +4,9 @@
  * object transfer here; those belong to later issues.
  *
  * Layout:
- *   database/daily/YYYY-MM-DD.sql.gz     - nightly pg_dump
- *   database/weekly/YYYY-Www.sql.gz      - ISO week pg_dump
- *   database/monthly/YYYY-MM.sql.gz      - calendar month pg_dump
+ *   database/daily/YYYY-MM-DD.dump       - nightly pg_dump (custom format)
+ *   database/weekly/YYYY-Www.dump        - ISO week pg_dump (custom format)
+ *   database/monthly/YYYY-MM.dump        - calendar month pg_dump (custom format)
  *   objects/documents/{id}/original      - mirrors primary storage 1:1
  *   objects/documents/{id}/preview.webp
  *   objects/reports/YYYY/MM/{id}.pdf
@@ -72,17 +72,17 @@ function isoWeek(date: Date): { year: number; week: number } {
 }
 
 export function databaseDailyBackupKey(date: Date): BackupKey {
-  return asBackupKey(`database/daily/${isoDate(date)}.sql.gz`);
+  return asBackupKey(`database/daily/${isoDate(date)}.dump`);
 }
 
 export function databaseWeeklyBackupKey(date: Date): BackupKey {
   const { year, week } = isoWeek(date);
-  return asBackupKey(`database/weekly/${year}-W${pad(week)}.sql.gz`);
+  return asBackupKey(`database/weekly/${year}-W${pad(week)}.dump`);
 }
 
 export function databaseMonthlyBackupKey(date: Date): BackupKey {
   const { year, month } = datePart(date);
-  return asBackupKey(`database/monthly/${year}-${pad(month)}.sql.gz`);
+  return asBackupKey(`database/monthly/${year}-${pad(month)}.dump`);
 }
 
 // Mirrors src/server/storage/object-keys.ts documentOriginalObjectKey under

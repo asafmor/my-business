@@ -212,9 +212,9 @@ the backup bucket. It is naming only — no pg_dump execution and no R2/B2
 transfer logic, which are later issues.
 
 ```text
-database/daily/YYYY-MM-DD.sql.gz      pg_dump, one per day
-database/weekly/YYYY-Www.sql.gz       pg_dump, ISO week number
-database/monthly/YYYY-MM.sql.gz       pg_dump, one per calendar month
+database/daily/YYYY-MM-DD.dump        pg_dump -Fc (custom format), one per day
+database/weekly/YYYY-Www.dump         pg_dump -Fc, ISO week number
+database/monthly/YYYY-MM.dump         pg_dump -Fc, one per calendar month
 objects/documents/{id}/original       mirrors documents/{id}/original
 objects/documents/{id}/preview.webp   mirrors documents/{id}/preview.webp
 objects/reports/YYYY/MM/{id}.pdf      mirrors reports/YYYY/MM/{id}.pdf
@@ -224,6 +224,11 @@ manifests/YYYY-MM-DD.json             one manifest per backup run
 The `objects/` paths mirror `src/server/storage/object-keys.ts` exactly under
 an `objects/` prefix, so an R2 -> B2 object sync is a straightforward mirror.
 Dates are UTC. `.github/workflows/backup.yml` runs nightly and on manual
-dispatch; it currently only verifies that the backup secrets above are present
-(`npm run backup:verify-secrets`) without printing them. It fails the run if
-any are missing, and will gain real backup steps in later issues.
+dispatch: it verifies the backup secrets above are present
+(`npm run backup:verify-secrets`) without printing them, then runs
+`npm run backup:dump-database` (`scripts/backup/dump-database.ts`), which
+pg_dumps `NEON_BACKUP_DATABASE_URL` in custom format, always writes the daily
+key plus the weekly key on Mondays and the monthly key on the 1st, uploads
+each to B2 alongside a JSON manifest, and verifies the uploaded object's size
+before finishing. It fails the run if any secret is missing or any step
+fails.

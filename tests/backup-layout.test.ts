@@ -16,17 +16,17 @@ const reportId = "c56a4180-65aa-42ec-a945-5fd21dec0538";
 describe("backup layout", () => {
   it("builds sortable database dump paths", () => {
     const date = new Date(Date.UTC(2026, 8, 14)); // Monday, September 14 2026
-    expect(databaseDailyBackupKey(date)).toBe("database/daily/2026-09-14.sql.gz");
-    expect(databaseWeeklyBackupKey(date)).toBe(
-      "database/weekly/2026-W38.sql.gz",
+    expect(databaseDailyBackupKey(date)).toBe("database/daily/2026-09-14.dump");
+    expect(databaseWeeklyBackupKey(date)).toBe("database/weekly/2026-W38.dump");
+    expect(databaseMonthlyBackupKey(date)).toBe(
+      "database/monthly/2026-09.dump",
     );
-    expect(databaseMonthlyBackupKey(date)).toBe("database/monthly/2026-09.sql.gz");
   });
 
   it("handles ISO week boundaries at year edges", () => {
     // January 1 2027 is a Friday, still ISO week 53 of 2026.
     expect(databaseWeeklyBackupKey(new Date(Date.UTC(2027, 0, 1)))).toBe(
-      "database/weekly/2026-W53.sql.gz",
+      "database/weekly/2026-W53.dump",
     );
   });
 

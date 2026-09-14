@@ -40,5 +40,23 @@ jobs:
       - name: Verify backup secrets
         run: npm run backup:verify-secrets
 
-      # Future issues (#18 database-backup, #19 r2-to-b2-backup) add the
-      # real pg_dump and R2 -> B2 sync steps to this job.
+      # Neon's exact Postgres major version isn't pinned here, and pg_dump
+      # can only safely dump FROM a server version <= its own — so install
+      # the newest client from the official PGDG apt repo rather than
+      # ubuntu-latest's bundled version, which can lag behind Neon.
+      - name: Set up PostgreSQL client
+        run: |
+          sudo install -d /usr/share/postgresql-common/pgdg
+          sudo curl -o /usr/share/postgresql-common/pgdg/apt.postgresql.org.asc \
+            https://www.postgresql.org/media/keys/ACCC4CF8.asc
+          . /etc/os-release
+          echo "deb [signed-by=/usr/share/postgresql-common/pgdg/apt.postgresql.org.asc] https://apt.postgresql.org/pub/repos/apt ${VERSION_CODENAME}-pgdg main" \
+            | sudo tee /etc/apt/sources.list.d/pgdg.list
+          sudo apt-get update
+          sudo apt-get install -y postgresql-client-18
+
+      - name: Dump database and upload backup
+        run: npm run backup:dump-database
+
+      # Future issue (#19 r2-to-b2-backup) adds the R2 -> B2 object sync
+      # steps to this job.
