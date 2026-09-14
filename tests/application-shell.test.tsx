@@ -35,6 +35,21 @@ const dashboardRepositoryMocks = vi.hoisted(() => ({
     .fn()
     .mockResolvedValue({ documentCount: 0, needsReviewCount: 0, totalExpenses: "0", vatTotal: "0" }),
 }));
+const monthlyReportMocks = vi.hoisted(() => ({
+  categoryBreakdown: vi.fn().mockResolvedValue([]),
+  problematicDocuments: vi.fn().mockResolvedValue([]),
+  summary: vi.fn().mockResolvedValue({
+    documentCount: 0,
+    grossTotal: "0",
+    netTotal: "0",
+    reviewProblemCount: 0,
+    vatTotal: "0",
+  }),
+  supplierBreakdown: vi.fn().mockResolvedValue([]),
+}));
+const reportArtifactMocks = vi.hoisted(() => ({
+  listForMonth: vi.fn().mockResolvedValue([]),
+}));
 
 vi.mock("server-only", () => ({}));
 vi.mock("next/navigation", () => ({
@@ -71,6 +86,24 @@ vi.mock("../src/server/documents/dashboard-repository", () => ({
     return dashboardRepositoryMocks;
   },
 }));
+vi.mock("../src/server/reports/monthly-report-repository", () => ({
+  DrizzleMonthlyReportRepository: function DrizzleMonthlyReportRepository() {
+    return monthlyReportMocks;
+  },
+}));
+vi.mock("../src/server/reports/report-artifact-repository", () => ({
+  DrizzleReportArtifactRepository: function DrizzleReportArtifactRepository() {
+    return reportArtifactMocks;
+  },
+}));
+vi.mock("../src/server/storage/object-storage", () => ({
+  getR2ObjectStorage: vi.fn(() => ({})),
+}));
+vi.mock("../src/server/storage/private-access", () => ({
+  createPrivateReadUrl: vi
+    .fn()
+    .mockResolvedValue({ expiresAt: new Date(), url: "https://example.com/signed" }),
+}));
 
 import { logoutAction } from "../src/app/(protected)/actions";
 import DashboardPage from "../src/app/(protected)/page";
@@ -90,12 +123,13 @@ import { ContentState } from "../src/components/ui/content-state";
 
 describe("protected application shell", () => {
   it("enforces a shared server session in the layout and every shell route", async () => {
-    const pages = [DashboardPage, InboxPage, ReportsPage, SettingsPage, UploadPage];
+    const pages = [DashboardPage, InboxPage, SettingsPage, UploadPage];
 
     renderToStaticMarkup(await ProtectedLayout({ children: <p>Content</p> }));
     await Promise.all(pages.map((Page) => Page()));
     await DocumentsPage({ searchParams: Promise.resolve({}) });
     await CategoriesPage({ searchParams: Promise.resolve({}) });
+    await ReportsPage({ searchParams: Promise.resolve({}) });
 
     expect(authMocks.requireSession).toHaveBeenCalledTimes(8);
     expect(

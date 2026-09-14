@@ -34,8 +34,10 @@ export interface DashboardRepository {
 }
 
 // Documents without a transaction date fall out of every month bucket below,
-// same as month filtering in documents-query-repository.ts.
-function currentMonthCondition(month: string) {
+// same as month filtering in documents-query-repository.ts. Exported so
+// monthly-report-repository.ts shares this exact predicate instead of
+// redefining it.
+export function currentMonthCondition(month: string) {
   return and(
     ne(documents.status, "ARCHIVED"),
     sql`to_char(${documents.transactionDate}, 'YYYY-MM') = ${month}`,

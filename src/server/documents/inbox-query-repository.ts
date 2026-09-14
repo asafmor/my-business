@@ -1,11 +1,13 @@
 import "server-only";
 
-import { desc, eq, inArray, sql } from "drizzle-orm";
+import { desc, eq, inArray } from "drizzle-orm";
 
 import { statusesForSection } from "../../domain/documents/inbox";
-import type { DocumentStatus, DocumentType, JsonObject } from "../../domain/documents/types";
+import type { DocumentStatus, DocumentType } from "../../domain/documents/types";
 import { getDatabase } from "../db/client";
-import { categories, documents, expenses, extractions, processingTasks } from "../db/schema";
+import { categories, documents, expenses, processingTasks } from "../db/schema";
+
+import { attachReviewReasons, isDuplicateExpr } from "./review-signals";
 
 export type InboxRow = {
   businessUsePercentage: string;
@@ -46,15 +48,6 @@ const recentlyCompletedLimit = 20;
 
 type RawInboxRow = Omit<InboxRow, "reviewReasons">;
 
-// An exact-hash duplicate (SPEC.md #8) of any other non-archived document.
-// Fuzzy duplicate detection (supplier/date/amount) is explicitly deferred.
-const isDuplicateExpr = sql<boolean>`exists (
-  select 1 from documents as other_document
-  where other_document.sha256 = ${documents.sha256}
-    and other_document.id <> ${documents.id}
-    and other_document.status <> 'ARCHIVED'
-)`;
-
 export class DrizzleInboxQueryRepository implements InboxQueryRepository {
   constructor(private readonly database: typeof getDatabase = getDatabase) {}
 
@@ -73,7 +66,7 @@ export class DrizzleInboxQueryRepository implements InboxQueryRepository {
         ),
       ]);
 
-    const needsReview = await this.attachReviewReasons(database, needsReviewRaw);
+    const needsReview = await attachReviewReasons(database, needsReviewRaw);
 
     return {
       failed: failedRaw.map((row) => ({ ...row, reviewReasons: [] })),
@@ -118,42 +111,5 @@ export class DrizzleInboxQueryRepository implements InboxQueryRepository {
       .where(inArray(documents.status, statuses as DocumentStatus[]))
       .orderBy(desc(documents.updatedAt))
       .limit(limit) as unknown as Promise<RawInboxRow[]>;
-  }
-
-  private async attachReviewReasons(
-    database: ReturnType<typeof getDatabase>,
-    rows: RawInboxRow[],
-  ): Promise<InboxRow[]> {
-    if (rows.length === 0) return [];
-
-    const extractionRows = await database
-      .select({
-        createdAt: extractions.createdAt,
-        documentId: extractions.documentId,
-        normalizedResult: extractions.normalizedResult,
-      })
-      .from(extractions)
-      .where(
-        inArray(
-          extractions.documentId,
-          rows.map((row) => row.id),
-        ),
-      );
-
-    const latest = new Map<string, { createdAt: Date; normalizedResult: JsonObject }>();
-    for (const extraction of extractionRows) {
-      const current = latest.get(extraction.documentId);
-      if (!current || extraction.createdAt > current.createdAt) {
-        latest.set(extraction.documentId, extraction);
-      }
-    }
-
-    return rows.map((row) => {
-      const reviewReasons = latest.get(row.id)?.normalizedResult.reviewReasons;
-      return {
-        ...row,
-        reviewReasons: Array.isArray(reviewReasons) ? (reviewReasons as string[]) : [],
-      };
-    });
   }
 }
