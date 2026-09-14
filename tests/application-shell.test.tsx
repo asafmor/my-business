@@ -11,6 +11,10 @@ const navigationMocks = vi.hoisted(() => ({
 const dispatcherMocks = vi.hoisted(() => ({
   dispatchDueDocumentProcessing: vi.fn(),
 }));
+const documentsQueryMocks = vi.hoisted(() => ({
+  list: vi.fn().mockResolvedValue({ page: 1, pageSize: 25, rows: [], total: 0 }),
+  listActiveCategories: vi.fn().mockResolvedValue([]),
+}));
 
 vi.mock("server-only", () => ({}));
 vi.mock("next/navigation", () => ({
@@ -19,6 +23,11 @@ vi.mock("next/navigation", () => ({
 }));
 vi.mock("../src/server/auth/service", () => authMocks);
 vi.mock("../src/server/documents/processing-dispatcher", () => dispatcherMocks);
+vi.mock("../src/server/documents/documents-query-repository", () => ({
+  DrizzleDocumentsQueryRepository: function DrizzleDocumentsQueryRepository() {
+    return documentsQueryMocks;
+  },
+}));
 
 import { logoutAction } from "../src/app/(protected)/actions";
 import DashboardPage from "../src/app/(protected)/page";
@@ -40,7 +49,6 @@ describe("protected application shell", () => {
   it("enforces a shared server session in the layout and every shell route", async () => {
     const pages = [
       DashboardPage,
-      DocumentsPage,
       InboxPage,
       ReportsPage,
       CategoriesPage,
@@ -50,6 +58,7 @@ describe("protected application shell", () => {
 
     renderToStaticMarkup(await ProtectedLayout({ children: <p>Content</p> }));
     await Promise.all(pages.map((Page) => Page()));
+    await DocumentsPage({ searchParams: Promise.resolve({}) });
 
     expect(authMocks.requireSession).toHaveBeenCalledTimes(8);
     expect(

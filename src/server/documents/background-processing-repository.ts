@@ -113,13 +113,20 @@ export class DrizzleBackgroundProcessingRepository implements BackgroundProcessi
     });
   }
 
+  // Also the "reprocess" trigger from the document detail page: this reuses
+  // the retry pathway rather than a second processing-queue entry point, so
+  // it accepts every status process()/beginProcessing() allow reprocessing
+  // from (not just FAILED).
   async retry(documentId: string): Promise<boolean> {
     return this.database().transaction(async (transaction) => {
       const [document] = await transaction
         .update(documents)
         .set({ status: "UPLOADED" })
         .where(
-          and(eq(documents.id, documentId), eq(documents.status, "FAILED")),
+          and(
+            eq(documents.id, documentId),
+            inArray(documents.status, ["UPLOADED", "READY", "NEEDS_REVIEW", "FAILED"]),
+          ),
         )
         .returning({ id: documents.id });
       if (!document) return false;
