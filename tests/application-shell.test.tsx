@@ -99,6 +99,11 @@ vi.mock("../src/server/reports/report-artifact-repository", () => ({
 vi.mock("../src/server/storage/object-storage", () => ({
   getR2ObjectStorage: vi.fn(() => ({})),
 }));
+vi.mock("../src/server/settings/status", () => ({
+  checkDatabaseStatus: vi.fn().mockResolvedValue({ detail: "ok", ok: true }),
+  checkStorageConfiguration: vi.fn(() => ({ detail: "ok", ok: true })),
+  statusBadgeTone: (ok: boolean) => (ok ? "success" : "error"),
+}));
 vi.mock("../src/server/storage/private-access", () => ({
   createPrivateReadUrl: vi
     .fn()
