@@ -28,3 +28,5 @@
 # Local receipt samples
 /receipt-examples/
 /receipts-examples/
+graphify-out/
+*.graphify-bak
