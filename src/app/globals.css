@@ -864,14 +864,6 @@ input:disabled {
     grid-template-columns: repeat(auto-fit, minmax(9rem, 1fr));
   }
 
-  .documents-table--desktop {
-    display: table;
-  }
-
-  .documents-table--mobile {
-    display: none;
-  }
-
   .document-detail__layout {
     align-items: start;
     display: grid;
@@ -885,6 +877,18 @@ input:disabled {
 }
 
 @media (min-width: 64rem) {
+  /* The desktop table's 8 columns need ~990px of content width before
+     they stop overflowing (measured empirically); the sidebar layout
+     kicks in at 48rem, so wait for 64rem before swapping away from the
+     mobile card list to keep tablet widths (e.g. iPad ~810px) overflow-free. */
+  .documents-table--desktop {
+    display: table;
+  }
+
+  .documents-table--mobile {
+    display: none;
+  }
+
   .global-search {
     display: block;
   }

@@ -84,8 +84,10 @@ export default async function DocumentDetailPage({
         <div className="document-detail__preview">
           {previewUrl ? (
             originalFile?.mimeType.startsWith("image/") ? (
-              // eslint-disable-next-line @next/next/no-img-element
-              <img alt="Document preview" src={previewUrl} />
+              <a href={previewUrl} rel="noreferrer" target="_blank">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img alt="Document preview (tap to open full size)" src={previewUrl} />
+              </a>
             ) : (
               <a href={previewUrl} rel="noreferrer" target="_blank">
                 Open original file

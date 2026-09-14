@@ -23,24 +23,8 @@ async function checkNoOverflowAndReachableNav(page: import("@playwright/test").P
   await expect(menuButton.or(sidebarNav)).toBeVisible();
 }
 
-for (const path of ["/", "/inbox"]) {
+for (const path of ["/", "/inbox", "/documents"]) {
   test(`${path} has no horizontal overflow and its navigation is reachable`, async ({ page }) => {
     await checkNoOverflowAndReachableNav(page, path);
   });
 }
-
-// Known gap this smoke spec caught: the documents table overflows
-// horizontally at tablet width (~810px viewport, ~1012px content). Real app
-// CSS work, tracked for PLAN.md 26-responsive-and-mobile-polish - not fixed
-// here since this issue is testing infrastructure, not UI polish.
-test(
-  "/documents has no horizontal overflow and its navigation is reachable",
-  { tag: "@known-gap" },
-  async ({ page }) => {
-    test.fixme(
-      test.info().project.name === "tablet",
-      "documents table overflows at tablet width - see 26-responsive-and-mobile-polish",
-    );
-    await checkNoOverflowAndReachableNav(page, "/documents");
-  },
-);
