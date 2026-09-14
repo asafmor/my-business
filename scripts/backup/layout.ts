@@ -155,3 +155,19 @@ export function objectBackupKeyForSourceKey(sourceKey: string): BackupKey {
     `Source object key is not in a recognized backup namespace: ${sourceKey}`,
   );
 }
+
+// Inverse of objectBackupKeyForSourceKey, for B2 -> R2 restore (20.3): strips
+// the objects/ prefix and validates the remainder is still a recognized
+// document/report key shape before handing it back as a restore target key.
+export function sourceKeyForObjectBackupKey(backupKey: string): string {
+  const sourceKey = backupKey.replace(/^objects\//, "");
+  if (
+    documentSourceKeyPattern.test(sourceKey) ||
+    reportSourceKeyPattern.test(sourceKey)
+  ) {
+    return sourceKey;
+  }
+  throw new Error(
+    `Backup key is not in a recognized objects/ namespace: ${backupKey}`,
+  );
+}

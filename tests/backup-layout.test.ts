@@ -10,6 +10,7 @@ import {
   objectDocumentPreviewBackupKey,
   objectReportPdfBackupKey,
   objectsManifestBackupKey,
+  sourceKeyForObjectBackupKey,
 } from "../scripts/backup/layout";
 
 const documentId = "de305d54-75b4-431b-adb2-eb6b9e546013";
@@ -75,6 +76,21 @@ describe("backup layout", () => {
   it("rejects source keys outside the recognized namespaces", () => {
     expect(() =>
       objectBackupKeyForSourceKey("health/cloud-foundation.txt"),
+    ).toThrow();
+  });
+
+  it("inverts objectBackupKeyForSourceKey back to the original source key", () => {
+    expect(
+      sourceKeyForObjectBackupKey(`objects/documents/${documentId}/original`),
+    ).toBe(`documents/${documentId}/original`);
+    expect(
+      sourceKeyForObjectBackupKey(`objects/reports/2026/09/${reportId}.pdf`),
+    ).toBe(`reports/2026/09/${reportId}.pdf`);
+  });
+
+  it("rejects backup keys outside the recognized objects/ namespace", () => {
+    expect(() =>
+      sourceKeyForObjectBackupKey("manifests/2026-09-14.json"),
     ).toThrow();
   });
 });

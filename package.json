@@ -29,9 +29,12 @@
     "backup:verify-secrets": "tsx scripts/backup/verify-secrets.ts",
     "backup:dump-database": "tsx scripts/backup/dump-database.ts",
     "backup:sync-r2-to-b2": "tsx scripts/backup/sync-r2-to-b2.ts",
+    "backup:restore-database": "tsx scripts/backup/restore-database.ts",
+    "backup:restore-objects": "tsx scripts/backup/restore-objects.ts",
     "db:generate": "drizzle-kit generate",
     "db:migrate": "node --env-file=.env.local --import tsx scripts/db/migrate.ts",
-    "db:permanently-delete-document": "node --env-file=.env.local --import tsx scripts/db/permanently-delete-document.ts"
+    "db:permanently-delete-document": "node --env-file=.env.local --import tsx scripts/db/permanently-delete-document.ts",
+    "db:check-consistency": "node --env-file=.env.local --import tsx scripts/db/check-consistency.ts"
   },
   "dependencies": {
     "@aws-sdk/client-s3": "3.1131.0",
