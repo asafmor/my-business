@@ -30,3 +30,5 @@
 /receipts-examples/
 graphify-out/
 *.graphify-bak
+
+.claude/.headroom_*
