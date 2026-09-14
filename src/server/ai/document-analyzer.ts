@@ -110,6 +110,7 @@ export type ReviewReason =
   | "MISSING_TOTAL"
   | "MISSING_TRANSACTION_DATE"
   | "MISSING_VAT"
+  | "SUSPICIOUS_VAT"
   | "TOTALS_DO_NOT_RECONCILE";
 
 export const normalizedDocumentExtractionSchema = z

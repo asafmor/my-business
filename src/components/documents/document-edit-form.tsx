@@ -23,9 +23,12 @@ export function DocumentEditForm({
   values: {
     businessUsePercentage: string;
     categoryId: string | null;
+    currency: string | null;
     documentNumber: string | null;
     documentType: string;
     notes: string | null;
+    paymentMethod: string | null;
+    subtotal: string | null;
     supplierName: string | null;
     total: string | null;
     transactionDate: string | null;
@@ -99,6 +102,36 @@ export function DocumentEditForm({
       </div>
 
       <div className="field">
+        <label htmlFor="currency">{label("currency", "Currency")}</label>
+        <input
+          className="form-control"
+          defaultValue={values.currency ?? ""}
+          id="currency"
+          maxLength={3}
+          name="currency"
+          placeholder="ILS"
+          style={{ textTransform: "uppercase" }}
+        />
+        {state.fieldErrors.currency && (
+          <p className="form-control__error">{state.fieldErrors.currency}</p>
+        )}
+      </div>
+
+      <div className="field">
+        <label htmlFor="subtotal">{label("subtotal", "Subtotal")}</label>
+        <input
+          className="form-control"
+          defaultValue={values.subtotal ?? ""}
+          id="subtotal"
+          name="subtotal"
+          placeholder="0.00"
+        />
+        {state.fieldErrors.subtotal && (
+          <p className="form-control__error">{state.fieldErrors.subtotal}</p>
+        )}
+      </div>
+
+      <div className="field">
         <label htmlFor="total">{label("total", "Total")}</label>
         <input
           className="form-control"
@@ -155,6 +188,19 @@ export function DocumentEditForm({
         />
         {state.fieldErrors.businessUsePercentage && (
           <p className="form-control__error">{state.fieldErrors.businessUsePercentage}</p>
+        )}
+      </div>
+
+      <div className="field">
+        <label htmlFor="paymentMethod">{label("paymentMethod", "Payment method")}</label>
+        <input
+          className="form-control"
+          defaultValue={values.paymentMethod ?? ""}
+          id="paymentMethod"
+          name="paymentMethod"
+        />
+        {state.fieldErrors.paymentMethod && (
+          <p className="form-control__error">{state.fieldErrors.paymentMethod}</p>
         )}
       </div>
 

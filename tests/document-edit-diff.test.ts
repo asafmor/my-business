@@ -9,8 +9,11 @@ import type { EditableExpenseFields } from "../src/domain/expenses/edit";
 const base: EditableExpenseFields = {
   businessUsePercentage: "100",
   categoryId: "c56a4180-65aa-42ec-a945-5fd21dec0538",
+  currency: "ILS",
   documentNumber: "INV-1",
   notes: null,
+  paymentMethod: "CREDIT_CARD",
+  subtotal: "83.00",
   supplierName: "Acme",
   total: "100.00",
   transactionDate: "2026-01-01",
@@ -47,6 +50,38 @@ describe("diffExpenseEdit", () => {
     expect(changes).toHaveLength(2);
   });
 
+  it("reports currency, subtotal, and payment method changes as manual edits", () => {
+    const next = { ...base, currency: "USD", paymentMethod: "CASH", subtotal: "90.00" };
+    const changes = diffExpenseEdit(base, next);
+
+    expect(changes).toEqual(
+      expect.arrayContaining([
+        {
+          action: "MANUAL_EDIT",
+          auditField: "currency",
+          column: "currency",
+          newValue: "USD",
+          oldValue: "ILS",
+        },
+        {
+          action: "MANUAL_EDIT",
+          auditField: "subtotal",
+          column: "subtotal",
+          newValue: "90.00",
+          oldValue: "83.00",
+        },
+        {
+          action: "MANUAL_EDIT",
+          auditField: "paymentMethod",
+          column: "paymentMethod",
+          newValue: "CASH",
+          oldValue: "CREDIT_CARD",
+        },
+      ]),
+    );
+    expect(changes).toHaveLength(3);
+  });
+
   it("marks a category change with the CATEGORY_CHANGE action and 'category' audit field", () => {
     const next = { ...base, categoryId: "e1c1c1c1-1111-4111-8111-111111111111" };
     const changes = diffExpenseEdit(base, next);
@@ -67,7 +102,17 @@ describe("diffExpenseEdit", () => {
     const fields = changes.map((change) => change.column).sort();
 
     expect(fields).toEqual(
-      ["categoryId", "documentNumber", "supplierName", "total", "transactionDate", "vat"].sort(),
+      [
+        "categoryId",
+        "currency",
+        "documentNumber",
+        "paymentMethod",
+        "subtotal",
+        "supplierName",
+        "total",
+        "transactionDate",
+        "vat",
+      ].sort(),
     );
   });
 });

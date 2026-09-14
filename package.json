@@ -27,7 +27,8 @@
     "cloud:finalize:b2": "tsx scripts/cloud/finalize-b2.ts",
     "cloud:sync:neon": "tsx scripts/cloud/sync-neon-worksheet.ts",
     "db:generate": "drizzle-kit generate",
-    "db:migrate": "node --env-file=.env.local --import tsx scripts/db/migrate.ts"
+    "db:migrate": "node --env-file=.env.local --import tsx scripts/db/migrate.ts",
+    "db:permanently-delete-document": "node --env-file=.env.local --import tsx scripts/db/permanently-delete-document.ts"
   },
   "dependencies": {
     "@aws-sdk/client-s3": "3.1131.0",

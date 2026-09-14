@@ -1,8 +1,11 @@
 export type EditableExpenseFields = {
   businessUsePercentage: string;
   categoryId: string | null;
+  currency: string | null;
   documentNumber: string | null;
   notes: string | null;
+  paymentMethod: string | null;
+  subtotal: string | null;
   supplierName: string | null;
   total: string | null;
   transactionDate: string | null;
@@ -12,8 +15,11 @@ export type EditableExpenseFields = {
 export const defaultEditableExpenseFields: EditableExpenseFields = {
   businessUsePercentage: "100",
   categoryId: null,
+  currency: null,
   documentNumber: null,
   notes: null,
+  paymentMethod: null,
+  subtotal: null,
   supplierName: null,
   total: null,
   transactionDate: null,
@@ -47,8 +53,15 @@ const editableExpenseFieldMap: {
     auditField: "transactionDate",
     column: "transactionDate",
   },
+  { action: "MANUAL_EDIT", auditField: "currency", column: "currency" },
+  { action: "MANUAL_EDIT", auditField: "subtotal", column: "subtotal" },
   { action: "MANUAL_EDIT", auditField: "total", column: "total" },
   { action: "MANUAL_EDIT", auditField: "vat", column: "vat" },
+  {
+    action: "MANUAL_EDIT",
+    auditField: "paymentMethod",
+    column: "paymentMethod",
+  },
   { action: "CATEGORY_CHANGE", auditField: "category", column: "categoryId" },
   {
     action: "MANUAL_EDIT",

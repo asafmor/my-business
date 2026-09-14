@@ -32,10 +32,13 @@ export async function saveDocumentEditAction(
   const parsed = documentEditInputSchema.safeParse({
     businessUsePercentage: emptyToNull(formData.get("businessUsePercentage")) ?? "100",
     categoryId: emptyToNull(formData.get("categoryId")),
+    currency: emptyToNull(formData.get("currency"))?.toUpperCase() ?? null,
     documentId,
     documentNumber: emptyToNull(formData.get("documentNumber")),
     documentType: formData.get("documentType"),
     notes: emptyToNull(formData.get("notes")),
+    paymentMethod: emptyToNull(formData.get("paymentMethod")),
+    subtotal: emptyToNull(formData.get("subtotal")),
     supplierName: emptyToNull(formData.get("supplierName")),
     total: emptyToNull(formData.get("total")),
     transactionDate: emptyToNull(formData.get("transactionDate")),

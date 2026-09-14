@@ -113,13 +113,23 @@ export const reportInputSchema = z.object({
   generatedAt: z.coerce.date().optional(),
 });
 
+export const categoryInputSchema = z.object({
+  name: z.string().trim().min(1).max(120),
+  description: z.string().trim().max(2000).nullable(),
+});
+
+export type CategoryInput = z.infer<typeof categoryInputSchema>;
+
 export const documentEditInputSchema = z.object({
   businessUsePercentage: percentageSchema,
   categoryId: idSchema.nullable(),
+  currency: currencySchema.nullable(),
   documentId: idSchema,
   documentNumber: z.string().trim().min(1).max(255).nullable(),
   documentType: z.enum(documentTypes),
   notes: z.string().max(10_000).nullable(),
+  paymentMethod: z.string().trim().min(1).max(100).nullable(),
+  subtotal: moneySchema.nullable(),
   supplierName: z.string().trim().min(1).max(255).nullable(),
   total: moneySchema.nullable(),
   transactionDate: isoDateSchema.nullable(),

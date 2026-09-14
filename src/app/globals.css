@@ -685,6 +685,13 @@ input:disabled {
   gap: 1rem;
 }
 
+.category-edit-form {
+  align-items: center;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
 .document-detail__actions {
   display: flex;
   gap: 0.75rem;

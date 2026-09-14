@@ -15,6 +15,9 @@ const documentsQueryMocks = vi.hoisted(() => ({
   list: vi.fn().mockResolvedValue({ page: 1, pageSize: 25, rows: [], total: 0 }),
   listActiveCategories: vi.fn().mockResolvedValue([]),
 }));
+const categoryRepositoryMocks = vi.hoisted(() => ({
+  list: vi.fn().mockResolvedValue([]),
+}));
 
 vi.mock("server-only", () => ({}));
 vi.mock("next/navigation", () => ({
@@ -26,6 +29,11 @@ vi.mock("../src/server/documents/processing-dispatcher", () => dispatcherMocks);
 vi.mock("../src/server/documents/documents-query-repository", () => ({
   DrizzleDocumentsQueryRepository: function DrizzleDocumentsQueryRepository() {
     return documentsQueryMocks;
+  },
+}));
+vi.mock("../src/server/categories/category-repository", () => ({
+  DrizzleCategoryRepository: function DrizzleCategoryRepository() {
+    return categoryRepositoryMocks;
   },
 }));
 
@@ -47,18 +55,12 @@ import { ContentState } from "../src/components/ui/content-state";
 
 describe("protected application shell", () => {
   it("enforces a shared server session in the layout and every shell route", async () => {
-    const pages = [
-      DashboardPage,
-      InboxPage,
-      ReportsPage,
-      CategoriesPage,
-      SettingsPage,
-      UploadPage,
-    ];
+    const pages = [DashboardPage, InboxPage, ReportsPage, SettingsPage, UploadPage];
 
     renderToStaticMarkup(await ProtectedLayout({ children: <p>Content</p> }));
     await Promise.all(pages.map((Page) => Page()));
     await DocumentsPage({ searchParams: Promise.resolve({}) });
+    await CategoriesPage({ searchParams: Promise.resolve({}) });
 
     expect(authMocks.requireSession).toHaveBeenCalledTimes(8);
     expect(

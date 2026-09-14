@@ -47,9 +47,12 @@ export default async function DocumentDetailPage({
   const values = {
     businessUsePercentage: detail.expense?.businessUsePercentage ?? "100",
     categoryId: detail.expense?.categoryId ?? null,
+    currency: detail.expense?.currency ?? null,
     documentNumber: detail.expense?.documentNumber ?? null,
     documentType: detail.document.type,
     notes: detail.expense?.notes ?? null,
+    paymentMethod: detail.expense?.paymentMethod ?? null,
+    subtotal: detail.expense?.subtotal ?? null,
     supplierName: detail.expense?.supplierName ?? null,
     total: detail.expense?.total ?? null,
     transactionDate: detail.expense?.transactionDate ?? detail.document.transactionDate,
@@ -65,6 +68,11 @@ export default async function DocumentDetailPage({
       {detail.document.status === "NEEDS_REVIEW" && (
         <p className="content-state content-state--warning">
           Needs review{reviewReasons.length > 0 ? `: ${reviewReasons.map(humanizeEnumValue).join(", ")}` : ""}
+        </p>
+      )}
+      {detail.document.status === "FAILED" && (
+        <p className="content-state content-state--warning">
+          Processing failed. Reprocess to try again, or edit the fields below manually.
         </p>
       )}
 

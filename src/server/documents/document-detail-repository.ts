@@ -160,8 +160,11 @@ export class DrizzleDocumentDetailRepository implements DocumentDetailRepository
         ? {
             businessUsePercentage: existingExpense.businessUsePercentage,
             categoryId: existingExpense.categoryId,
+            currency: existingExpense.currency,
             documentNumber: existingExpense.documentNumber,
             notes: existingExpense.notes,
+            paymentMethod: existingExpense.paymentMethod,
+            subtotal: existingExpense.subtotal,
             supplierName: existingExpense.supplierName,
             total: existingExpense.total,
             transactionDate: existingExpense.transactionDate,
@@ -171,8 +174,11 @@ export class DrizzleDocumentDetailRepository implements DocumentDetailRepository
       const nextFields: EditableExpenseFields = {
         businessUsePercentage: input.businessUsePercentage,
         categoryId: input.categoryId,
+        currency: input.currency,
         documentNumber: input.documentNumber,
         notes: input.notes,
+        paymentMethod: input.paymentMethod,
+        subtotal: input.subtotal,
         supplierName: input.supplierName,
         total: input.total,
         transactionDate: input.transactionDate,
