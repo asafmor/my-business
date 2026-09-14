@@ -18,6 +18,14 @@ const documentsQueryMocks = vi.hoisted(() => ({
 const categoryRepositoryMocks = vi.hoisted(() => ({
   list: vi.fn().mockResolvedValue([]),
 }));
+const inboxQueryMocks = vi.hoisted(() => ({
+  list: vi.fn().mockResolvedValue({
+    failed: [],
+    needsReview: [],
+    processing: [],
+    recentlyCompleted: [],
+  }),
+}));
 
 vi.mock("server-only", () => ({}));
 vi.mock("next/navigation", () => ({
@@ -26,6 +34,14 @@ vi.mock("next/navigation", () => ({
 }));
 vi.mock("../src/server/auth/service", () => authMocks);
 vi.mock("../src/server/documents/processing-dispatcher", () => dispatcherMocks);
+vi.mock("../src/server/documents/background-processing-runtime", () => ({
+  getBackgroundProcessingService: vi.fn(() => ({ retry: vi.fn() })),
+}));
+vi.mock("../src/server/documents/document-detail-repository", () => ({
+  DrizzleDocumentDetailRepository: function DrizzleDocumentDetailRepository() {
+    return { markReviewed: vi.fn(), saveEdit: vi.fn() };
+  },
+}));
 vi.mock("../src/server/documents/documents-query-repository", () => ({
   DrizzleDocumentsQueryRepository: function DrizzleDocumentsQueryRepository() {
     return documentsQueryMocks;
@@ -34,6 +50,11 @@ vi.mock("../src/server/documents/documents-query-repository", () => ({
 vi.mock("../src/server/categories/category-repository", () => ({
   DrizzleCategoryRepository: function DrizzleCategoryRepository() {
     return categoryRepositoryMocks;
+  },
+}));
+vi.mock("../src/server/documents/inbox-query-repository", () => ({
+  DrizzleInboxQueryRepository: function DrizzleInboxQueryRepository() {
+    return inboxQueryMocks;
   },
 }));
 

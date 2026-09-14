@@ -906,3 +906,44 @@ input:disabled {
     transition-duration: 0.01ms !important;
   }
 }
+
+.inbox-section {
+  margin-bottom: 2rem;
+  max-width: 46rem;
+}
+
+.inbox-section h2 {
+  font-size: 1.125rem;
+  letter-spacing: -0.015em;
+  margin: 0 0 0.75rem;
+}
+
+.inbox-card__reasons {
+  color: var(--warning);
+  font-size: 0.8125rem;
+  list-style: disc;
+  margin: 0.5rem 0 0;
+  padding-inline-start: 1.25rem;
+}
+
+.inbox-card__actions {
+  align-items: flex-start;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-top: 0.75rem;
+}
+
+.inbox-inline-edit summary {
+  color: var(--accent-strong);
+  cursor: pointer;
+  font-size: 0.8125rem;
+  font-weight: 600;
+}
+
+.inbox-inline-edit__form {
+  display: grid;
+  gap: 0.75rem;
+  margin-top: 0.75rem;
+  max-width: 24rem;
+}
