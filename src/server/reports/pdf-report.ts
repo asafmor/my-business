@@ -1,6 +1,10 @@
 import "server-only";
 
-import { PDFDocument, StandardFonts, rgb } from "pdf-lib";
+import { readFile } from "node:fs/promises";
+import path from "node:path";
+
+import fontkit from "@pdf-lib/fontkit";
+import { PDFDocument, rgb } from "pdf-lib";
 
 import { formatDateTime, formatMoney } from "../../lib/format";
 
@@ -9,6 +13,32 @@ import type {
   MonthlySummary,
   SupplierBreakdownRow,
 } from "./monthly-report-repository";
+
+const fontsDirectory = path.join(process.cwd(), "src/server/reports/fonts");
+
+// DejaVu Sans covers Hebrew (and most of Latin/Cyrillic), unlike pdf-lib's
+// built-in WinAnsi-only standard fonts — supplier/category names from real
+// documents are often Hebrew and WinAnsi can't encode them at all.
+async function loadFonts(pdf: PDFDocument) {
+  pdf.registerFontkit(fontkit);
+  const [regularBytes, boldBytes] = await Promise.all([
+    readFile(path.join(fontsDirectory, "DejaVuSans.ttf")),
+    readFile(path.join(fontsDirectory, "DejaVuSans-Bold.ttf")),
+  ]);
+  return {
+    bold: await pdf.embedFont(boldBytes),
+    regular: await pdf.embedFont(regularBytes),
+  };
+}
+
+// ponytail: reverses contiguous Hebrew runs so simple right-to-left text
+// (most supplier/category names) reads correctly with pdf-lib's left-to-right
+// drawText. This is not the full Unicode Bidi Algorithm — numbers or Latin
+// text embedded inside a Hebrew run can still come out in the wrong order.
+// Swap in a bidi library (e.g. bidi-js) if that shows up in real reports.
+function toVisualOrder(text: string): string {
+  return text.replace(/[\u0590-\u05FF\uFB1D-\uFB4F]+/g, (run) => [...run].reverse().join(""));
+}
 
 export type MonthlyReportPdfInput = {
   month: string;
@@ -32,13 +62,12 @@ export async function buildMonthlyReportPdf(
   input: MonthlyReportPdfInput,
 ): Promise<Uint8Array> {
   const pdf = await PDFDocument.create();
-  const font = await pdf.embedFont(StandardFonts.Helvetica);
-  const bold = await pdf.embedFont(StandardFonts.HelveticaBold);
+  const { regular: font, bold } = await loadFonts(pdf);
   const page = pdf.addPage([pageWidth, pageHeight]);
 
   let y = pageHeight - 60;
   const write = (text: string, options?: { bold?: boolean; size?: number; gap?: number }) => {
-    page.drawText(text, {
+    page.drawText(toVisualOrder(text), {
       color: rgb(0.1, 0.1, 0.1),
       font: options?.bold ? bold : font,
       size: options?.size ?? 11,

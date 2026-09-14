@@ -1,0 +1,3 @@
+DejaVu Sans / DejaVu Sans Bold are distributed under the Bitstream Vera Fonts
+license plus the DejaVu changes, both of which permit unlimited embedding and
+redistribution. Full license text: https://dejavu-fonts.github.io/License.html
