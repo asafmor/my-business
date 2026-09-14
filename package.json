@@ -26,6 +26,7 @@
     "cloud:configure:b2": "tsx scripts/cloud/configure-b2.ts",
     "cloud:finalize:b2": "tsx scripts/cloud/finalize-b2.ts",
     "cloud:sync:neon": "tsx scripts/cloud/sync-neon-worksheet.ts",
+    "backup:verify-secrets": "tsx scripts/backup/verify-secrets.ts",
     "db:generate": "drizzle-kit generate",
     "db:migrate": "node --env-file=.env.local --import tsx scripts/db/migrate.ts",
     "db:permanently-delete-document": "node --env-file=.env.local --import tsx scripts/db/permanently-delete-document.ts"
