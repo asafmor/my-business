@@ -7,6 +7,7 @@ import {
   saveDocumentEditAction,
 } from "./actions";
 import { DocumentEditForm } from "../../../../components/documents/document-edit-form";
+import { formatAuditChange } from "../../../../domain/documents/audit-change";
 import { formatDate, formatDateTime, formatMoney, humanizeEnumValue } from "../../../../lib/format";
 import { parseObjectKey } from "../../../../server/storage/object-keys";
 import { createPrivateReadUrl } from "../../../../server/storage/private-access";
@@ -60,6 +61,9 @@ export default async function DocumentDetailPage({
   };
 
   const manualFields = new Set([...detail.manualDocumentFields, ...detail.manualExpenseFields]);
+  const categoryNameById = Object.fromEntries(
+    detail.categories.map((category) => [category.id, category.name]),
+  );
 
   return (
     <div className="page document-detail">
@@ -164,15 +168,16 @@ export default async function DocumentDetailPage({
       <details className="document-detail__advanced">
         <summary>Audit history</summary>
         <ul className="data-list">
-          {detail.auditEvents.map((event) => (
-            <li className="data-list__item" key={event.id}>
-              {formatDateTime(event.createdAt)} · {humanizeEnumValue(event.action)}
-              {event.field ? ` · ${event.field}` : ""} · {humanizeEnumValue(event.source)}
-              {event.oldValue !== null || event.newValue !== null
-                ? ` (${JSON.stringify(event.oldValue)} → ${JSON.stringify(event.newValue)})`
-                : ""}
-            </li>
-          ))}
+          {detail.auditEvents.map((event) => {
+            const change = formatAuditChange(event, categoryNameById);
+            return (
+              <li className="data-list__item" key={event.id}>
+                {formatDateTime(event.createdAt)} · {humanizeEnumValue(event.action)}
+                {event.field ? ` · ${event.field}` : ""} · {humanizeEnumValue(event.source)}
+                {change ? ` (${change})` : ""}
+              </li>
+            );
+          })}
           {detail.auditEvents.length === 0 && <li className="data-list__item">No audit events.</li>}
         </ul>
       </details>
