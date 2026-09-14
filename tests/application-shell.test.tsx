@@ -26,6 +26,15 @@ const inboxQueryMocks = vi.hoisted(() => ({
     recentlyCompleted: [],
   }),
 }));
+const dashboardRepositoryMocks = vi.hoisted(() => ({
+  categoryBreakdown: vi.fn().mockResolvedValue([]),
+  hasAnyDocuments: vi.fn().mockResolvedValue(false),
+  recentlyEdited: vi.fn().mockResolvedValue([]),
+  recentlyUploaded: vi.fn().mockResolvedValue([]),
+  summary: vi
+    .fn()
+    .mockResolvedValue({ documentCount: 0, needsReviewCount: 0, totalExpenses: "0", vatTotal: "0" }),
+}));
 
 vi.mock("server-only", () => ({}));
 vi.mock("next/navigation", () => ({
@@ -55,6 +64,11 @@ vi.mock("../src/server/categories/category-repository", () => ({
 vi.mock("../src/server/documents/inbox-query-repository", () => ({
   DrizzleInboxQueryRepository: function DrizzleInboxQueryRepository() {
     return inboxQueryMocks;
+  },
+}));
+vi.mock("../src/server/documents/dashboard-repository", () => ({
+  DrizzleDashboardRepository: function DrizzleDashboardRepository() {
+    return dashboardRepositoryMocks;
   },
 }));
 

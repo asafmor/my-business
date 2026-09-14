@@ -912,6 +912,53 @@ input:disabled {
   max-width: 46rem;
 }
 
+.dashboard-section {
+  margin-bottom: 2rem;
+  max-width: 46rem;
+}
+
+.dashboard-section h2 {
+  font-size: 1.125rem;
+  letter-spacing: -0.015em;
+  margin: 0 0 0.75rem;
+}
+
+.dashboard-stats {
+  display: grid;
+  gap: 0.75rem;
+  grid-template-columns: repeat(auto-fit, minmax(9rem, 1fr));
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.dashboard-stat {
+  background: var(--surface);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-raised);
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  padding: 1rem;
+}
+
+.dashboard-stat__value {
+  font-size: 1.5rem;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+}
+
+.dashboard-stat__label {
+  color: var(--ink-muted);
+  font-size: 0.8125rem;
+}
+
+.dashboard-quick-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+}
+
 .inbox-section h2 {
   font-size: 1.125rem;
   letter-spacing: -0.015em;
