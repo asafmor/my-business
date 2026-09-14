@@ -157,3 +157,19 @@ Record the result (pass/fail, what was checked, when) wherever this
 project tracks operational runs. The _automated, recurring_ version of this
 exact drill — restoring into a throwaway Postgres on a schedule and
 smoke-testing it — is issue `21-scheduled-restore-testing`, not this one.
+
+## Scheduled restore testing
+
+`.github/workflows/restore-test.yml` runs `npm run backup:run-restore-test`
+monthly (plus `workflow_dispatch` for a manual run), against a throwaway
+`postgres:18` GitHub Actions service container — never a real database. The
+job: migrates the container to the current schema, restores the latest
+verified daily backup into it via `restore-database.ts`'s exported
+functions, then checks representative tables (`documents`, `expenses`) are
+readable and that the schema's foreign keys (`document_files`, `expenses`,
+`extractions`, `processing_tasks`, `reports` → their parent tables) have no
+orphan rows. On success it records a `restore_test` row in the real
+`backup_runs` table (via `NEON_BACKUP_DATABASE_URL`) — the timestamp of the
+last successful automated restore test. The throwaway container is
+destroyed automatically when the job ends; nothing needs cleaning up by
+hand.

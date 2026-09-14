@@ -1,0 +1,1 @@
+ALTER TYPE "public"."backup_run_kind" ADD VALUE 'restore_test';

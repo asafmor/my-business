@@ -1,0 +1,96 @@
+name: Restore test
+
+# SPEC.md #36 / PLAN.md 21-scheduled-restore-testing: periodically prove a
+# backup can actually be restored, not just that dump files exist. Runs
+# monthly (offset from the nightly 02:00 backup.yml so it doesn't race the
+# same night) rather than nightly - SPEC.md explicitly allows a lower
+# cadence than the backup itself.
+on:
+  schedule:
+    - cron: "0 3 1 * *"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  restore-test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    # 21.1: the temporary restore target. A GitHub Actions service container
+    # exists only for this job's run and is torn down automatically when the
+    # job ends - satisfying "clean up temporary resources" with no extra
+    # code. The user/password/db below are not secrets: they are generated
+    # fresh for a container that is never reachable outside this runner and
+    # is destroyed at the end of the job, so there is nothing to leak.
+    services:
+      postgres:
+        image: postgres:18
+        env:
+          POSTGRES_USER: restore_test
+          POSTGRES_PASSWORD: restore_test
+          POSTGRES_DB: restore_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+
+    env:
+      B2_ENDPOINT: ${{ secrets.B2_ENDPOINT }}
+      B2_REGION: ${{ secrets.B2_REGION }}
+      B2_ACCESS_KEY_ID: ${{ secrets.B2_ACCESS_KEY_ID }}
+      B2_SECRET_ACCESS_KEY: ${{ secrets.B2_SECRET_ACCESS_KEY }}
+      B2_BUCKET: ${{ secrets.B2_BUCKET }}
+      # The real backup-tracking database - only used to record the
+      # "restore test succeeded" timestamp after the throwaway container
+      # above has been restored into and checked. Never the restore target.
+      NEON_BACKUP_DATABASE_URL: ${{ secrets.NEON_BACKUP_DATABASE_URL }}
+      RESTORE_TARGET_DATABASE_URL: postgresql://restore_test:restore_test@localhost:5432/restore_test
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      # Same reasoning as backup.yml: install the newest client from the
+      # official PGDG apt repo rather than ubuntu-latest's bundled version,
+      # since pg_restore must be able to restore a dump made from Neon's
+      # (unpinned) Postgres version.
+      - name: Set up PostgreSQL client
+        run: |
+          sudo install -d /usr/share/postgresql-common/pgdg
+          sudo curl -o /usr/share/postgresql-common/pgdg/apt.postgresql.org.asc \
+            https://www.postgresql.org/media/keys/ACCC4CF8.asc
+          . /etc/os-release
+          echo "deb [signed-by=/usr/share/postgresql-common/pgdg/apt.postgresql.org.asc] https://apt.postgresql.org/pub/repos/apt ${VERSION_CODENAME}-pgdg main" \
+            | sudo tee /etc/apt/sources.list.d/pgdg.list
+          sudo apt-get update
+          sudo apt-get install -y postgresql-client-18
+
+      # 21.1: apply the current schema to the throwaway target before
+      # restoring into it - mirrors SPEC.md #35 step 2 (infra/config) coming
+      # before step 3 (restore) in a real disaster-recovery restore.
+      #
+      # Runs scripts/db/migrate.ts directly rather than via `npm run
+      # db:migrate`, which hardcodes `--env-file=.env.local` - a file that
+      # doesn't exist in CI.
+      - name: Migrate throwaway target
+        env:
+          APP_ENV: development
+          DATABASE_URL: ${{ env.RESTORE_TARGET_DATABASE_URL }}
+        run: node --import tsx scripts/db/migrate.ts
+
+      - name: Run restore test
+        run: npm run backup:run-restore-test

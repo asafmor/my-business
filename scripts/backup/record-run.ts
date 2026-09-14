@@ -16,7 +16,7 @@ import { Pool } from "pg";
 import { backupRuns } from "../../src/server/db/schema";
 
 export type BackupRunRow = {
-  kind: "database" | "objects";
+  kind: "database" | "objects" | "restore_test";
   ranAt: Date;
   detail: string;
 };

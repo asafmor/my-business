@@ -53,6 +53,7 @@ export const processingTaskStatusEnum = pgEnum("processing_task_status", [
 export const backupRunKindEnum = pgEnum("backup_run_kind", [
   "database",
   "objects",
+  "restore_test",
 ]);
 
 export const documents = pgTable(

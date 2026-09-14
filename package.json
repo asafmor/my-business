@@ -31,6 +31,7 @@
     "backup:sync-r2-to-b2": "tsx scripts/backup/sync-r2-to-b2.ts",
     "backup:restore-database": "tsx scripts/backup/restore-database.ts",
     "backup:restore-objects": "tsx scripts/backup/restore-objects.ts",
+    "backup:run-restore-test": "tsx scripts/backup/run-restore-test.ts",
     "db:generate": "drizzle-kit generate",
     "db:migrate": "node --env-file=.env.local --import tsx scripts/db/migrate.ts",
     "db:permanently-delete-document": "node --env-file=.env.local --import tsx scripts/db/permanently-delete-document.ts",
