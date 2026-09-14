@@ -12,7 +12,9 @@ const dispatcherMocks = vi.hoisted(() => ({
   dispatchDueDocumentProcessing: vi.fn(),
 }));
 const documentsQueryMocks = vi.hoisted(() => ({
-  list: vi.fn().mockResolvedValue({ page: 1, pageSize: 25, rows: [], total: 0 }),
+  list: vi
+    .fn()
+    .mockResolvedValue({ page: 1, pageSize: 25, rows: [], total: 0 }),
   listActiveCategories: vi.fn().mockResolvedValue([]),
 }));
 const categoryRepositoryMocks = vi.hoisted(() => ({
@@ -31,9 +33,12 @@ const dashboardRepositoryMocks = vi.hoisted(() => ({
   hasAnyDocuments: vi.fn().mockResolvedValue(false),
   recentlyEdited: vi.fn().mockResolvedValue([]),
   recentlyUploaded: vi.fn().mockResolvedValue([]),
-  summary: vi
-    .fn()
-    .mockResolvedValue({ documentCount: 0, needsReviewCount: 0, totalExpenses: "0", vatTotal: "0" }),
+  summary: vi.fn().mockResolvedValue({
+    documentCount: 0,
+    needsReviewCount: 0,
+    totalExpenses: "0",
+    vatTotal: "0",
+  }),
 }));
 const monthlyReportMocks = vi.hoisted(() => ({
   categoryBreakdown: vi.fn().mockResolvedValue([]),
@@ -101,13 +106,17 @@ vi.mock("../src/server/storage/object-storage", () => ({
 }));
 vi.mock("../src/server/settings/status", () => ({
   checkDatabaseStatus: vi.fn().mockResolvedValue({ detail: "ok", ok: true }),
+  checkLastBackupStatus: vi
+    .fn()
+    .mockResolvedValue({ database: null, objects: null, stale: true }),
   checkStorageConfiguration: vi.fn(() => ({ detail: "ok", ok: true })),
   statusBadgeTone: (ok: boolean) => (ok ? "success" : "error"),
 }));
 vi.mock("../src/server/storage/private-access", () => ({
-  createPrivateReadUrl: vi
-    .fn()
-    .mockResolvedValue({ expiresAt: new Date(), url: "https://example.com/signed" }),
+  createPrivateReadUrl: vi.fn().mockResolvedValue({
+    expiresAt: new Date(),
+    url: "https://example.com/signed",
+  }),
 }));
 
 import { logoutAction } from "../src/app/(protected)/actions";

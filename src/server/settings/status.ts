@@ -1,9 +1,21 @@
 import "server-only";
 
-import { sql } from "drizzle-orm";
+import { desc, eq, sql } from "drizzle-orm";
 
 import { assertR2Environment } from "../config/cloud-environment";
 import { getDatabase } from "../db/client";
+import { backupRuns } from "../db/schema";
+
+// 19.3: how stale the most recent verified backup row may be before the
+// settings page stops calling it "recent" - generous margin over the
+// nightly 02:00 cron, to catch a workflow that silently stopped running.
+const staleAfterMs = 36 * 60 * 60 * 1000;
+
+export type BackupStatus = {
+  database: { ranAt: Date; detail: string } | null;
+  objects: { ranAt: Date; detail: string } | null;
+  stale: boolean;
+};
 
 export type StatusCheck = {
   detail: string;
@@ -44,4 +56,37 @@ export function checkStorageConfiguration(
 
 export function statusBadgeTone(ok: boolean): "error" | "success" {
   return ok ? "success" : "error";
+}
+
+async function latestBackupRun(
+  kind: "database" | "objects",
+): Promise<{ ranAt: Date; detail: string } | null> {
+  const [row] = await getDatabase()
+    .select({ detail: backupRuns.detail, ranAt: backupRuns.ranAt })
+    .from(backupRuns)
+    .where(eq(backupRuns.kind, kind))
+    .orderBy(desc(backupRuns.ranAt))
+    .limit(1);
+  return row ?? null;
+}
+
+// 19.1/19.3: reads only verified-success rows the backup scripts wrote
+// (src/server/db/schema.ts backupRuns) - never assumes last night's
+// scheduled workflow ran just because it was scheduled to.
+export async function checkLastBackupStatus(
+  now: Date = new Date(),
+): Promise<BackupStatus> {
+  const [database, objects] = await Promise.all([
+    latestBackupRun("database"),
+    latestBackupRun("objects"),
+  ]);
+
+  const mostRecent = [database?.ranAt, objects?.ranAt]
+    .filter((d): d is Date => d !== undefined && d !== null)
+    .sort((a, b) => b.getTime() - a.getTime())[0];
+
+  const stale =
+    !mostRecent || now.getTime() - mostRecent.getTime() > staleAfterMs;
+
+  return { database, objects, stale };
 }

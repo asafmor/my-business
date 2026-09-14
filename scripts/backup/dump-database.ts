@@ -25,6 +25,11 @@ import {
   databaseWeeklyBackupKey,
   manifestBackupKey,
 } from "./layout";
+import {
+  recordBackupRun,
+  redactConnectionString,
+  withBackupRunRecorder,
+} from "./record-run";
 
 function required(name: string): string {
   const value = process.env[name];
@@ -180,6 +185,15 @@ async function main(): Promise<void> {
       }),
     );
 
+    // 19.1: only after every key above has uploaded and verified.
+    await withBackupRunRecorder(connectionUrl, (database) =>
+      recordBackupRun(database, {
+        kind: "database",
+        ranAt: now,
+        detail: `${keys.join(", ")} (${sizeBytes} bytes)`,
+      }),
+    );
+
     console.log(`Backed up database to: ${keys.join(", ")}`);
   } finally {
     rmSync(outFile, { force: true });
@@ -188,7 +202,11 @@ async function main(): Promise<void> {
 
 if (process.argv[1] === fileURLToPath(import.meta.url)) {
   void main().catch((error: unknown) => {
-    console.error(error instanceof Error ? error.message : "Backup failed.");
+    console.error(
+      redactConnectionString(
+        error instanceof Error ? error.message : "Backup failed.",
+      ),
+    );
     process.exitCode = 1;
   });
 }

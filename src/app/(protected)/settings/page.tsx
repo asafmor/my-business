@@ -3,6 +3,7 @@ import Link from "next/link";
 import packageJson from "../../../../package.json";
 import {
   checkDatabaseStatus,
+  checkLastBackupStatus,
   checkStorageConfiguration,
   statusBadgeTone,
 } from "../../../server/settings/status";
@@ -14,11 +15,16 @@ export const dynamic = "force-dynamic";
 export default async function SettingsPage() {
   await requireSession();
 
-  const [database, storage] = await Promise.all([
+  const [database, storage, backup] = await Promise.all([
     checkDatabaseStatus(),
     checkStorageConfiguration(),
+    checkLastBackupStatus(),
   ]);
   const environment = process.env.APP_ENV ?? "unknown";
+  const lastBackupAt = [backup.database?.ranAt, backup.objects?.ranAt]
+    .filter((d): d is Date => d != null)
+    .sort((a, b) => b.getTime() - a.getTime())[0];
+  const backupOk = lastBackupAt !== undefined && !backup.stale;
 
   return (
     <div className="page">
@@ -82,12 +88,26 @@ export default async function SettingsPage() {
           <li className="data-list__item">
             <div className="data-list__item-header">
               <span>Last successful backup</span>
-              <span className="status-badge status-badge--neutral">
-                Not available
-              </span>
+              {lastBackupAt ? (
+                <span
+                  className={`status-badge status-badge--${statusBadgeTone(backupOk)}`}
+                >
+                  {lastBackupAt.toLocaleDateString("en-US", {
+                    year: "numeric",
+                    month: "short",
+                    day: "numeric",
+                  })}
+                </span>
+              ) : (
+                <span className="status-badge status-badge--neutral">
+                  Not available
+                </span>
+              )}
             </div>
             <div className="data-list__item-meta">
-              Backup system not yet implemented.
+              {lastBackupAt
+                ? `Database: ${backup.database ? backup.database.ranAt.toLocaleString() : "none recorded"} · Objects: ${backup.objects ? backup.objects.ranAt.toLocaleString() : "none recorded"}${backup.stale ? " (stale)" : ""}`
+                : "No verified backup recorded yet."}
             </div>
           </li>
         </ul>
@@ -95,9 +115,7 @@ export default async function SettingsPage() {
 
       <section className="dashboard-section">
         <h2>Categories</h2>
-        <p>
-          Manage the expense categories used across documents and reports.
-        </p>
+        <p>Manage the expense categories used across documents and reports.</p>
         <Link className="button button--secondary" href="/categories">
           Manage categories
         </Link>

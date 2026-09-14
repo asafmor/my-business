@@ -50,6 +50,10 @@ export const processingTaskStatusEnum = pgEnum("processing_task_status", [
   "COMPLETE",
   "FAILED",
 ]);
+export const backupRunKindEnum = pgEnum("backup_run_kind", [
+  "database",
+  "objects",
+]);
 
 export const documents = pgTable(
   "documents",
@@ -295,6 +299,24 @@ export const reports = pgTable(
       name: "reports_document_file_match_fk",
     }).onDelete("restrict"),
   ],
+);
+
+// 19.1/19.3: one row per successful, verified backup run. Written only by
+// the backup scripts (scripts/backup/*.ts) after their own verification
+// step passes — a row's mere existence means "verified success", so the app
+// never has to guess whether last night's cron actually ran (19.3).
+export const backupRuns = pgTable(
+  "backup_runs",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    kind: backupRunKindEnum("kind").notNull(),
+    ranAt: timestamp("ran_at", { withTimezone: true }).notNull(),
+    detail: text("detail").notNull(),
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+  },
+  (table) => [index("backup_runs_kind_ran_at_idx").on(table.kind, table.ranAt)],
 );
 
 export const defaultExpenseCategories = [

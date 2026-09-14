@@ -1,5 +1,9 @@
 import { describe, expect, it, vi } from "vitest";
 
+vi.mock("../src/server/db/schema", () => ({
+  backupRuns: { kind: "backup_runs.kind" },
+}));
+
 import {
   backupKeysForDate,
   runPgDump,

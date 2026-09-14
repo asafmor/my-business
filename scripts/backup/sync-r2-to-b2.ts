@@ -28,6 +28,11 @@ import {
   objectBackupKeyForSourceKey,
   objectsManifestBackupKey,
 } from "./layout";
+import {
+  recordBackupRun,
+  redactConnectionString,
+  withBackupRunRecorder,
+} from "./record-run";
 
 function required(name: string): string {
   const value = process.env[name];
@@ -213,6 +218,7 @@ export type ObjectManifestEntry = {
 };
 
 async function main(): Promise<void> {
+  const connectionUrl = required("NEON_BACKUP_DATABASE_URL");
   const r2Bucket = required("R2_BUCKET");
   const r2Client = new S3Client({
     credentials: {
@@ -293,6 +299,17 @@ async function main(): Promise<void> {
     );
   }
 
+  // 19.1: the whole run (copies + their per-object verifyB2Copy calls above)
+  // succeeded, so record it even when copiedCount is 0 - everything already
+  // being in B2 is still a verified-success run, not a no-op to skip.
+  await withBackupRunRecorder(connectionUrl, (database) =>
+    recordBackupRun(database, {
+      kind: "objects",
+      ranAt: now,
+      detail: `${copiedCount} copied, ${skippedCount} already backed up (${objects.length} total)`,
+    }),
+  );
+
   console.log(
     `R2 -> B2 object sync: ${copiedCount} copied, ${skippedCount} already backed up.`,
   );
@@ -301,7 +318,9 @@ async function main(): Promise<void> {
 if (process.argv[1] === fileURLToPath(import.meta.url)) {
   void main().catch((error: unknown) => {
     console.error(
-      error instanceof Error ? error.message : "Object backup sync failed.",
+      redactConnectionString(
+        error instanceof Error ? error.message : "Object backup sync failed.",
+      ),
     );
     process.exitCode = 1;
   });
