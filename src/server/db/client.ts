@@ -3,6 +3,7 @@ import "server-only";
 import { drizzle } from "drizzle-orm/node-postgres";
 import { Pool } from "pg";
 
+import { pinStrictSslMode } from "@/lib/postgres-url";
 import { assertDatabaseEnvironment } from "@/server/config/cloud-environment";
 
 import * as schema from "./schema";
@@ -16,7 +17,7 @@ function getPool(): Pool {
 
   if (!globalForDatabase.databasePool) {
     globalForDatabase.databasePool = new Pool({
-      connectionString: process.env.DATABASE_URL,
+      connectionString: pinStrictSslMode(process.env.DATABASE_URL ?? ""),
       max: 1,
       connectionTimeoutMillis: 5_000,
     });

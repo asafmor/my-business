@@ -27,8 +27,16 @@ export default function RootLayout({
   children,
 }: Readonly<{ children: ReactNode }>) {
   return (
-    <html lang="en" className={`${archivo.variable} ${plexMono.variable}`}>
-      <body>{children}</body>
+    <html
+      className={`${archivo.variable} ${plexMono.variable}`}
+      /* globals.css sets scroll-behavior: smooth; this tells the router to
+         keep it rather than warn and fight it on navigation. */
+      data-scroll-behavior="smooth"
+      lang="en"
+    >
+      {/* Extensions (ColorZilla, password managers) stamp attributes on body
+          before React hydrates; that mismatch is theirs, not ours. */}
+      <body suppressHydrationWarning>{children}</body>
     </html>
   );
 }

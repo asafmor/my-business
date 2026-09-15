@@ -5,6 +5,7 @@ import { eq } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/node-postgres";
 import { Pool } from "pg";
 
+import { pinStrictSslMode } from "../../src/lib/postgres-url";
 import {
   categories,
   documentFiles,
@@ -18,7 +19,10 @@ import {
 let pool: Pool | undefined;
 
 function db() {
-  pool ??= new Pool({ connectionString: process.env.DATABASE_URL, max: 2 });
+  pool ??= new Pool({
+    connectionString: pinStrictSslMode(process.env.DATABASE_URL ?? ""),
+    max: 2,
+  });
   return drizzle(pool);
 }
 
