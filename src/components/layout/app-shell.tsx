@@ -29,14 +29,37 @@ type NavigationItem = {
   label: string;
 };
 
-export const navigationItems: readonly NavigationItem[] = [
-  { href: "/", icon: "dashboard", label: "Dashboard" },
-  { href: "/documents", icon: "documents", label: "Documents" },
-  { href: "/inbox", icon: "inbox", label: "Inbox" },
-  { href: "/reports", icon: "reports", label: "Reports" },
-  { href: "/categories", icon: "categories", label: "Categories" },
-  { href: "/settings", icon: "settings", label: "Settings" },
+type NavigationSection = {
+  items: readonly NavigationItem[];
+  label: string;
+};
+
+export const navigationSections: readonly NavigationSection[] = [
+  {
+    label: "Workspace",
+    items: [
+      { href: "/", icon: "dashboard", label: "Dashboard" },
+      { href: "/inbox", icon: "inbox", label: "Inbox" },
+    ],
+  },
+  {
+    label: "Business",
+    items: [
+      { href: "/documents", icon: "documents", label: "Documents" },
+      { href: "/categories", icon: "categories", label: "Categories" },
+    ],
+  },
+  {
+    label: "Insight",
+    items: [
+      { href: "/reports", icon: "reports", label: "Reports" },
+      { href: "/settings", icon: "settings", label: "Settings" },
+    ],
+  },
 ];
+
+export const navigationItems: readonly NavigationItem[] =
+  navigationSections.flatMap((section) => section.items);
 
 function isCurrentRoute(href: string, pathname: string): boolean {
   return href === "/"
@@ -108,29 +131,34 @@ export function ApplicationNavigation({
 }) {
   return (
     <nav aria-label="Primary navigation" className="app-navigation">
-      <ul>
-        {navigationItems.map((item) => {
-          const current = isCurrentRoute(item.href, pathname);
+      {navigationSections.map((section) => (
+        <div className="app-navigation__section" key={section.label}>
+          <p className="app-navigation__section-label">{section.label}</p>
+          <ul>
+            {section.items.map((item) => {
+              const current = isCurrentRoute(item.href, pathname);
 
-          return (
-            <li key={item.href}>
-              <Link
-                aria-current={current ? "page" : undefined}
-                className={
-                  current
-                    ? "app-navigation__link is-current"
-                    : "app-navigation__link"
-                }
-                href={item.href}
-                onClick={onNavigate}
-              >
-                <AppIcon name={item.icon} />
-                <span>{item.label}</span>
-              </Link>
-            </li>
-          );
-        })}
-      </ul>
+              return (
+                <li key={item.href}>
+                  <Link
+                    aria-current={current ? "page" : undefined}
+                    className={
+                      current
+                        ? "app-navigation__link is-current"
+                        : "app-navigation__link"
+                    }
+                    href={item.href}
+                    onClick={onNavigate}
+                  >
+                    <AppIcon name={item.icon} />
+                    <span>{item.label}</span>
+                  </Link>
+                </li>
+              );
+            })}
+          </ul>
+        </div>
+      ))}
     </nav>
   );
 }
@@ -206,6 +234,7 @@ export function MobileNavigationDrawer({
           </button>
         </div>
         <ApplicationNavigation onNavigate={onClose} pathname={pathname} />
+        <AccountCard />
       </aside>
     </div>
   );
@@ -218,6 +247,21 @@ function LogoutForm() {
         Log out
       </button>
     </form>
+  );
+}
+
+function AccountCard() {
+  return (
+    <div className="account-card">
+      <span aria-hidden="true" className="account-card__avatar">
+        MB
+      </span>
+      <span className="account-card__identity">
+        <span className="account-card__name">My Business</span>
+        <span className="account-card__role">Owner · private workspace</span>
+      </span>
+      <LogoutForm />
+    </div>
   );
 }
 
@@ -322,15 +366,12 @@ export function AppShell({ children }: { children: ReactNode }) {
             <AppIcon name="upload" />
             <span>Upload</span>
           </Link>
-          <span className="user-indicator" title="Private workspace owner">
-            Owner
-          </span>
-          <LogoutForm />
         </div>
       </header>
       <div className="app-frame">
         <aside className="app-sidebar" aria-label="Application navigation">
           <ApplicationNavigation pathname={pathname} />
+          <AccountCard />
         </aside>
         <main className="app-main" id="main-content" tabIndex={-1}>
           {children}
