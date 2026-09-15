@@ -51,9 +51,11 @@ export function DocumentsTable({ rows }: { rows: DocumentListRow[] }) {
               </td>
               <td>{formatDate(row.transactionDate)}</td>
               <td>
-                <Link href={`/documents/${row.id}`}>
-                  {row.supplierName ?? "—"}
-                </Link>
+                {row.supplierName ? (
+                  <Link href={`/documents/${row.id}`}>{row.supplierName}</Link>
+                ) : (
+                  <span className="is-empty">—</span>
+                )}
               </td>
               <td>{humanizeEnumValue(row.type)}</td>
               <td>{row.categoryName ?? "—"}</td>

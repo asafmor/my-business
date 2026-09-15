@@ -186,12 +186,15 @@ Never paint fake status bars or phone chrome. Reserve the space, leave it empty.
 - [x] Button and input state coverage (hover, pressed, focus ring, disabled,
       invalid)
 - [x] Money monospaced in the documents table (`.is-numeric`, `.num`)
-- [ ] Row states beyond hover — selected, needs-review, processing, failed
-      (needs selection state in `documents-table.tsx` first)
-- [ ] 38px row density; today's rows are still 0.75rem-padded
-- [ ] Sidebar redesign — 212px, grouped nav sections, account card
-- [ ] Overview page and charts
-- [ ] Mobile screens
+- [x] Row states beyond hover — needs-review, processing, failed. Selected is
+      deliberately absent: nothing in the app acts on a multi-row selection yet
+- [x] 38px row density
+- [x] Sidebar redesign — 212px, grouped nav sections, account card
+- [x] Dashboard — KPI tiles, section cards, single-hue category bars
+- [x] Mobile — bottom tab bar with capture FAB, 72px document cards, filters
+      folded behind a disclosure
+- [ ] Mobile review flow — the full "finish it at a bus stop" task screen
+- [ ] Reports and document detail
 
 The one deliberate exception to rule 1: `.upload-dropzone` keeps a **dashed**
 border. Dashes read as "drop something here" — an affordance, not a separator.

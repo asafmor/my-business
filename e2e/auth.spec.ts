@@ -58,12 +58,23 @@ test.describe("logout", () => {
     await page.goto("/settings");
     await expect(page).toHaveURL(/\/settings$/);
 
-    // The app shell's header and the settings page each render their own
-    // "Log out" button; either ends the session, so scope to one.
-    await page
-      .getByRole("banner")
-      .getByRole("button", { name: "Log out" })
-      .click();
+    // Log out lives in the shell's account card: in the sidebar on wide
+    // viewports, behind the navigation drawer on narrow ones. The settings
+    // page renders its own button too, so scope to the shell's.
+    const menuButton = page.getByRole("button", { name: "Open navigation" });
+
+    if (await menuButton.isVisible()) {
+      await menuButton.click();
+      await page
+        .getByRole("dialog")
+        .getByRole("button", { name: "Log out" })
+        .click();
+    } else {
+      await page
+        .getByRole("complementary", { name: "Application navigation" })
+        .getByRole("button", { name: "Log out" })
+        .click();
+    }
     await expect(page).toHaveURL(/\/login$/);
 
     await page.goto("/documents");
