@@ -2,6 +2,7 @@ import "server-only";
 
 import { and, asc, eq, gte, ilike, lte, ne, or, sql } from "drizzle-orm";
 
+import { defaultCurrency } from "../../lib/format";
 import type { DocumentListQuery } from "../../domain/documents/query";
 import { splitSort } from "../../domain/documents/query";
 import type {
@@ -13,6 +14,7 @@ import { categories, documentFiles, documents, expenses } from "../db/schema";
 
 export type DocumentListRow = {
   categoryName: string | null;
+  currency: string | null;
   documentNumber: string | null;
   id: string;
   mimeType: string | null;
@@ -24,12 +26,22 @@ export type DocumentListRow = {
   vat: string | null;
 };
 
+/** Money only adds up within one currency, so a total is always per currency. */
+export type CurrencyTotal = { currency: string; total: string };
+
+/*
+ * Written as a literal rather than a bound parameter: Postgres matches a
+ * grouped expression by its text, and `$1` in the select is not `$3` in the
+ * group by.
+ */
+const currencyBucket = sql<string>`coalesce(${expenses.currency}, ${sql.raw(`'${defaultCurrency}'`)})`;
+
 export type DocumentListResult = {
   page: number;
   pageSize: number;
   rows: DocumentListRow[];
-  /** Sum of every matching row's total, not just this page's. */
-  matchedTotal: string;
+  /** Sums across every matching row, not just this page's. */
+  matchedTotals: CurrencyTotal[];
   total: number;
 };
 
@@ -90,10 +102,14 @@ const sortColumns = {
 function orderBy(sort: DocumentListQuery["sort"]) {
   const { column, direction } = splitSort(sort);
   const target = sortColumns[column] ?? documents.transactionDate;
+  // Enums sort by their definition order in Postgres, which is not the order of
+  // the words on screen. Casting sorts by the label the reader actually sees.
+  const key =
+    column === "type" || column === "status" ? sql`${target}::text` : target;
   // Nulls last in both directions: an empty cell is never the headline.
   return direction === "asc"
-    ? sql`${target} asc nulls last`
-    : sql`${target} desc nulls last`;
+    ? sql`${key} asc nulls last`
+    : sql`${key} desc nulls last`;
 }
 
 export class DrizzleDocumentsQueryRepository implements DocumentsQueryRepository {
@@ -108,6 +124,7 @@ export class DrizzleDocumentsQueryRepository implements DocumentsQueryRepository
       this.database()
         .select({
           categoryName: categories.name,
+          currency: expenses.currency,
           documentNumber: expenses.documentNumber,
           id: documents.id,
           mimeType: documentFiles.mimeType,
@@ -132,22 +149,30 @@ export class DrizzleDocumentsQueryRepository implements DocumentsQueryRepository
         .orderBy(orderBy(query.sort))
         .limit(pageSize)
         .offset(offset),
+      // One pass gives both the count and a total per currency; the row count
+      // is just those buckets added back up. A missing currency folds into the
+      // default one, or the same money would be totalled twice under one sign.
       this.database()
         .select({
           count: sql<number>`count(*)::int`,
-          matchedTotal: sql<string>`coalesce(sum(${expenses.total}), 0)::text`,
+          currency: currencyBucket,
+          total: sql<string>`coalesce(sum(${expenses.total}), 0)::text`,
         })
         .from(documents)
         .leftJoin(expenses, eq(expenses.documentId, documents.id))
-        .where(where),
+        .where(where)
+        .groupBy(currencyBucket)
+        .orderBy(currencyBucket),
     ]);
 
     return {
-      matchedTotal: countRows[0]?.matchedTotal ?? "0",
+      matchedTotals: countRows
+        .filter((row) => Number(row.total) !== 0)
+        .map(({ currency, total }) => ({ currency, total })),
       page: query.page,
       pageSize,
       rows,
-      total: countRows[0]?.count ?? 0,
+      total: countRows.reduce((running, row) => running + row.count, 0),
     };
   }
 

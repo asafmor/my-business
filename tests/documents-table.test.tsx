@@ -12,6 +12,7 @@ vi.mock("next/navigation", () => ({
   useSearchParams: () => new URLSearchParams(),
 }));
 
+import { DocumentsEmpty } from "../src/components/documents/documents-empty";
 import {
   DocumentsTable,
   nextSort,
@@ -21,6 +22,7 @@ import type { DocumentListRow } from "../src/server/documents/documents-query-re
 function row(overrides: Partial<DocumentListRow>): DocumentListRow {
   return {
     categoryName: "Software",
+    currency: "ILS",
     documentNumber: "INV-1",
     id: "doc-1",
     mimeType: "application/pdf",
@@ -72,8 +74,42 @@ describe("documents table", () => {
     expect(markup).toContain("Select all documents on this page");
   });
 
-  it("says so rather than showing an empty table", () => {
-    expect(render([])).toContain("No documents match these filters.");
+  it("offers the row's own verbs without opening the document", () => {
+    const markup = render([row({ id: "a", supplierName: "Acme" })]);
+
+    expect(markup).toContain("Mark Acme reviewed");
+    expect(markup).toContain("Archive Acme");
+  });
+
+  it("leaves an unread supplier as an em dash", () => {
+    expect(render([row({ supplierName: null })])).toContain(
+      '<a class="doc-row__link" href="/documents/doc-1">—</a>',
+    );
+  });
+
+  it("names the currency only when it is not the ledger's own", () => {
+    expect(render([row({ currency: "ILS", total: "1200" })])).toContain(
+      "1,200.00",
+    );
+    expect(render([row({ currency: "USD", total: "1200" })])).toContain(
+      "$ 1,200.00",
+    );
+  });
+});
+
+describe("empty state", () => {
+  it("offers a way out of the filters, not an uploader", () => {
+    const markup = renderToStaticMarkup(<DocumentsEmpty isFiltered />);
+
+    expect(markup).toContain("Nothing matches these filters");
+    expect(markup).toContain("Clear filters");
+  });
+
+  it("invites a first upload when nothing is filtered", () => {
+    const markup = renderToStaticMarkup(<DocumentsEmpty isFiltered={false} />);
+
+    expect(markup).toContain("No documents yet");
+    expect(markup).toContain('href="/upload"');
   });
 });
 

@@ -9,12 +9,35 @@ export function humanizeEnumValue(value: string): string {
     .join(" ");
 }
 
+/** An expense with no currency recorded is in the ledger's own currency. */
+export const defaultCurrency = "ILS";
+
+const currencySymbols: Record<string, string> = {
+  EUR: "€",
+  GBP: "£",
+  ILS: "₪",
+  USD: "$",
+};
+
+/** Falls back to the ISO code, which is still readable next to a number. */
+export function currencySymbol(currency: string): string {
+  return currencySymbols[currency] ?? currency;
+}
+
 export function formatMoney(
   value: string | null,
   currency: string | null,
 ): string {
   if (value === null) return "—";
-  return currency ? `${currency} ${value}` : value;
+  // Grouped everywhere, so a cell and a footer total scan as the same number.
+  const amount = Number(value);
+  const text = Number.isNaN(amount)
+    ? value
+    : amount.toLocaleString("en-US", {
+        maximumFractionDigits: 2,
+        minimumFractionDigits: 2,
+      });
+  return currency ? `${currencySymbol(currency)} ${text}` : text;
 }
 
 export function formatDate(value: string | Date | null): string {

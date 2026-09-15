@@ -3,22 +3,53 @@
 import { ChevronLeft, ChevronRight } from "lucide-react";
 
 import { documentListPageSizes } from "../../domain/documents/query";
+import { formatMoney } from "../../lib/format";
+import type { CurrencyTotal } from "../../server/documents/documents-query-repository";
 import { useDocumentParams } from "./use-document-params";
 
 const counter = new Intl.NumberFormat("en-US");
 
+function Totals({ label, totals }: { label: string; totals: CurrencyTotal[] }) {
+  if (totals.length === 0) return null;
+  return (
+    <>
+      <span className="table-foot__label">{label}</span>
+      {totals.map((entry) => (
+        <span className="num table-foot__sum" key={entry.currency}>
+          {formatMoney(entry.total, entry.currency)}
+        </span>
+      ))}
+      <span aria-hidden="true" className="table-foot__divider" />
+    </>
+  );
+}
+
+function sameTotals(a: CurrencyTotal[], b: CurrencyTotal[]): boolean {
+  return (
+    a.length === b.length &&
+    a.every((entry, index) => {
+      const other = b[index];
+      return (
+        other !== undefined &&
+        other.currency === entry.currency &&
+        Number(other.total) === Number(entry.total)
+      );
+    })
+  );
+}
+
 export function Pagination({
-  matchedTotal,
+  matchedTotals,
   page,
   pageSize,
-  pageTotal,
+  pageTotals,
   rowCount,
   total,
 }: {
-  matchedTotal: string;
+  matchedTotals: CurrencyTotal[];
   page: number;
   pageSize: number;
-  pageTotal: string;
+  pageTotals: CurrencyTotal[];
   rowCount: number;
   total: number;
 }) {
@@ -26,6 +57,8 @@ export function Pagination({
   const totalPages = Math.max(1, Math.ceil(total / pageSize));
   const first = total === 0 ? 0 : (page - 1) * pageSize + 1;
   const last = first === 0 ? 0 : first + rowCount - 1;
+  // On a single page the two sums are the same number printed twice.
+  const showMatched = !sameTotals(pageTotals, matchedTotals);
 
   return (
     <nav aria-label="Pagination" className="table-foot">
@@ -54,12 +87,13 @@ export function Pagination({
 
       <span className="table-foot__spacer" />
 
-      <span className="table-foot__label">Page total</span>
-      <span className="num table-foot__sum">{pageTotal}</span>
-      <span aria-hidden="true" className="table-foot__divider" />
-      <span className="table-foot__label">All matches</span>
-      <span className="num table-foot__sum">{matchedTotal}</span>
-      <span aria-hidden="true" className="table-foot__divider" />
+      <Totals
+        label={showMatched ? "Page total" : "Total"}
+        totals={pageTotals}
+      />
+      {showMatched ? (
+        <Totals label="All matches" totals={matchedTotals} />
+      ) : null}
 
       <button
         aria-label="Previous page"

@@ -1,62 +1,56 @@
 "use client";
 
-import { ChevronDown, Plus, Search, X } from "lucide-react";
+import { Search, SlidersHorizontal, X } from "lucide-react";
 import { useEffect, useState } from "react";
 
 import { documentStatuses, documentTypes } from "../../domain/documents/types";
 import { humanizeEnumValue } from "../../lib/format";
 import type { DocumentListQuery } from "../../domain/documents/query";
+import {
+  activeFilterCount,
+  clearedFilters,
+} from "../../domain/documents/query";
+import { FilterPopover, FilterSelect } from "./filter-menu";
 import { useDocumentParams } from "./use-document-params";
 
-// Page, page size and sort always carry a value and narrow nothing.
-const structuralKeys = new Set(["page", "pageSize", "sort"]);
+const moreKeys = [
+  "dateFrom",
+  "dateTo",
+  "supplier",
+  "amountMin",
+  "amountMax",
+] as const;
 
-function activeFilterCount(query: DocumentListQuery): number {
-  return Object.entries(query).filter(
-    ([key, value]) =>
-      !structuralKeys.has(key) && value !== null && value !== "",
-  ).length;
-}
-
-/**
- * A chip is a label and the choice made on it, so a glance at the bar reads as a
- * sentence. The native select underneath does the picking — on a phone that is
- * the system wheel, which nothing hand-built beats.
- */
-function FilterChip({
+function MoreField({
+  id,
   label,
-  onChange,
-  options,
+  onCommit,
+  step,
+  type,
   value,
 }: {
+  id: string;
   label: string;
-  onChange: (value: string) => void;
-  options: { label: string; value: string }[];
+  onCommit: (value: string) => void;
+  step?: string;
+  type: string;
   value: string;
 }) {
-  const chosen = options.find((option) => option.value === value);
-  const isOn = value !== "";
-
   return (
-    <label className={isOn ? "filter-chip is-on" : "filter-chip"}>
-      <span className="filter-chip__text">
-        {isOn ? `${label}: ${chosen?.label ?? value}` : label}
-      </span>
-      <ChevronDown aria-hidden size={11} strokeWidth={2.4} />
-      <select
-        aria-label={label}
-        className="filter-chip__select"
-        onChange={(event) => onChange(event.target.value)}
-        value={value}
-      >
-        <option value="">{label}: all</option>
-        {options.map((option) => (
-          <option key={option.value} value={option.value}>
-            {option.label}
-          </option>
-        ))}
-      </select>
-    </label>
+    <div className="filter-field">
+      <label htmlFor={id}>{label}</label>
+      <input
+        className="filter-field__input"
+        defaultValue={value}
+        id={id}
+        onBlur={(event) => onCommit(event.target.value)}
+        onKeyDown={(event) => {
+          if (event.key === "Enter") event.currentTarget.blur();
+        }}
+        step={step}
+        type={type}
+      />
+    </div>
   );
 }
 
@@ -70,6 +64,7 @@ export function DocumentFilters({
   const setParams = useDocumentParams();
   const [search, setSearch] = useState(query.q ?? "");
   const active = activeFilterCount(query);
+  const moreActive = moreKeys.filter((key) => query[key]).length;
 
   /* Typing should not fire a query per keystroke, nor need an Apply button. */
   useEffect(() => {
@@ -86,7 +81,7 @@ export function DocumentFilters({
           <input
             aria-label="Search documents"
             onChange={(event) => setSearch(event.target.value)}
-            placeholder="Supplier, number, notes"
+            placeholder="Search documents"
             type="search"
             value={search}
           />
@@ -102,7 +97,7 @@ export function DocumentFilters({
           ) : null}
         </div>
 
-        <FilterChip
+        <FilterSelect
           label="Type"
           onChange={(value) => setParams({ type: value })}
           options={documentTypes.map((type) => ({
@@ -111,7 +106,7 @@ export function DocumentFilters({
           }))}
           value={query.type ?? ""}
         />
-        <FilterChip
+        <FilterSelect
           label="Category"
           onChange={(value) => setParams({ category: value })}
           options={categories.map((category) => ({
@@ -120,7 +115,7 @@ export function DocumentFilters({
           }))}
           value={query.categoryId ?? ""}
         />
-        <FilterChip
+        <FilterSelect
           label="Status"
           onChange={(value) => setParams({ status: value })}
           options={documentStatuses.map((status) => ({
@@ -129,105 +124,129 @@ export function DocumentFilters({
           }))}
           value={query.status ?? ""}
         />
-        <label
-          className={query.month ? "filter-chip is-on" : "filter-chip"}
-          title="Month"
-        >
-          <span className="filter-chip__text">
-            {query.month ? `Month: ${query.month}` : "Month"}
-          </span>
-          <ChevronDown aria-hidden size={11} strokeWidth={2.4} />
-          <input
-            aria-label="Month"
-            className="filter-chip__select"
-            onChange={(event) => setParams({ month: event.target.value })}
-            type="month"
-            value={query.month ?? ""}
-          />
-        </label>
 
-        <details className="filter-more">
-          <summary className="filter-chip filter-chip--ghost">
-            <Plus aria-hidden size={12} strokeWidth={2} />
-            <span className="filter-chip__text">More</span>
-          </summary>
-          <div className="filter-more__panel">
-            <div className="field">
-              <label htmlFor="dateFrom">From</label>
-              <input
-                className="form-control"
-                defaultValue={query.dateFrom ?? ""}
-                id="dateFrom"
-                onBlur={(event) => setParams({ dateFrom: event.target.value })}
-                type="date"
-              />
+        <FilterPopover
+          isOn={query.month !== null}
+          label={query.month ? `Month: ${query.month}` : "Month"}
+        >
+          {() => (
+            <div className="filter-menu__grid">
+              <div className="filter-field filter-field--full">
+                <label htmlFor="month">Month</label>
+                <input
+                  className="filter-field__input"
+                  defaultValue={query.month ?? ""}
+                  id="month"
+                  onChange={(event) => setParams({ month: event.target.value })}
+                  type="month"
+                />
+              </div>
             </div>
-            <div className="field">
-              <label htmlFor="dateTo">To</label>
-              <input
-                className="form-control"
-                defaultValue={query.dateTo ?? ""}
-                id="dateTo"
-                onBlur={(event) => setParams({ dateTo: event.target.value })}
-                type="date"
-              />
-            </div>
-            <div className="field">
-              <label htmlFor="supplier">Supplier</label>
-              <input
-                className="form-control"
-                defaultValue={query.supplier ?? ""}
-                id="supplier"
-                onBlur={(event) => setParams({ supplier: event.target.value })}
-                type="text"
-              />
-            </div>
-            <div className="field">
-              <label htmlFor="amountMin">Min amount</label>
-              <input
-                className="form-control"
-                defaultValue={query.amountMin ?? ""}
-                id="amountMin"
-                min="0"
-                onBlur={(event) => setParams({ amountMin: event.target.value })}
-                step="0.01"
-                type="number"
-              />
-            </div>
-            <div className="field">
-              <label htmlFor="amountMax">Max amount</label>
-              <input
-                className="form-control"
-                defaultValue={query.amountMax ?? ""}
-                id="amountMax"
-                min="0"
-                onBlur={(event) => setParams({ amountMax: event.target.value })}
-                step="0.01"
-                type="number"
-              />
-            </div>
-          </div>
-        </details>
+          )}
+        </FilterPopover>
+
+        <FilterPopover
+          icon={<SlidersHorizontal aria-hidden size={12} strokeWidth={2} />}
+          isOn={moreActive > 0}
+          label={moreActive > 0 ? `More: ${moreActive}` : "More"}
+          wide
+        >
+          {(close) => (
+            <>
+              <div className="filter-menu__grid">
+                <MoreField
+                  id="dateFrom"
+                  label="From"
+                  onCommit={(value) =>
+                    setParams({ dateFrom: value, month: null })
+                  }
+                  type="date"
+                  value={query.dateFrom ?? ""}
+                />
+                <MoreField
+                  id="dateTo"
+                  label="To"
+                  onCommit={(value) =>
+                    setParams({ dateTo: value, month: null })
+                  }
+                  type="date"
+                  value={query.dateTo ?? ""}
+                />
+                <MoreField
+                  id="amountMin"
+                  label="Min amount"
+                  onCommit={(value) => setParams({ amountMin: value })}
+                  step="0.01"
+                  type="number"
+                  value={query.amountMin ?? ""}
+                />
+                <MoreField
+                  id="amountMax"
+                  label="Max amount"
+                  onCommit={(value) => setParams({ amountMax: value })}
+                  step="0.01"
+                  type="number"
+                  value={query.amountMax ?? ""}
+                />
+                <div className="filter-field filter-field--full">
+                  <label htmlFor="supplier">Supplier</label>
+                  <input
+                    className="filter-field__input"
+                    defaultValue={query.supplier ?? ""}
+                    id="supplier"
+                    onBlur={(event) =>
+                      setParams({ supplier: event.target.value })
+                    }
+                    type="text"
+                  />
+                </div>
+              </div>
+              {/* A date range and a month answer the same question, and the
+                  query can only honour one. Say which one won. */}
+              {query.month ? (
+                <p className="filter-menu__note">
+                  A month is set, so From and To are ignored.
+                </p>
+              ) : null}
+              <div className="filter-menu__foot">
+                <button
+                  className="button button--ghost button--small"
+                  onClick={() => {
+                    setParams({
+                      amountMax: null,
+                      amountMin: null,
+                      dateFrom: null,
+                      dateTo: null,
+                      month: null,
+                      supplier: null,
+                    });
+                    close();
+                  }}
+                  type="button"
+                >
+                  Reset these
+                </button>
+                <button
+                  className="button button--secondary button--small"
+                  onClick={close}
+                  type="button"
+                >
+                  Done
+                </button>
+              </div>
+            </>
+          )}
+        </FilterPopover>
 
         <span className="filter-bar__spacer" />
 
         {active > 0 ? (
           <button
             className="filter-chip filter-chip--ghost"
-            onClick={() =>
-              setParams({
-                amountMax: null,
-                amountMin: null,
-                category: null,
-                dateFrom: null,
-                dateTo: null,
-                month: null,
-                q: null,
-                status: null,
-                supplier: null,
-                type: null,
-              })
-            }
+            onClick={() => {
+              setSearch("");
+              setParams(clearedFilters);
+            }}
             type="button"
           >
             <X aria-hidden size={11} strokeWidth={2.4} />

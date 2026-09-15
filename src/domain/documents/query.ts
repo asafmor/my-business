@@ -21,6 +21,31 @@ export type DocumentListSort = (typeof documentListSorts)[number];
 export const documentListPageSize = 25;
 export const documentListPageSizes = [25, 50, 100] as const;
 
+// Page, page size and sort always carry a value and narrow nothing.
+const structuralKeys = new Set(["page", "pageSize", "sort"]);
+
+/** Everything the filter bar can switch off, so "clear" stays honest. */
+export const clearedFilters = {
+  amountMax: null,
+  amountMin: null,
+  category: null,
+  dateFrom: null,
+  dateTo: null,
+  month: null,
+  q: null,
+  status: null,
+  supplier: null,
+  type: null,
+};
+
+/** How many of the filters are actually narrowing the list right now. */
+export function activeFilterCount(query: DocumentListQuery): number {
+  return Object.entries(query).filter(
+    ([key, value]) =>
+      !structuralKeys.has(key) && value !== null && value !== "",
+  ).length;
+}
+
 /** Splits "total-desc" back into the pieces a table header needs. */
 export function splitSort(sort: DocumentListSort): {
   column: DocumentListSortColumn;

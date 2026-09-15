@@ -27,7 +27,12 @@ import type {
 } from "../../domain/documents/query";
 import { splitSort } from "../../domain/documents/query";
 import { statusRowState, statusTone } from "../../domain/documents/status-tone";
-import { formatDate, formatMoney, humanizeEnumValue } from "../../lib/format";
+import {
+  defaultCurrency,
+  formatDate,
+  formatMoney,
+  humanizeEnumValue,
+} from "../../lib/format";
 import type { DocumentListRow } from "../../server/documents/documents-query-repository";
 import { useDocumentParams } from "./use-document-params";
 
@@ -112,11 +117,11 @@ export function DocumentsTable({
 
   const allSelected = rows.length > 0 && selected.length === rows.length;
 
-  if (rows.length === 0) {
-    return (
-      <p className="content-state" role="status">
-        No documents match these filters.
-      </p>
+  function toggle(id: string): void {
+    setSelected((current) =>
+      current.includes(id)
+        ? current.filter((other) => other !== id)
+        : [...current, id],
     );
   }
 
@@ -195,7 +200,11 @@ export function DocumentsTable({
 
         {rows.map((row) => {
           const isSelected = selected.includes(row.id);
-          const name = row.supplierName ?? "Unknown supplier";
+          /* Rule 6: an unread supplier is an em dash, not a guess in prose. */
+          const name = row.supplierName ?? "—";
+          /* The ledger's own currency is implied; anything else is spelled out. */
+          const foreign =
+            row.currency !== null && row.currency !== defaultCurrency;
 
           return (
             <div
@@ -209,13 +218,7 @@ export function DocumentsTable({
                   aria-label={`Select ${name}`}
                   checked={isSelected}
                   className="checkbox"
-                  onChange={(event) =>
-                    setSelected((current) =>
-                      event.target.checked
-                        ? [...current, row.id]
-                        : current.filter((id) => id !== row.id),
-                    )
-                  }
+                  onChange={() => toggle(row.id)}
                   type="checkbox"
                 />
               </span>
@@ -224,12 +227,22 @@ export function DocumentsTable({
                 <TypeTile mimeType={row.mimeType} />
                 <span className="doc-row__names">
                   {/* Stretched link: the anchor covers the row, so the whole
-                      row opens the document while staying a real link. */}
-                  <Link className="doc-row__link" href={`/documents/${row.id}`}>
+                      row opens the document while staying a real link. Once a
+                      selection exists the row is a tick box instead — picking
+                      the second of five should not walk off the page. */}
+                  <Link
+                    className="doc-row__link"
+                    href={`/documents/${row.id}`}
+                    onClick={(event) => {
+                      if (selected.length === 0) return;
+                      event.preventDefault();
+                      toggle(row.id);
+                    }}
+                  >
                     {name}
                   </Link>
                   <span className="doc-row__sub">
-                    {row.documentNumber ?? humanizeEnumValue(row.type)}
+                    {row.documentNumber ?? "—"}
                   </span>
                 </span>
               </span>
@@ -253,7 +266,7 @@ export function DocumentsTable({
                 {formatMoney(row.vat, null)}
               </span>
               <span className="cell num is-numeric doc-row__total">
-                {formatMoney(row.total, null)}
+                {formatMoney(row.total, foreign ? row.currency : null)}
               </span>
               <span className="doc-row__status">
                 <span
@@ -261,6 +274,36 @@ export function DocumentsTable({
                 >
                   {humanizeEnumValue(row.status)}
                 </span>
+              </span>
+
+              {/* Quiet until touched: the row's own verbs appear on hover or
+                  focus, above the stretched link so they stay clickable. */}
+              <span className="doc-row__actions">
+                <button
+                  aria-label={`Mark ${name} reviewed`}
+                  className="doc-row__action"
+                  disabled={isPending}
+                  onClick={() =>
+                    run(() => markDocumentsReviewedAction([row.id]))
+                  }
+                  title="Mark reviewed"
+                  type="button"
+                >
+                  <CircleCheck aria-hidden size={13} strokeWidth={1.9} />
+                </button>
+                <button
+                  aria-label={`Archive ${name}`}
+                  className="doc-row__action doc-row__action--danger"
+                  disabled={isPending}
+                  onClick={() => {
+                    setSelected([row.id]);
+                    setDialog("archive");
+                  }}
+                  title="Archive"
+                  type="button"
+                >
+                  <Archive aria-hidden size={13} strokeWidth={1.9} />
+                </button>
               </span>
             </div>
           );

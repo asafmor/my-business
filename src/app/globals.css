@@ -449,6 +449,24 @@ input:disabled {
   color: var(--ink);
 }
 
+/* A button with no surface of its own, for the least important way out. */
+.button--ghost {
+  background: none;
+  box-shadow: none;
+  color: var(--ink-muted);
+}
+
+.button--ghost:hover {
+  background: var(--surface-muted);
+  color: var(--ink);
+}
+
+.button--small {
+  font-size: 0.75rem;
+  min-height: 1.75rem;
+  padding: 0 0.625rem;
+}
+
 .button--secondary:hover {
   box-shadow: var(--e2), var(--lip);
 }
@@ -849,15 +867,18 @@ input:disabled {
   padding-top: 1rem;
 }
 
+/* Artboard shape: a small squared tag, not a pill — 19px tall, 10.5px text. */
 .status-badge {
   align-items: center;
-  border-radius: 999px;
+  border-radius: 0.3125rem;
   display: inline-flex;
-  font-size: 0.6875rem;
+  font-size: 0.65625rem;
   font-weight: 600;
-  gap: 0.3rem;
+  gap: 0.3125rem;
+  height: 1.1875rem;
+  letter-spacing: 0.01em;
   line-height: 1;
-  padding: 0.25rem 0.5rem;
+  padding: 0 0.4375rem;
   white-space: nowrap;
 }
 
@@ -871,8 +892,8 @@ input:disabled {
   border-radius: 999px;
   content: "";
   flex: 0 0 auto;
-  height: 0.375rem;
-  width: 0.375rem;
+  height: 0.3125rem;
+  width: 0.3125rem;
 }
 
 .status-badge--warning::before,
@@ -898,8 +919,10 @@ input:disabled {
   color: var(--success);
 }
 
+/* Cream, with a hairline so the palest badge still reads as a tag. */
 .status-badge--warning {
   background: var(--warning-soft);
+  box-shadow: inset 0 0 0 1px rgb(119 98 47 / 16%);
   color: var(--warning);
 }
 
@@ -2767,11 +2790,15 @@ input:disabled {
   display: none;
 }
 
+/* A field, not a label: sunk against the canvas so the well has something to
+   cut into, and lit to plain white once it is being typed in. */
 .filter-search {
   align-items: center;
-  background: var(--surface);
+  background: var(--surface-sunk);
   border-radius: 0.5rem;
-  box-shadow: var(--well);
+  box-shadow:
+    var(--well),
+    inset 0 0 0 1px rgb(21 21 28 / 6%);
   color: var(--ink-faint);
   display: flex;
   flex: 1 1 100%;
@@ -2779,6 +2806,18 @@ input:disabled {
   min-height: 2.75rem;
   order: -1;
   padding: 0 0.625rem;
+  transition:
+    background 120ms ease,
+    box-shadow 120ms ease;
+}
+
+.filter-search:focus-within {
+  background: var(--surface);
+  box-shadow:
+    var(--well),
+    0 0 0 2px var(--canvas),
+    0 0 0 3.5px rgb(74 58 128 / 45%);
+  color: var(--accent);
 }
 
 .filter-search input {
@@ -2865,37 +2904,141 @@ input:disabled {
   text-overflow: ellipsis;
 }
 
-/* The real control, invisible but hit-testable across the whole chip. */
-.filter-chip__select {
-  appearance: none;
-  border: 0;
-  cursor: pointer;
-  inset: 0;
-  opacity: 0;
-  padding: 0;
-  position: absolute;
-  width: 100%;
+.filter-chip.is-open {
+  background: var(--surface-sunk);
+  box-shadow: var(--well);
 }
 
-.filter-chip:focus-within {
+.filter-chip:focus-visible {
   box-shadow:
-    0 0 0 2px #fff,
-    0 0 0 4.5px rgb(74 58 128 / 50%);
+    0 0 0 2px var(--canvas),
+    0 0 0 4px rgb(74 58 128 / 50%);
+  outline: none;
 }
 
-.filter-more {
+.filter-pop {
   position: relative;
 }
 
-.filter-more__panel {
+/*
+ * Filter menus
+ *
+ * Hand-built rather than a native `select`: the OS popup arrives with its own
+ * type, its own blue and none of this app's language.
+ */
+.filter-menu {
   background: var(--surface);
-  border-radius: var(--radius);
+  border-radius: var(--radius-sm);
   box-shadow: var(--e3), var(--lip);
-  display: grid;
-  gap: 0.75rem;
-  grid-template-columns: minmax(0, 1fr);
+  left: 0;
   margin-top: 0.375rem;
-  padding: 0.875rem;
+  min-width: 11rem;
+  padding: 0.25rem;
+  position: absolute;
+  top: 100%;
+  z-index: 30;
+}
+
+.filter-menu--wide {
+  min-width: 22rem;
+  padding: 0.75rem;
+}
+
+.filter-menu__list {
+  list-style: none;
+  margin: 0;
+  max-height: 17rem;
+  overflow-y: auto;
+  padding: 0;
+}
+
+.filter-menu__item {
+  align-items: center;
+  background: none;
+  border: 0;
+  border-radius: var(--radius-xs);
+  color: var(--ink-muted);
+  cursor: pointer;
+  display: flex;
+  font: inherit;
+  font-size: 0.78125rem;
+  gap: 0.5rem;
+  justify-content: space-between;
+  min-height: 1.75rem;
+  padding: 0 0.5rem;
+  text-align: start;
+  width: 100%;
+}
+
+.filter-menu__item:hover {
+  background: var(--accent-soft);
+  color: var(--accent-strong);
+}
+
+.filter-menu__item-text {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.filter-menu__grid {
+  display: grid;
+  gap: 0.5rem 0.625rem;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.filter-field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.1875rem;
+  min-width: 0;
+}
+
+.filter-field--full {
+  grid-column: 1 / -1;
+}
+
+.filter-field label {
+  color: var(--ink-faint);
+  font-size: 0.6875rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+}
+
+/* Popover density: 28px controls, not the 40px of a settings form. */
+.filter-field__input {
+  background: var(--surface-sunk);
+  border: 0;
+  border-radius: var(--radius-xs);
+  box-shadow: var(--well);
+  color: var(--ink);
+  font: inherit;
+  font-size: 0.78125rem;
+  min-width: 0;
+  outline: none;
+  padding: 0 0.5rem;
+  height: 1.75rem;
+}
+
+.filter-field__input:focus {
+  box-shadow:
+    var(--well),
+    0 0 0 2px var(--surface),
+    0 0 0 3.5px rgb(74 58 128 / 45%);
+}
+
+.filter-menu__note {
+  color: var(--ink-faint);
+  font-size: 0.6875rem;
+  margin: 0.5rem 0 0;
+}
+
+.filter-menu__foot {
+  display: flex;
+  gap: 0.375rem;
+  justify-content: flex-end;
+  margin-top: 0.75rem;
 }
 
 /*
@@ -3044,6 +3187,59 @@ input:disabled {
   box-shadow: inset 2px 0 0 var(--accent);
 }
 
+/*
+ * Row actions
+ *
+ * Quiet until touched: hidden at rest, revealed on hover or keyboard focus,
+ * and lifted above the stretched link so they act on the row instead of
+ * opening it.
+ */
+/* No hover on a phone, and no room on a 72px card: the tick box and the
+   document's own page carry these verbs there. */
+.doc-row__actions {
+  display: none;
+  gap: 0.1875rem;
+  justify-content: flex-end;
+  opacity: 0;
+  position: relative;
+  transition: opacity 120ms ease-out;
+  z-index: 1;
+}
+
+.doc-row:hover .doc-row__actions,
+.doc-row:focus-within .doc-row__actions {
+  opacity: 1;
+}
+
+.doc-row__action {
+  align-items: center;
+  background: var(--surface-sunk);
+  border: 0;
+  border-radius: var(--radius-xs);
+  color: var(--ink-muted);
+  cursor: pointer;
+  display: flex;
+  height: 1.5rem;
+  justify-content: center;
+  padding: 0;
+  width: 1.5rem;
+}
+
+.doc-row__action:hover {
+  background: var(--surface);
+  box-shadow: var(--e1), var(--lip);
+  color: var(--accent);
+}
+
+.doc-row__action--danger:hover {
+  color: var(--danger);
+}
+
+.doc-row__action:disabled {
+  cursor: default;
+  opacity: 0.4;
+}
+
 .doc-sort {
   align-items: center;
   background: none;
@@ -3082,7 +3278,60 @@ input:disabled {
   flex-wrap: wrap;
   font-size: 0.71875rem;
   gap: 0.5rem;
-  padding: 0.5rem 0.75rem;
+  min-height: 2.625rem;
+  padding: 0.375rem 0.75rem;
+}
+
+/*
+ * The strip mixes a 12px label with a 12.5px monospaced sum, and two fonts
+ * with two line boxes do not sit on the same line by themselves.
+ */
+.table-foot > * {
+  align-items: center;
+  display: inline-flex;
+  line-height: 1;
+}
+
+/*
+ * Empty state
+ *
+ * A card with nothing in it is a question, so it answers itself: what this
+ * place is for, and the one button that fills it.
+ */
+.empty-state {
+  align-items: center;
+  display: flex;
+  flex-direction: column;
+  gap: 0.375rem;
+  padding: 3.5rem 1.5rem;
+  text-align: center;
+}
+
+.empty-state__tile {
+  align-items: center;
+  background: var(--surface-sunk);
+  border-radius: 0.875rem;
+  box-shadow: var(--well);
+  color: var(--ink-faint);
+  display: flex;
+  height: 2.75rem;
+  justify-content: center;
+  margin-bottom: 0.375rem;
+  width: 2.75rem;
+}
+
+.empty-state__title {
+  color: var(--ink);
+  font-size: 0.9375rem;
+  font-weight: 600;
+  margin: 0;
+}
+
+.empty-state__body {
+  color: var(--ink-faint);
+  font-size: 0.8125rem;
+  margin: 0 0 0.75rem;
+  max-width: 28rem;
 }
 
 .table-foot__divider {
@@ -3188,14 +3437,24 @@ input:disabled {
  * squeezed table.
  */
 @media (min-width: 64rem) {
+  /*
+   * The name column is capped instead of taking every spare pixel: past about
+   * 26rem a supplier name is already whole, and the slack only pushes the money
+   * away from it. What is left over is shared with Type and Category, which are
+   * the other columns that can actually use the room.
+   */
   .doc-row {
     grid-template-areas: none;
     grid-template-columns:
-      2rem minmax(0, 1fr) 5.25rem 6.5rem 8rem
-      5.5rem 6.5rem 7rem;
+      2rem minmax(11rem, 26rem) 5.25rem minmax(6.5rem, 1fr)
+      minmax(8rem, 1.4fr) 5.5rem 6.5rem 7rem 3.25rem;
     min-height: 2.375rem;
     padding: 0 0.625rem;
     row-gap: 0;
+  }
+
+  .doc-row__actions {
+    display: flex;
   }
 
   .doc-row--head {
