@@ -19,8 +19,12 @@ test("search-document: finds a document by supplier name and excludes it for an 
   page,
 }) => {
   await page.goto(`/documents?q=${encodeURIComponent(seeded.supplierName)}`);
-  await expect(page.getByRole("link", { name: seeded.supplierName })).toBeVisible();
+  await expect(
+    page.getByRole("link", { name: seeded.supplierName }),
+  ).toBeVisible();
 
   await page.goto("/documents?q=no-such-supplier-should-match-nothing");
-  await expect(page.getByRole("link", { name: seeded.supplierName })).toHaveCount(0);
+  await expect(
+    page.getByRole("link", { name: seeded.supplierName }),
+  ).toHaveCount(0);
 });

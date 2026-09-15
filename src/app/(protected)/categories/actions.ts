@@ -25,10 +25,12 @@ export async function createCategoryAction(formData: FormData): Promise<void> {
     description: emptyToNull(formData.get("description")),
     name: formData.get("name"),
   });
-  if (!parsed.success) redirectWithError("Please provide a valid category name.");
+  if (!parsed.success)
+    redirectWithError("Please provide a valid category name.");
 
   const result = await repository.create(parsed.data);
-  if (!result.ok) redirectWithError("A category with that name already exists.");
+  if (!result.ok)
+    redirectWithError("A category with that name already exists.");
 
   revalidatePath("/categories");
   redirect("/categories");
@@ -43,10 +45,12 @@ export async function updateCategoryAction(
     description: emptyToNull(formData.get("description")),
     name: formData.get("name"),
   });
-  if (!parsed.success) redirectWithError("Please provide a valid category name.");
+  if (!parsed.success)
+    redirectWithError("Please provide a valid category name.");
 
   const result = await repository.update(id, parsed.data);
-  if (!result.ok) redirectWithError("A category with that name already exists.");
+  if (!result.ok)
+    redirectWithError("A category with that name already exists.");
 
   revalidatePath("/categories");
   redirect("/categories");

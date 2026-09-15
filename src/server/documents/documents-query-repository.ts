@@ -4,7 +4,10 @@ import { and, asc, desc, eq, gte, ilike, lte, ne, or, sql } from "drizzle-orm";
 
 import type { DocumentListQuery } from "../../domain/documents/query";
 import { documentListPageSize } from "../../domain/documents/query";
-import type { DocumentStatus, DocumentType } from "../../domain/documents/types";
+import type {
+  DocumentStatus,
+  DocumentType,
+} from "../../domain/documents/types";
 import { getDatabase } from "../db/client";
 import { categories, documentFiles, documents, expenses } from "../db/schema";
 
@@ -35,10 +38,13 @@ export interface DocumentsQueryRepository {
 function buildWhere(query: DocumentListQuery) {
   const conditions = [
     // Archived documents are hidden unless the status filter asks for them.
-    query.status ? eq(documents.status, query.status) : ne(documents.status, "ARCHIVED"),
+    query.status
+      ? eq(documents.status, query.status)
+      : ne(documents.status, "ARCHIVED"),
   ];
   if (query.type) conditions.push(eq(documents.type, query.type));
-  if (query.categoryId) conditions.push(eq(expenses.categoryId, query.categoryId));
+  if (query.categoryId)
+    conditions.push(eq(expenses.categoryId, query.categoryId));
   if (query.supplier) {
     conditions.push(ilike(expenses.supplierName, `%${query.supplier}%`));
   }
@@ -57,8 +63,10 @@ function buildWhere(query: DocumentListQuery) {
       sql`to_char(${documents.transactionDate}, 'YYYY-MM') = ${query.month}`,
     );
   } else {
-    if (query.dateFrom) conditions.push(gte(documents.transactionDate, query.dateFrom));
-    if (query.dateTo) conditions.push(lte(documents.transactionDate, query.dateTo));
+    if (query.dateFrom)
+      conditions.push(gte(documents.transactionDate, query.dateFrom));
+    if (query.dateTo)
+      conditions.push(lte(documents.transactionDate, query.dateTo));
   }
   if (query.amountMin) conditions.push(gte(expenses.total, query.amountMin));
   if (query.amountMax) conditions.push(lte(expenses.total, query.amountMax));

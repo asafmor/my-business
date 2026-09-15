@@ -103,7 +103,10 @@ describe("parseDocumentListQuery", () => {
   it("prefers month over dateFrom/dateTo when both are present in the caller", () => {
     // parseDocumentListQuery itself just parses each field independently;
     // month vs date-range precedence is enforced by the query repository.
-    const query = parseDocumentListQuery({ dateFrom: "2026-01-01", month: "2026-01" });
+    const query = parseDocumentListQuery({
+      dateFrom: "2026-01-01",
+      month: "2026-01",
+    });
     expect(query.month).toBe("2026-01");
     expect(query.dateFrom).toBe("2026-01-01");
   });

@@ -97,7 +97,8 @@ export class DrizzleCategoryRepository implements CategoryRepository {
         .for("update");
       const index = rows.findIndex((row) => row.id === id);
       const swapIndex = direction === "up" ? index - 1 : index + 1;
-      if (index === -1 || swapIndex < 0 || swapIndex >= rows.length) return false;
+      if (index === -1 || swapIndex < 0 || swapIndex >= rows.length)
+        return false;
 
       const current = rows[index]!;
       const swap = rows[swapIndex]!;

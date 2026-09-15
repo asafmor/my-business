@@ -77,7 +77,11 @@ export class DrizzleReportArtifactRepository implements ReportArtifactRepository
         action: "REPORT_GENERATION",
         entityId: input.reportId,
         entityType: "REPORT",
-        newValue: { documentId: input.documentId, fileId: input.fileId, month: input.month },
+        newValue: {
+          documentId: input.documentId,
+          fileId: input.fileId,
+          month: input.month,
+        },
         source: "USER",
       });
     });

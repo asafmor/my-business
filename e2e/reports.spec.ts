@@ -23,8 +23,12 @@ test("monthly-report: a READY document's total is reflected in the month's summa
   page,
 }) => {
   await page.goto(`/reports?month=${currentMonth}`);
-  await expect(page.getByRole("heading", { name: "Reports", exact: true })).toBeVisible();
-  await expect(page.locator(".dashboard-stat__value").first()).not.toHaveText("0");
+  await expect(
+    page.getByRole("heading", { name: "Reports", exact: true }),
+  ).toBeVisible();
+  await expect(page.locator(".dashboard-stat__value").first()).not.toHaveText(
+    "0",
+  );
 });
 
 test("export-report: CSV export responds with a CSV file for the month", async ({
@@ -48,7 +52,9 @@ test("export-report: generating a PDF report adds it to the month's report list"
   await page.goto(`/reports?month=${currentMonth}`);
   await page.getByRole("button", { name: "Generate PDF report" }).click();
 
-  await expect(page.getByRole("link", { name: "Download" }).first()).toBeVisible({
+  await expect(
+    page.getByRole("link", { name: "Download" }).first(),
+  ).toBeVisible({
     timeout: 15_000,
   });
 });

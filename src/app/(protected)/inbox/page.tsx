@@ -9,7 +9,11 @@ import {
 import { InboxInlineEditForm } from "../../../components/inbox/inline-edit-form";
 import { ProcessingLiveStatus } from "../../../components/inbox/processing-live-status";
 import { attentionReasons } from "../../../domain/documents/attention-reasons";
-import { formatDate, formatMoney, humanizeEnumValue } from "../../../lib/format";
+import {
+  formatDate,
+  formatMoney,
+  humanizeEnumValue,
+} from "../../../lib/format";
 import { DrizzleDocumentsQueryRepository } from "../../../server/documents/documents-query-repository";
 import {
   DrizzleInboxQueryRepository,
@@ -28,7 +32,8 @@ const statusVariant: Record<string, string> = {
   UPLOADED: "neutral",
 };
 
-type CardSection = "failed" | "needsReview" | "processing" | "recentlyCompleted";
+type CardSection =
+  "failed" | "needsReview" | "processing" | "recentlyCompleted";
 
 function InboxCard({
   categories,
@@ -44,14 +49,19 @@ function InboxCard({
   return (
     <li className="data-list__item inbox-card">
       <div className="data-list__item-header">
-        <span className={`status-badge status-badge--${statusVariant[row.status] ?? "neutral"}`}>
+        <span
+          className={`status-badge status-badge--${statusVariant[row.status] ?? "neutral"}`}
+        >
           {humanizeEnumValue(row.status)}
         </span>
         <Link href={`/documents/${row.id}`}>Open</Link>
       </div>
-      <div className="data-list__item-title">{row.supplierName ?? "Unknown supplier"}</div>
+      <div className="data-list__item-title">
+        {row.supplierName ?? "Unknown supplier"}
+      </div>
       <div className="data-list__item-meta">
-        {formatDate(row.transactionDate)} · {formatMoney(row.total, row.currency)}
+        {formatDate(row.transactionDate)} ·{" "}
+        {formatMoney(row.total, row.currency)}
         {row.categoryName ? ` · ${row.categoryName}` : ""}
       </div>
 
@@ -127,12 +137,19 @@ export default async function InboxPage() {
     <div className="page">
       <h1 className="page-heading">Inbox</h1>
 
-      <ProcessingLiveStatus documentIds={inbox.processing.map((row) => row.id)} />
+      <ProcessingLiveStatus
+        documentIds={inbox.processing.map((row) => row.id)}
+      />
 
       <InboxSection
         emptyText="Nothing needs review right now."
         renderRow={(row) => (
-          <InboxCard categories={categories} key={row.id} row={row} section="needsReview" />
+          <InboxCard
+            categories={categories}
+            key={row.id}
+            row={row}
+            section="needsReview"
+          />
         )}
         rows={inbox.needsReview}
         title="Needs review"
@@ -141,7 +158,12 @@ export default async function InboxPage() {
       <InboxSection
         emptyText="Nothing is processing right now."
         renderRow={(row) => (
-          <InboxCard categories={categories} key={row.id} row={row} section="processing" />
+          <InboxCard
+            categories={categories}
+            key={row.id}
+            row={row}
+            section="processing"
+          />
         )}
         rows={inbox.processing}
         title="Processing"
@@ -150,7 +172,12 @@ export default async function InboxPage() {
       <InboxSection
         emptyText="No failed documents."
         renderRow={(row) => (
-          <InboxCard categories={categories} key={row.id} row={row} section="failed" />
+          <InboxCard
+            categories={categories}
+            key={row.id}
+            row={row}
+            section="failed"
+          />
         )}
         rows={inbox.failed}
         title="Failed"

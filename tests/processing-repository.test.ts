@@ -3,10 +3,28 @@ import { describe, expect, it, vi } from "vitest";
 vi.mock("server-only", () => ({}));
 vi.mock("../src/server/db/client", () => ({ getDatabase: vi.fn() }));
 vi.mock("../src/server/db/schema", () => ({
-  auditEvents: { action: "audit_events.action", entityId: "audit_events.entity_id", entityType: "audit_events.entity_type", field: "audit_events.field" },
-  categories: { active: "categories.active", id: "categories.id", name: "categories.name" },
-  documentFiles: { documentId: "document_files.document_id", kind: "document_files.kind", mimeType: "document_files.mime_type", objectKey: "document_files.object_key" },
-  documents: { id: "documents.id", status: "documents.status", type: "documents.type" },
+  auditEvents: {
+    action: "audit_events.action",
+    entityId: "audit_events.entity_id",
+    entityType: "audit_events.entity_type",
+    field: "audit_events.field",
+  },
+  categories: {
+    active: "categories.active",
+    id: "categories.id",
+    name: "categories.name",
+  },
+  documentFiles: {
+    documentId: "document_files.document_id",
+    kind: "document_files.kind",
+    mimeType: "document_files.mime_type",
+    objectKey: "document_files.object_key",
+  },
+  documents: {
+    id: "documents.id",
+    status: "documents.status",
+    type: "documents.type",
+  },
   expenses: { documentId: "expenses.document_id", id: "expenses.id" },
   extractions: { documentId: "extractions.document_id", id: "extractions.id" },
 }));
@@ -17,11 +35,21 @@ const documentId = "de305d54-75b4-431b-adb2-eb6b9e546013";
 
 function chain(result: unknown) {
   const obj: Record<string, unknown> = {};
-  for (const method of ["from", "where", "limit", "for", "set", "values", "returning", "innerJoin"]) {
+  for (const method of [
+    "from",
+    "where",
+    "limit",
+    "for",
+    "set",
+    "values",
+    "returning",
+    "innerJoin",
+  ]) {
     obj[method] = vi.fn(() => obj);
   }
-  (obj as { then: (resolve: (value: unknown) => void) => void }).then = (resolve) =>
-    resolve(result);
+  (obj as { then: (resolve: (value: unknown) => void) => void }).then = (
+    resolve,
+  ) => resolve(result);
   return obj as {
     from: ReturnType<typeof vi.fn>;
     innerJoin: ReturnType<typeof vi.fn>;
@@ -32,7 +60,11 @@ function chain(result: unknown) {
 }
 
 function createDatabase(transaction: Record<string, unknown>) {
-  const database = { transaction: vi.fn(async (callback: (tx: unknown) => unknown) => callback(transaction)) };
+  const database = {
+    transaction: vi.fn(async (callback: (tx: unknown) => unknown) =>
+      callback(transaction),
+    ),
+  };
   return () => database;
 }
 
@@ -51,9 +83,13 @@ describe("DrizzleDocumentProcessingRepository.beginProcessing", () => {
       select: vi.fn().mockReturnValueOnce(files).mockReturnValue(empty),
       update: vi.fn(() => claim),
     };
-    const repository = new DrizzleDocumentProcessingRepository(createDatabase(transaction) as never);
+    const repository = new DrizzleDocumentProcessingRepository(
+      createDatabase(transaction) as never,
+    );
 
-    await expect(repository.beginProcessing(documentId, false)).resolves.toMatchObject({
+    await expect(
+      repository.beginProcessing(documentId, false),
+    ).resolves.toMatchObject({
       id: documentId,
       original,
       type: "OTHER",
@@ -67,10 +103,14 @@ describe("DrizzleDocumentProcessingRepository.beginProcessing", () => {
       select: vi.fn(() => noMatch),
       update: vi.fn(() => noMatch),
     };
-    const repository = new DrizzleDocumentProcessingRepository(createDatabase(transaction) as never);
+    const repository = new DrizzleDocumentProcessingRepository(
+      createDatabase(transaction) as never,
+    );
 
     // e.g. a document already READY cannot be claimed for non-reprocessing work.
-    await expect(repository.beginProcessing(documentId, false)).resolves.toBeNull();
+    await expect(
+      repository.beginProcessing(documentId, false),
+    ).resolves.toBeNull();
     // No file lookup or category/audit reads should occur once the claim itself fails.
     expect(transaction.select).not.toHaveBeenCalled();
   });
@@ -84,7 +124,9 @@ describe("DrizzleDocumentProcessingRepository.beginProcessing", () => {
       select: vi.fn().mockReturnValueOnce(files).mockReturnValue(empty),
       update: vi.fn(() => claim),
     };
-    const repository = new DrizzleDocumentProcessingRepository(createDatabase(transaction) as never);
+    const repository = new DrizzleDocumentProcessingRepository(
+      createDatabase(transaction) as never,
+    );
 
     await expect(
       repository.beginProcessing(documentId, true),
@@ -127,7 +169,9 @@ describe("DrizzleDocumentProcessingRepository.completeProcessing", () => {
       select: vi.fn(() => notProcessing),
       update: vi.fn(() => notProcessing),
     };
-    const repository = new DrizzleDocumentProcessingRepository(createDatabase(transaction) as never);
+    const repository = new DrizzleDocumentProcessingRepository(
+      createDatabase(transaction) as never,
+    );
 
     await repository.completeProcessing({
       document,
@@ -179,7 +223,9 @@ describe("DrizzleDocumentProcessingRepository.completeProcessing", () => {
         .mockReturnValueOnce(empty), // current manual document events
       update: vi.fn(() => noReturn),
     };
-    const repository = new DrizzleDocumentProcessingRepository(createDatabase(transaction) as never);
+    const repository = new DrizzleDocumentProcessingRepository(
+      createDatabase(transaction) as never,
+    );
 
     await repository.completeProcessing({
       document,
@@ -209,7 +255,9 @@ describe("DrizzleDocumentProcessingRepository.failProcessing", () => {
       select: vi.fn(() => notProcessing),
       update: vi.fn(() => notProcessing),
     };
-    const repository = new DrizzleDocumentProcessingRepository(createDatabase(transaction) as never);
+    const repository = new DrizzleDocumentProcessingRepository(
+      createDatabase(transaction) as never,
+    );
 
     await repository.failProcessing({
       documentId,
@@ -229,7 +277,9 @@ describe("DrizzleDocumentProcessingRepository.failProcessing", () => {
       select: vi.fn(() => processing),
       update: vi.fn(() => noReturn),
     };
-    const repository = new DrizzleDocumentProcessingRepository(createDatabase(transaction) as never);
+    const repository = new DrizzleDocumentProcessingRepository(
+      createDatabase(transaction) as never,
+    );
 
     await repository.failProcessing({
       documentId,

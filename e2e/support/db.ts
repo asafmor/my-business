@@ -57,7 +57,8 @@ export async function seedReviewableDocument(
   const database = db();
   const id = randomUUID();
   const sha256 = randomUUID().replaceAll("-", "").padEnd(64, "0");
-  const supplierName = overrides.supplierName ?? `E2E Supplier ${id.slice(0, 8)}`;
+  const supplierName =
+    overrides.supplierName ?? `E2E Supplier ${id.slice(0, 8)}`;
 
   await database.insert(documents).values({
     id,
@@ -117,10 +118,16 @@ export async function seedReviewableDocument(
 export async function deleteSeededDocument(id: string): Promise<void> {
   const database = db();
   await database.delete(expenses).where(eq(expenses.documentId, id));
-  await database.update(documents).set({ status: "ARCHIVED" }).where(eq(documents.id, id));
+  await database
+    .update(documents)
+    .set({ status: "ARCHIVED" })
+    .where(eq(documents.id, id));
 }
 
-export async function anyActiveCategory(): Promise<{ id: string; name: string } | null> {
+export async function anyActiveCategory(): Promise<{
+  id: string;
+  name: string;
+} | null> {
   const database = db();
   const [category] = await database
     .select({ id: categories.id, name: categories.name })

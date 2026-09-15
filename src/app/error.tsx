@@ -31,7 +31,11 @@ export default function Error({
       <ContentState
         action={
           <>
-            <button className="button button--secondary" onClick={reset} type="button">
+            <button
+              className="button button--secondary"
+              onClick={reset}
+              type="button"
+            >
               Try again
             </button>
             <Link className="button button--primary" href="/">

@@ -4,7 +4,10 @@ vi.mock("server-only", () => ({}));
 vi.mock("../src/server/db/client", () => ({ getDatabase: vi.fn() }));
 vi.mock("../src/server/db/schema", () => ({
   auditEvents: {},
-  documentFiles: { id: "document_files.id", objectKey: "document_files.object_key" },
+  documentFiles: {
+    id: "document_files.id",
+    objectKey: "document_files.object_key",
+  },
   documents: { id: "documents.id" },
   reports: {
     documentId: "reports.document_id",
@@ -18,18 +21,29 @@ vi.mock("../src/server/db/schema", () => ({
   },
 }));
 
-const { DrizzleReportArtifactRepository } = await import(
-  "../src/server/reports/report-artifact-repository"
-);
+const { DrizzleReportArtifactRepository } =
+  await import("../src/server/reports/report-artifact-repository");
 
 function chain(result: unknown) {
   const obj: Record<string, unknown> = {};
-  for (const method of ["from", "innerJoin", "where", "orderBy", "limit", "set", "values"]) {
+  for (const method of [
+    "from",
+    "innerJoin",
+    "where",
+    "orderBy",
+    "limit",
+    "set",
+    "values",
+  ]) {
     obj[method] = vi.fn(() => obj);
   }
-  (obj as { then: (resolve: (value: unknown) => void) => void }).then = (resolve) =>
-    resolve(result);
-  return obj as { values: ReturnType<typeof vi.fn>; set: ReturnType<typeof vi.fn> };
+  (obj as { then: (resolve: (value: unknown) => void) => void }).then = (
+    resolve,
+  ) => resolve(result);
+  return obj as {
+    values: ReturnType<typeof vi.fn>;
+    set: ReturnType<typeof vi.fn>;
+  };
 }
 
 const input = {
@@ -54,13 +68,22 @@ describe("DrizzleReportArtifactRepository.createPdfArtifact", () => {
     const auditInsert = chain(undefined);
 
     let insertCall = 0;
-    const insertChains = [documentsInsert, filesInsert, reportsInsert, auditInsert];
+    const insertChains = [
+      documentsInsert,
+      filesInsert,
+      reportsInsert,
+      auditInsert,
+    ];
     const transaction = {
       insert: vi.fn(() => insertChains[insertCall++]),
       update: vi.fn(() => documentsUpdate),
     };
-    const database = { transaction: vi.fn(async (callback) => callback(transaction)) };
-    const repository = new DrizzleReportArtifactRepository((() => database) as never);
+    const database = {
+      transaction: vi.fn(async (callback) => callback(transaction)),
+    };
+    const repository = new DrizzleReportArtifactRepository(
+      (() => database) as never,
+    );
 
     await repository.createPdfArtifact(input);
 
@@ -77,7 +100,10 @@ describe("DrizzleReportArtifactRepository.createPdfArtifact", () => {
       }),
     );
     expect(filesInsert.values).toHaveBeenCalledWith(
-      expect.objectContaining({ kind: "GENERATED_REPORT", objectKey: input.objectKey }),
+      expect.objectContaining({
+        kind: "GENERATED_REPORT",
+        objectKey: input.objectKey,
+      }),
     );
     // Only the newly-created document is ever updated (to link its file); no
     // update/delete touches a previously generated report.
@@ -86,14 +112,24 @@ describe("DrizzleReportArtifactRepository.createPdfArtifact", () => {
   });
 
   it("generating a second report for the same month adds a new row instead of reusing the first", async () => {
-    const database = { transaction: vi.fn(async (callback) => callback({
-      insert: vi.fn(() => chain(undefined)),
-      update: vi.fn(() => chain(undefined)),
-    })) };
-    const repository = new DrizzleReportArtifactRepository((() => database) as never);
+    const database = {
+      transaction: vi.fn(async (callback) =>
+        callback({
+          insert: vi.fn(() => chain(undefined)),
+          update: vi.fn(() => chain(undefined)),
+        }),
+      ),
+    };
+    const repository = new DrizzleReportArtifactRepository(
+      (() => database) as never,
+    );
 
     await repository.createPdfArtifact(input);
-    await repository.createPdfArtifact({ ...input, reportId: "r2", generatedAt: new Date() });
+    await repository.createPdfArtifact({
+      ...input,
+      reportId: "r2",
+      generatedAt: new Date(),
+    });
 
     expect(database.transaction).toHaveBeenCalledTimes(2);
   });
@@ -111,7 +147,9 @@ describe("DrizzleReportArtifactRepository.listForMonth", () => {
       },
     ];
     const database = { select: vi.fn(() => chain(rows)) };
-    const repository = new DrizzleReportArtifactRepository((() => database) as never);
+    const repository = new DrizzleReportArtifactRepository(
+      (() => database) as never,
+    );
 
     await expect(repository.listForMonth("2026-09")).resolves.toEqual(rows);
   });

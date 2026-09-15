@@ -30,7 +30,8 @@ export async function saveDocumentEditAction(
   await requireSession();
 
   const parsed = documentEditInputSchema.safeParse({
-    businessUsePercentage: emptyToNull(formData.get("businessUsePercentage")) ?? "100",
+    businessUsePercentage:
+      emptyToNull(formData.get("businessUsePercentage")) ?? "100",
     categoryId: emptyToNull(formData.get("categoryId")),
     currency: emptyToNull(formData.get("currency"))?.toUpperCase() ?? null,
     documentId,
@@ -69,7 +70,9 @@ export async function markReviewedAction(documentId: string): Promise<void> {
   revalidatePath("/inbox");
 }
 
-export async function reprocessDocumentAction(documentId: string): Promise<void> {
+export async function reprocessDocumentAction(
+  documentId: string,
+): Promise<void> {
   await requireSession();
   const queued = await getBackgroundProcessingService().retry(documentId);
   if (queued) dispatchDueDocumentProcessing();

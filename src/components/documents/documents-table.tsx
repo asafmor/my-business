@@ -14,14 +14,20 @@ const statusVariant: Record<string, string> = {
 
 function StatusBadge({ status }: { status: string }) {
   return (
-    <span className={`status-badge status-badge--${statusVariant[status] ?? "neutral"}`}>
+    <span
+      className={`status-badge status-badge--${statusVariant[status] ?? "neutral"}`}
+    >
       {humanizeEnumValue(status)}
     </span>
   );
 }
 
 function Preview({ mimeType }: { mimeType: string | null }) {
-  const label = mimeType?.startsWith("image/") ? "Image" : mimeType === "application/pdf" ? "PDF" : "File";
+  const label = mimeType?.startsWith("image/")
+    ? "Image"
+    : mimeType === "application/pdf"
+      ? "PDF"
+      : "File";
   return <span className="document-preview-chip">{label}</span>;
 }
 
@@ -55,7 +61,9 @@ export function DocumentsTable({ rows }: { rows: DocumentListRow[] }) {
               </td>
               <td>{formatDate(row.transactionDate)}</td>
               <td>
-                <Link href={`/documents/${row.id}`}>{row.supplierName ?? "—"}</Link>
+                <Link href={`/documents/${row.id}`}>
+                  {row.supplierName ?? "—"}
+                </Link>
               </td>
               <td>{humanizeEnumValue(row.type)}</td>
               <td>{row.categoryName ?? "—"}</td>
@@ -72,18 +80,25 @@ export function DocumentsTable({ rows }: { rows: DocumentListRow[] }) {
       <ul className="data-list documents-table--mobile">
         {rows.map((row) => (
           <li className="data-list__item" key={row.id}>
-            <Link className="data-list__item-link" href={`/documents/${row.id}`}>
+            <Link
+              className="data-list__item-link"
+              href={`/documents/${row.id}`}
+            >
               <div className="data-list__item-header">
                 <Preview mimeType={row.mimeType} />
                 <StatusBadge status={row.status} />
               </div>
-              <div className="data-list__item-title">{row.supplierName ?? "Unknown supplier"}</div>
+              <div className="data-list__item-title">
+                {row.supplierName ?? "Unknown supplier"}
+              </div>
               <div className="data-list__item-meta">
-                {formatDate(row.transactionDate)} · {humanizeEnumValue(row.type)}
+                {formatDate(row.transactionDate)} ·{" "}
+                {humanizeEnumValue(row.type)}
                 {row.categoryName ? ` · ${row.categoryName}` : ""}
               </div>
               <div className="data-list__item-meta">
-                Total {formatMoney(row.total, null)} · VAT {formatMoney(row.vat, null)}
+                Total {formatMoney(row.total, null)} · VAT{" "}
+                {formatMoney(row.vat, null)}
               </div>
             </Link>
           </li>

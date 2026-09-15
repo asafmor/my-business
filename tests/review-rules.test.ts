@@ -4,7 +4,9 @@ import { suspiciousVatReasons } from "../src/domain/expenses/review-rules";
 
 describe("suspiciousVatReasons", () => {
   it("passes plausible VAT rates", () => {
-    expect(suspiciousVatReasons({ subtotal: "100.00", vat: "17.00" })).toEqual([]);
+    expect(suspiciousVatReasons({ subtotal: "100.00", vat: "17.00" })).toEqual(
+      [],
+    );
   });
 
   it("flags VAT far above any plausible rate", () => {

@@ -26,7 +26,8 @@ export class MonthlyReportGenerator {
 
   /** Generates and stores an immutable PDF snapshot for the given month. Returns the new reports.id. */
   async generatePdf(month: string): Promise<string> {
-    const { monthlyReportRepository, artifactRepository, storage } = this.dependencies;
+    const { monthlyReportRepository, artifactRepository, storage } =
+      this.dependencies;
 
     const [summary, categoryBreakdown, supplierBreakdown] = await Promise.all([
       monthlyReportRepository.summary(month),

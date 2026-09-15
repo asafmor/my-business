@@ -15,7 +15,11 @@ type ProcessingStatusResult = { id: string; status: DocumentStatus };
  * (router.refresh — an RSC refetch, not a full page reload) once any
  * document leaves the processing state.
  */
-export function ProcessingLiveStatus({ documentIds }: { documentIds: string[] }) {
+export function ProcessingLiveStatus({
+  documentIds,
+}: {
+  documentIds: string[];
+}) {
   const router = useRouter();
 
   useEffect(() => {
@@ -33,7 +37,11 @@ export function ProcessingLiveStatus({ documentIds }: { documentIds: string[] })
         const { documents } = (await response.json()) as {
           documents: ProcessingStatusResult[];
         };
-        if (documents.some((document) => isTerminalDocumentStatus(document.status))) {
+        if (
+          documents.some((document) =>
+            isTerminalDocumentStatus(document.status),
+          )
+        ) {
           router.refresh();
         }
       } catch {

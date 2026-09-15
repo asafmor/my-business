@@ -30,12 +30,18 @@ test.describe("login", () => {
 });
 
 test.describe("session expiry", () => {
-  test("redirects an unauthenticated visit to a protected page to login", async ({ page }) => {
+  test("redirects an unauthenticated visit to a protected page to login", async ({
+    page,
+  }) => {
     await page.goto("/documents");
     await expect(page).toHaveURL(/\/login$/);
   });
 
-  test("redirects once the session cookie is expired", async ({ page, context, baseURL }) => {
+  test("redirects once the session cookie is expired", async ({
+    page,
+    context,
+    baseURL,
+  }) => {
     await signIn(context, baseURL as string, { expired: true });
     await page.goto("/documents");
     await expect(page).toHaveURL(/\/login$/);
@@ -54,7 +60,10 @@ test.describe("logout", () => {
 
     // The app shell's header and the settings page each render their own
     // "Log out" button; either ends the session, so scope to one.
-    await page.getByRole("banner").getByRole("button", { name: "Log out" }).click();
+    await page
+      .getByRole("banner")
+      .getByRole("button", { name: "Log out" })
+      .click();
     await expect(page).toHaveURL(/\/login$/);
 
     await page.goto("/documents");

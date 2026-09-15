@@ -20,9 +20,7 @@ const missingVariables = requiredBackupVariables.filter(
 );
 
 if (missingVariables.length > 0) {
-  throw new Error(
-    `Missing backup variables: ${missingVariables.join(", ")}.`,
-  );
+  throw new Error(`Missing backup variables: ${missingVariables.join(", ")}.`);
 }
 
 console.log("Backup secrets present.");

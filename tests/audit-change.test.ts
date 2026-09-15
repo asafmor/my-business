@@ -4,12 +4,18 @@ import { formatAuditChange } from "../src/domain/documents/audit-change";
 
 describe("formatAuditChange", () => {
   it("returns null when both values are absent", () => {
-    expect(formatAuditChange({ field: null, newValue: null, oldValue: null })).toBeNull();
+    expect(
+      formatAuditChange({ field: null, newValue: null, oldValue: null }),
+    ).toBeNull();
   });
 
   it("formats money fields without quotes", () => {
     expect(
-      formatAuditChange({ field: "total", newValue: "123.45", oldValue: "100.00" }),
+      formatAuditChange({
+        field: "total",
+        newValue: "123.45",
+        oldValue: "100.00",
+      }),
     ).toBe("100.00 → 123.45");
   });
 
@@ -25,13 +31,21 @@ describe("formatAuditChange", () => {
 
   it("appends a percent sign for the business-use percentage field", () => {
     expect(
-      formatAuditChange({ field: "businessUsePercentage", newValue: "50", oldValue: "100" }),
+      formatAuditChange({
+        field: "businessUsePercentage",
+        newValue: "50",
+        oldValue: "100",
+      }),
     ).toBe("100% → 50%");
   });
 
   it("humanizes enum-like document type values", () => {
     expect(
-      formatAuditChange({ field: "type", newValue: "RECEIPT", oldValue: "INVOICE" }),
+      formatAuditChange({
+        field: "type",
+        newValue: "RECEIPT",
+        oldValue: "INVOICE",
+      }),
     ).toBe("Invoice → Receipt");
   });
 
@@ -46,19 +60,31 @@ describe("formatAuditChange", () => {
 
   it("falls back to the raw id when no category name is available", () => {
     expect(
-      formatAuditChange({ field: "category", newValue: "cat-2", oldValue: null }),
+      formatAuditChange({
+        field: "category",
+        newValue: "cat-2",
+        oldValue: null,
+      }),
     ).toBe("— → cat-2");
   });
 
   it("shows plain strings without JSON quoting", () => {
     expect(
-      formatAuditChange({ field: "supplierName", newValue: "Acme Inc", oldValue: null }),
+      formatAuditChange({
+        field: "supplierName",
+        newValue: "Acme Inc",
+        oldValue: null,
+      }),
     ).toBe("— → Acme Inc");
   });
 
   it("falls back to JSON for object values with no known field", () => {
     expect(
-      formatAuditChange({ field: null, newValue: { status: "READY" }, oldValue: null }),
+      formatAuditChange({
+        field: null,
+        newValue: { status: "READY" },
+        oldValue: null,
+      }),
     ).toBe('— → {"status":"READY"}');
   });
 });

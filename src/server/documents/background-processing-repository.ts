@@ -125,7 +125,12 @@ export class DrizzleBackgroundProcessingRepository implements BackgroundProcessi
         .where(
           and(
             eq(documents.id, documentId),
-            inArray(documents.status, ["UPLOADED", "READY", "NEEDS_REVIEW", "FAILED"]),
+            inArray(documents.status, [
+              "UPLOADED",
+              "READY",
+              "NEEDS_REVIEW",
+              "FAILED",
+            ]),
           ),
         )
         .returning({ id: documents.id });

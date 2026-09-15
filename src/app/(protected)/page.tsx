@@ -68,15 +68,21 @@ export default async function DashboardPage() {
             <span className="dashboard-stat__label">Total expenses</span>
           </li>
           <li className="dashboard-stat">
-            <span className="dashboard-stat__value">{formatMoney(summary.vatTotal, null)}</span>
+            <span className="dashboard-stat__value">
+              {formatMoney(summary.vatTotal, null)}
+            </span>
             <span className="dashboard-stat__label">VAT</span>
           </li>
           <li className="dashboard-stat">
-            <span className="dashboard-stat__value">{summary.documentCount}</span>
+            <span className="dashboard-stat__value">
+              {summary.documentCount}
+            </span>
             <span className="dashboard-stat__label">Documents</span>
           </li>
           <li className="dashboard-stat">
-            <span className="dashboard-stat__value">{summary.needsReviewCount}</span>
+            <span className="dashboard-stat__value">
+              {summary.needsReviewCount}
+            </span>
             <span className="dashboard-stat__label">Waiting for review</span>
           </li>
         </ul>
@@ -90,12 +96,16 @@ export default async function DashboardPage() {
           <ul className="data-list">
             {needsAttention.map((row) => (
               <li className="data-list__item" key={row.id}>
-                <Link className="data-list__item-link" href={`/documents/${row.id}`}>
+                <Link
+                  className="data-list__item-link"
+                  href={`/documents/${row.id}`}
+                >
                   <div className="data-list__item-title">
                     {row.supplierName ?? "Unknown supplier"}
                   </div>
                   <div className="data-list__item-meta">
-                    {formatDate(row.transactionDate)} · {formatMoney(row.total, row.currency)}
+                    {formatDate(row.transactionDate)} ·{" "}
+                    {formatMoney(row.total, row.currency)}
                   </div>
                   <ul className="inbox-card__reasons">
                     {attentionReasons(row).map((reason) => (
@@ -117,7 +127,10 @@ export default async function DashboardPage() {
         ) : (
           <ul className="data-list">
             {categoryBreakdown.map((row) => (
-              <li className="data-list__item" key={row.categoryName ?? "uncategorized"}>
+              <li
+                className="data-list__item"
+                key={row.categoryName ?? "uncategorized"}
+              >
                 <div className="data-list__item-header">
                   <span>{row.categoryName ?? "Uncategorized"}</span>
                   <span>{formatMoney(row.total, null)}</span>
@@ -171,9 +184,13 @@ function RecentDocumentsList({
         <li className="data-list__item" key={row.id}>
           <Link className="data-list__item-link" href={`/documents/${row.id}`}>
             <div className="data-list__item-header">
-              <span className="status-badge">{humanizeEnumValue(row.status)}</span>
+              <span className="status-badge">
+                {humanizeEnumValue(row.status)}
+              </span>
             </div>
-            <div className="data-list__item-title">{row.supplierName ?? "Unknown supplier"}</div>
+            <div className="data-list__item-title">
+              {row.supplierName ?? "Unknown supplier"}
+            </div>
             <div className="data-list__item-meta">{formatDate(row.at)}</div>
           </Link>
         </li>

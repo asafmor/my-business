@@ -20,9 +20,9 @@ describe("redactSecrets", () => {
   });
 
   it("redacts an Authorization header value", () => {
-    expect(redactSecrets('headers: {"Authorization": "Bearer sk-abc123"}')).toBe(
-      'headers: {"Authorization": "[redacted]"}',
-    );
+    expect(
+      redactSecrets('headers: {"Authorization": "Bearer sk-abc123"}'),
+    ).toBe('headers: {"Authorization": "[redacted]"}');
   });
 
   it("leaves messages with no secrets untouched", () => {

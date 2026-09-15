@@ -60,7 +60,12 @@ export class DrizzleDashboardRepository implements DashboardRepository {
       .where(currentMonthCondition(month));
 
     return (
-      row ?? { documentCount: 0, needsReviewCount: 0, totalExpenses: "0", vatTotal: "0" }
+      row ?? {
+        documentCount: 0,
+        needsReviewCount: 0,
+        totalExpenses: "0",
+        vatTotal: "0",
+      }
     );
   }
 
@@ -79,7 +84,10 @@ export class DrizzleDashboardRepository implements DashboardRepository {
   }
 
   async hasAnyDocuments(): Promise<boolean> {
-    const rows = await this.database().select({ id: documents.id }).from(documents).limit(1);
+    const rows = await this.database()
+      .select({ id: documents.id })
+      .from(documents)
+      .limit(1);
     return rows.length > 0;
   }
 

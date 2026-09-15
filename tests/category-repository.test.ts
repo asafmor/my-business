@@ -3,18 +3,31 @@ import { describe, expect, it, vi } from "vitest";
 vi.mock("server-only", () => ({}));
 vi.mock("../src/server/db/client", () => ({ getDatabase: vi.fn() }));
 vi.mock("../src/server/db/schema", () => ({
-  categories: { id: "categories.id", name: "categories.name", sortOrder: "categories.sort_order" },
+  categories: {
+    id: "categories.id",
+    name: "categories.name",
+    sortOrder: "categories.sort_order",
+  },
 }));
 
 import { DrizzleCategoryRepository } from "../src/server/categories/category-repository";
 
 function chain(result: unknown) {
   const obj: Record<string, unknown> = {};
-  for (const method of ["from", "where", "orderBy", "values", "set", "returning", "for"]) {
+  for (const method of [
+    "from",
+    "where",
+    "orderBy",
+    "values",
+    "set",
+    "returning",
+    "for",
+  ]) {
     obj[method] = vi.fn(() => obj);
   }
-  (obj as { then: (resolve: (value: unknown) => void) => void }).then = (resolve) =>
-    resolve(result);
+  (obj as { then: (resolve: (value: unknown) => void) => void }).then = (
+    resolve,
+  ) => resolve(result);
   return obj as {
     set: ReturnType<typeof vi.fn>;
     values: ReturnType<typeof vi.fn>;
@@ -27,7 +40,15 @@ const categoryId = "de305d54-75b4-431b-adb2-eb6b9e546013";
 describe("DrizzleCategoryRepository.create", () => {
   it("assigns the next sortOrder and returns the created category", async () => {
     const selectChain = chain([{ max: 2 }]);
-    const insertChain = chain([{ active: true, description: null, id: categoryId, name: "Fuel", sortOrder: 3 }]);
+    const insertChain = chain([
+      {
+        active: true,
+        description: null,
+        id: categoryId,
+        name: "Fuel",
+        sortOrder: 3,
+      },
+    ]);
     const database = {
       insert: vi.fn(() => insertChain),
       select: vi.fn(() => selectChain),
@@ -36,7 +57,10 @@ describe("DrizzleCategoryRepository.create", () => {
 
     const result = await repository.create({ description: null, name: "Fuel" });
 
-    expect(result).toEqual({ ok: true, category: expect.objectContaining({ name: "Fuel", sortOrder: 3 }) });
+    expect(result).toEqual({
+      ok: true,
+      category: expect.objectContaining({ name: "Fuel", sortOrder: 3 }),
+    });
     expect(insertChain.values).toHaveBeenCalledWith(
       expect.objectContaining({ name: "Fuel", sortOrder: 3 }),
     );
@@ -52,7 +76,9 @@ describe("DrizzleCategoryRepository.create", () => {
     };
     const repository = new DrizzleCategoryRepository((() => database) as never);
 
-    await expect(repository.create({ description: null, name: "Fuel" })).resolves.toEqual({
+    await expect(
+      repository.create({ description: null, name: "Fuel" }),
+    ).resolves.toEqual({
       ok: false,
       reason: "DUPLICATE_NAME",
     });
@@ -63,7 +89,9 @@ describe("DrizzleCategoryRepository.remove", () => {
   it("maps a foreign-key violation to IN_USE instead of throwing", async () => {
     const database = {
       delete: vi.fn(() => {
-        throw Object.assign(new Error("violates foreign key constraint"), { code: "23503" });
+        throw Object.assign(new Error("violates foreign key constraint"), {
+          code: "23503",
+        });
       }),
     };
     const repository = new DrizzleCategoryRepository((() => database) as never);
@@ -88,8 +116,13 @@ describe("DrizzleCategoryRepository.move", () => {
     ];
     const selectChain = chain(rows);
     const updateChain = chain(undefined);
-    const transaction = { select: vi.fn(() => selectChain), update: vi.fn(() => updateChain) };
-    const database = { transaction: vi.fn(async (callback) => callback(transaction)) };
+    const transaction = {
+      select: vi.fn(() => selectChain),
+      update: vi.fn(() => updateChain),
+    };
+    const database = {
+      transaction: vi.fn(async (callback) => callback(transaction)),
+    };
     const repository = new DrizzleCategoryRepository((() => database) as never);
 
     await expect(repository.move("b", "up")).resolves.toBe(true);
@@ -104,7 +137,9 @@ describe("DrizzleCategoryRepository.move", () => {
     ];
     const selectChain = chain(rows);
     const transaction = { select: vi.fn(() => selectChain), update: vi.fn() };
-    const database = { transaction: vi.fn(async (callback) => callback(transaction)) };
+    const database = {
+      transaction: vi.fn(async (callback) => callback(transaction)),
+    };
     const repository = new DrizzleCategoryRepository((() => database) as never);
 
     await expect(repository.move("a", "up")).resolves.toBe(false);

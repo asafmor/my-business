@@ -37,7 +37,10 @@ export async function attachReviewReasons<T extends { id: string }>(
       ),
     );
 
-  const latest = new Map<string, { createdAt: Date; normalizedResult: JsonObject }>();
+  const latest = new Map<
+    string,
+    { createdAt: Date; normalizedResult: JsonObject }
+  >();
   for (const extraction of extractionRows) {
     const current = latest.get(extraction.documentId);
     if (!current || extraction.createdAt > current.createdAt) {
@@ -49,7 +52,9 @@ export async function attachReviewReasons<T extends { id: string }>(
     const reviewReasons = latest.get(row.id)?.normalizedResult.reviewReasons;
     return {
       ...row,
-      reviewReasons: Array.isArray(reviewReasons) ? (reviewReasons as string[]) : [],
+      reviewReasons: Array.isArray(reviewReasons)
+        ? (reviewReasons as string[])
+        : [],
     };
   });
 }

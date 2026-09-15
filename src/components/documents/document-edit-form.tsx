@@ -46,7 +46,9 @@ export function DocumentEditForm({
       {state.error && <p className="form-error">{state.error}</p>}
 
       <div className="field">
-        <label htmlFor="supplierName">{label("supplierName", "Supplier")}</label>
+        <label htmlFor="supplierName">
+          {label("supplierName", "Supplier")}
+        </label>
         <input
           className="form-control"
           defaultValue={values.supplierName ?? ""}
@@ -54,7 +56,9 @@ export function DocumentEditForm({
           name="supplierName"
         />
         {state.fieldErrors.supplierName && (
-          <p className="form-control__error">{state.fieldErrors.supplierName}</p>
+          <p className="form-control__error">
+            {state.fieldErrors.supplierName}
+          </p>
         )}
       </div>
 
@@ -75,7 +79,9 @@ export function DocumentEditForm({
       </div>
 
       <div className="field">
-        <label htmlFor="documentNumber">{label("documentNumber", "Document number")}</label>
+        <label htmlFor="documentNumber">
+          {label("documentNumber", "Document number")}
+        </label>
         <input
           className="form-control"
           defaultValue={values.documentNumber ?? ""}
@@ -83,12 +89,16 @@ export function DocumentEditForm({
           name="documentNumber"
         />
         {state.fieldErrors.documentNumber && (
-          <p className="form-control__error">{state.fieldErrors.documentNumber}</p>
+          <p className="form-control__error">
+            {state.fieldErrors.documentNumber}
+          </p>
         )}
       </div>
 
       <div className="field">
-        <label htmlFor="transactionDate">{label("transactionDate", "Transaction date")}</label>
+        <label htmlFor="transactionDate">
+          {label("transactionDate", "Transaction date")}
+        </label>
         <input
           className="form-control"
           defaultValue={values.transactionDate ?? ""}
@@ -97,7 +107,9 @@ export function DocumentEditForm({
           type="date"
         />
         {state.fieldErrors.transactionDate && (
-          <p className="form-control__error">{state.fieldErrors.transactionDate}</p>
+          <p className="form-control__error">
+            {state.fieldErrors.transactionDate}
+          </p>
         )}
       </div>
 
@@ -140,7 +152,9 @@ export function DocumentEditForm({
           name="total"
           placeholder="0.00"
         />
-        {state.fieldErrors.total && <p className="form-control__error">{state.fieldErrors.total}</p>}
+        {state.fieldErrors.total && (
+          <p className="form-control__error">{state.fieldErrors.total}</p>
+        )}
       </div>
 
       <div className="field">
@@ -152,7 +166,9 @@ export function DocumentEditForm({
           name="vat"
           placeholder="0.00"
         />
-        {state.fieldErrors.vat && <p className="form-control__error">{state.fieldErrors.vat}</p>}
+        {state.fieldErrors.vat && (
+          <p className="form-control__error">{state.fieldErrors.vat}</p>
+        )}
       </div>
 
       <div className="field">
@@ -187,12 +203,16 @@ export function DocumentEditForm({
           type="number"
         />
         {state.fieldErrors.businessUsePercentage && (
-          <p className="form-control__error">{state.fieldErrors.businessUsePercentage}</p>
+          <p className="form-control__error">
+            {state.fieldErrors.businessUsePercentage}
+          </p>
         )}
       </div>
 
       <div className="field">
-        <label htmlFor="paymentMethod">{label("paymentMethod", "Payment method")}</label>
+        <label htmlFor="paymentMethod">
+          {label("paymentMethod", "Payment method")}
+        </label>
         <input
           className="form-control"
           defaultValue={values.paymentMethod ?? ""}
@@ -200,7 +220,9 @@ export function DocumentEditForm({
           name="paymentMethod"
         />
         {state.fieldErrors.paymentMethod && (
-          <p className="form-control__error">{state.fieldErrors.paymentMethod}</p>
+          <p className="form-control__error">
+            {state.fieldErrors.paymentMethod}
+          </p>
         )}
       </div>
 
@@ -215,7 +237,11 @@ export function DocumentEditForm({
         />
       </div>
 
-      <button className="button button--primary" disabled={pending} type="submit">
+      <button
+        className="button button--primary"
+        disabled={pending}
+        type="submit"
+      >
         {pending ? "Saving…" : "Save"}
       </button>
     </form>

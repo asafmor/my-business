@@ -15,11 +15,20 @@ import { DrizzleDocumentDetailRepository } from "../src/server/documents/documen
 
 function chain(result: unknown) {
   const obj: Record<string, unknown> = {};
-  for (const method of ["from", "where", "limit", "for", "set", "values", "returning"]) {
+  for (const method of [
+    "from",
+    "where",
+    "limit",
+    "for",
+    "set",
+    "values",
+    "returning",
+  ]) {
     obj[method] = vi.fn(() => obj);
   }
-  (obj as { then: (resolve: (value: unknown) => void) => void }).then = (resolve) =>
-    resolve(result);
+  (obj as { then: (resolve: (value: unknown) => void) => void }).then = (
+    resolve,
+  ) => resolve(result);
   return obj as {
     for: ReturnType<typeof vi.fn>;
     from: ReturnType<typeof vi.fn>;
@@ -31,7 +40,10 @@ function chain(result: unknown) {
   };
 }
 
-function createTransaction(selectResult: unknown[], updateResult: unknown[] = []) {
+function createTransaction(
+  selectResult: unknown[],
+  updateResult: unknown[] = [],
+) {
   const selectChain = chain(selectResult);
   const updateChain = chain(updateResult);
   const insertChain = chain(undefined);
@@ -49,13 +61,20 @@ const documentId = "de305d54-75b4-431b-adb2-eb6b9e546013";
 describe("DrizzleDocumentDetailRepository.markReviewed", () => {
   it("moves a NEEDS_REVIEW document to READY, sets reviewedAt, and audits a USER review", async () => {
     const transaction = createTransaction([{ status: "NEEDS_REVIEW" }]);
-    const database = { transaction: vi.fn(async (callback) => callback(transaction)) };
-    const repository = new DrizzleDocumentDetailRepository((() => database) as never);
+    const database = {
+      transaction: vi.fn(async (callback) => callback(transaction)),
+    };
+    const repository = new DrizzleDocumentDetailRepository(
+      (() => database) as never,
+    );
 
     await expect(repository.markReviewed(documentId)).resolves.toBe(true);
 
     expect(transaction.updateChain.set).toHaveBeenCalledWith(
-      expect.objectContaining({ reviewedAt: expect.any(Date), status: "READY" }),
+      expect.objectContaining({
+        reviewedAt: expect.any(Date),
+        status: "READY",
+      }),
     );
     expect(transaction.insertChain.values).toHaveBeenCalledWith(
       expect.objectContaining({
@@ -69,8 +88,12 @@ describe("DrizzleDocumentDetailRepository.markReviewed", () => {
 
   it("does not review an already-archived document", async () => {
     const transaction = createTransaction([{ status: "ARCHIVED" }]);
-    const database = { transaction: vi.fn(async (callback) => callback(transaction)) };
-    const repository = new DrizzleDocumentDetailRepository((() => database) as never);
+    const database = {
+      transaction: vi.fn(async (callback) => callback(transaction)),
+    };
+    const repository = new DrizzleDocumentDetailRepository(
+      (() => database) as never,
+    );
 
     await expect(repository.markReviewed(documentId)).resolves.toBe(false);
     expect(transaction.update).not.toHaveBeenCalled();
@@ -80,8 +103,12 @@ describe("DrizzleDocumentDetailRepository.markReviewed", () => {
 describe("DrizzleDocumentDetailRepository.archive", () => {
   it("archives a document and audits an ARCHIVE event", async () => {
     const transaction = createTransaction([], [{ id: documentId }]);
-    const database = { transaction: vi.fn(async (callback) => callback(transaction)) };
-    const repository = new DrizzleDocumentDetailRepository((() => database) as never);
+    const database = {
+      transaction: vi.fn(async (callback) => callback(transaction)),
+    };
+    const repository = new DrizzleDocumentDetailRepository(
+      (() => database) as never,
+    );
 
     await expect(repository.archive(documentId)).resolves.toBe(true);
 
@@ -97,8 +124,12 @@ describe("DrizzleDocumentDetailRepository.archive", () => {
 
   it("returns false when the document was already archived (nothing matched)", async () => {
     const transaction = createTransaction([], []);
-    const database = { transaction: vi.fn(async (callback) => callback(transaction)) };
-    const repository = new DrizzleDocumentDetailRepository((() => database) as never);
+    const database = {
+      transaction: vi.fn(async (callback) => callback(transaction)),
+    };
+    const repository = new DrizzleDocumentDetailRepository(
+      (() => database) as never,
+    );
 
     await expect(repository.archive(documentId)).resolves.toBe(false);
     expect(transaction.insert).not.toHaveBeenCalled();

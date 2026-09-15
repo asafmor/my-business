@@ -14,7 +14,9 @@ test.beforeEach(async ({ context, baseURL }) => {
   await signIn(context, baseURL as string);
 });
 
-test("a valid file uploads and reaches a processing state", async ({ page }) => {
+test("a valid file uploads and reaches a processing state", async ({
+  page,
+}) => {
   await page.goto("/upload");
   await page
     .getByLabel("Drop documents here")
@@ -32,7 +34,9 @@ test("a valid file uploads and reaches a processing state", async ({ page }) => 
   });
 });
 
-test("an unsupported file is rejected with a clear message", async ({ page }) => {
+test("an unsupported file is rejected with a clear message", async ({
+  page,
+}) => {
   await page.goto("/upload");
   await page
     .getByLabel("Drop documents here")

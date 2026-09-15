@@ -34,9 +34,21 @@ export function InboxInlineEditForm({
       <form action={formAction} className="inbox-inline-edit__form">
         {state.error && <p className="form-error">{state.error}</p>}
 
-        <input defaultValue={row.documentType} name="documentType" type="hidden" />
-        <input defaultValue={row.currency ?? ""} name="currency" type="hidden" />
-        <input defaultValue={row.subtotal ?? ""} name="subtotal" type="hidden" />
+        <input
+          defaultValue={row.documentType}
+          name="documentType"
+          type="hidden"
+        />
+        <input
+          defaultValue={row.currency ?? ""}
+          name="currency"
+          type="hidden"
+        />
+        <input
+          defaultValue={row.subtotal ?? ""}
+          name="subtotal"
+          type="hidden"
+        />
         <input defaultValue={row.vat ?? ""} name="vat" type="hidden" />
         <input
           defaultValue={row.businessUsePercentage}
@@ -64,7 +76,9 @@ export function InboxInlineEditForm({
             name="supplierName"
           />
           {state.fieldErrors.supplierName && (
-            <p className="form-control__error">{state.fieldErrors.supplierName}</p>
+            <p className="form-control__error">
+              {state.fieldErrors.supplierName}
+            </p>
           )}
         </div>
 
@@ -78,7 +92,9 @@ export function InboxInlineEditForm({
             type="date"
           />
           {state.fieldErrors.transactionDate && (
-            <p className="form-control__error">{state.fieldErrors.transactionDate}</p>
+            <p className="form-control__error">
+              {state.fieldErrors.transactionDate}
+            </p>
           )}
         </div>
 
@@ -113,7 +129,11 @@ export function InboxInlineEditForm({
           </select>
         </div>
 
-        <button className="button button--primary" disabled={pending} type="submit">
+        <button
+          className="button button--primary"
+          disabled={pending}
+          type="submit"
+        >
           {pending ? "Saving…" : "Save"}
         </button>
       </form>

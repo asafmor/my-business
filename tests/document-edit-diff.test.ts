@@ -51,7 +51,12 @@ describe("diffExpenseEdit", () => {
   });
 
   it("reports currency, subtotal, and payment method changes as manual edits", () => {
-    const next = { ...base, currency: "USD", paymentMethod: "CASH", subtotal: "90.00" };
+    const next = {
+      ...base,
+      currency: "USD",
+      paymentMethod: "CASH",
+      subtotal: "90.00",
+    };
     const changes = diffExpenseEdit(base, next);
 
     expect(changes).toEqual(
@@ -83,7 +88,10 @@ describe("diffExpenseEdit", () => {
   });
 
   it("marks a category change with the CATEGORY_CHANGE action and 'category' audit field", () => {
-    const next = { ...base, categoryId: "e1c1c1c1-1111-4111-8111-111111111111" };
+    const next = {
+      ...base,
+      categoryId: "e1c1c1c1-1111-4111-8111-111111111111",
+    };
     const changes = diffExpenseEdit(base, next);
 
     expect(changes).toEqual([

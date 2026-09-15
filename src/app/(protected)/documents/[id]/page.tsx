@@ -8,7 +8,12 @@ import {
 } from "./actions";
 import { DocumentEditForm } from "../../../../components/documents/document-edit-form";
 import { formatAuditChange } from "../../../../domain/documents/audit-change";
-import { formatDate, formatDateTime, formatMoney, humanizeEnumValue } from "../../../../lib/format";
+import {
+  formatDate,
+  formatDateTime,
+  formatMoney,
+  humanizeEnumValue,
+} from "../../../../lib/format";
 import { parseObjectKey } from "../../../../server/storage/object-keys";
 import { createPrivateReadUrl } from "../../../../server/storage/private-access";
 import { getR2ObjectStorage } from "../../../../server/storage/object-storage";
@@ -32,7 +37,8 @@ export default async function DocumentDetailPage({
   const detail = await repository.getDetail(id);
   if (!detail) notFound();
 
-  const originalFile = detail.files.find((file) => file.kind === "ORIGINAL") ?? null;
+  const originalFile =
+    detail.files.find((file) => file.kind === "ORIGINAL") ?? null;
   const previewUrl = originalFile
     ? await createPrivateReadUrl(getR2ObjectStorage(), {
         authorize: () => {},
@@ -41,7 +47,9 @@ export default async function DocumentDetailPage({
     : null;
 
   const latestExtraction = detail.extractions[0] ?? null;
-  const reviewReasons = Array.isArray(latestExtraction?.normalizedResult.reviewReasons)
+  const reviewReasons = Array.isArray(
+    latestExtraction?.normalizedResult.reviewReasons,
+  )
     ? (latestExtraction.normalizedResult.reviewReasons as string[])
     : [];
 
@@ -56,27 +64,37 @@ export default async function DocumentDetailPage({
     subtotal: detail.expense?.subtotal ?? null,
     supplierName: detail.expense?.supplierName ?? null,
     total: detail.expense?.total ?? null,
-    transactionDate: detail.expense?.transactionDate ?? detail.document.transactionDate,
+    transactionDate:
+      detail.expense?.transactionDate ?? detail.document.transactionDate,
     vat: detail.expense?.vat ?? null,
   };
 
-  const manualFields = new Set([...detail.manualDocumentFields, ...detail.manualExpenseFields]);
+  const manualFields = new Set([
+    ...detail.manualDocumentFields,
+    ...detail.manualExpenseFields,
+  ]);
   const categoryNameById = Object.fromEntries(
     detail.categories.map((category) => [category.id, category.name]),
   );
 
   return (
     <div className="page document-detail">
-      <h1 className="page-heading">{detail.expense?.supplierName ?? "Document"}</h1>
+      <h1 className="page-heading">
+        {detail.expense?.supplierName ?? "Document"}
+      </h1>
 
       {detail.document.status === "NEEDS_REVIEW" && (
         <p className="content-state content-state--warning">
-          Needs review{reviewReasons.length > 0 ? `: ${reviewReasons.map(humanizeEnumValue).join(", ")}` : ""}
+          Needs review
+          {reviewReasons.length > 0
+            ? `: ${reviewReasons.map(humanizeEnumValue).join(", ")}`
+            : ""}
         </p>
       )}
       {detail.document.status === "FAILED" && (
         <p className="content-state content-state--warning">
-          Processing failed. Reprocess to try again, or edit the fields below manually.
+          Processing failed. Reprocess to try again, or edit the fields below
+          manually.
         </p>
       )}
 
@@ -86,7 +104,10 @@ export default async function DocumentDetailPage({
             originalFile?.mimeType.startsWith("image/") ? (
               <a href={previewUrl} rel="noreferrer" target="_blank">
                 {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img alt="Document preview (tap to open full size)" src={previewUrl} />
+                <img
+                  alt="Document preview (tap to open full size)"
+                  src={previewUrl}
+                />
               </a>
             ) : (
               <a href={previewUrl} rel="noreferrer" target="_blank">
@@ -131,16 +152,21 @@ export default async function DocumentDetailPage({
         <ul className="data-list">
           {detail.extractions.map((extraction) => (
             <li className="data-list__item" key={extraction.id}>
-              {extraction.provider}/{extraction.model} · {formatDateTime(extraction.createdAt)}
+              {extraction.provider}/{extraction.model} ·{" "}
+              {formatDateTime(extraction.createdAt)}
             </li>
           ))}
-          {detail.extractions.length === 0 && <li className="data-list__item">None yet.</li>}
+          {detail.extractions.length === 0 && (
+            <li className="data-list__item">None yet.</li>
+          )}
         </ul>
       </details>
 
       <details className="document-detail__advanced">
         <summary>Raw extraction (debug)</summary>
-        <pre>{JSON.stringify(latestExtraction?.rawResult ?? null, null, 2)}</pre>
+        <pre>
+          {JSON.stringify(latestExtraction?.rawResult ?? null, null, 2)}
+        </pre>
       </details>
 
       <details className="document-detail__advanced">
@@ -174,18 +200,24 @@ export default async function DocumentDetailPage({
             const change = formatAuditChange(event, categoryNameById);
             return (
               <li className="data-list__item" key={event.id}>
-                {formatDateTime(event.createdAt)} · {humanizeEnumValue(event.action)}
-                {event.field ? ` · ${event.field}` : ""} · {humanizeEnumValue(event.source)}
+                {formatDateTime(event.createdAt)} ·{" "}
+                {humanizeEnumValue(event.action)}
+                {event.field ? ` · ${event.field}` : ""} ·{" "}
+                {humanizeEnumValue(event.source)}
                 {change ? ` (${change})` : ""}
               </li>
             );
           })}
-          {detail.auditEvents.length === 0 && <li className="data-list__item">No audit events.</li>}
+          {detail.auditEvents.length === 0 && (
+            <li className="data-list__item">No audit events.</li>
+          )}
         </ul>
       </details>
 
       <p className="content-state">
-        Category: {detail.categoryName ?? "Uncategorized"} · Total: {formatMoney(values.total, detail.expense?.currency ?? null)} · Date: {formatDate(values.transactionDate)}
+        Category: {detail.categoryName ?? "Uncategorized"} · Total:{" "}
+        {formatMoney(values.total, detail.expense?.currency ?? null)} · Date:{" "}
+        {formatDate(values.transactionDate)}
       </p>
     </div>
   );

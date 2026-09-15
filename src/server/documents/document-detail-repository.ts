@@ -65,30 +65,42 @@ export class DrizzleDocumentDetailRepository implements DocumentDetailRepository
       .limit(1);
     if (!document) return null;
 
-    const [expenseRows, activeCategories, files, extractionRows, documentAudit] =
-      await Promise.all([
-        db.select().from(expenses).where(eq(expenses.documentId, documentId)).limit(1),
-        db
-          .select({ id: categories.id, name: categories.name })
-          .from(categories)
-          .where(eq(categories.active, true))
-          .orderBy(asc(categories.sortOrder), asc(categories.name)),
-        db.select().from(documentFiles).where(eq(documentFiles.documentId, documentId)),
-        db
-          .select()
-          .from(extractions)
-          .where(eq(extractions.documentId, documentId))
-          .orderBy(desc(extractions.createdAt)),
-        db
-          .select()
-          .from(auditEvents)
-          .where(
-            and(
-              eq(auditEvents.entityType, "DOCUMENT"),
-              eq(auditEvents.entityId, documentId),
-            ),
+    const [
+      expenseRows,
+      activeCategories,
+      files,
+      extractionRows,
+      documentAudit,
+    ] = await Promise.all([
+      db
+        .select()
+        .from(expenses)
+        .where(eq(expenses.documentId, documentId))
+        .limit(1),
+      db
+        .select({ id: categories.id, name: categories.name })
+        .from(categories)
+        .where(eq(categories.active, true))
+        .orderBy(asc(categories.sortOrder), asc(categories.name)),
+      db
+        .select()
+        .from(documentFiles)
+        .where(eq(documentFiles.documentId, documentId)),
+      db
+        .select()
+        .from(extractions)
+        .where(eq(extractions.documentId, documentId))
+        .orderBy(desc(extractions.createdAt)),
+      db
+        .select()
+        .from(auditEvents)
+        .where(
+          and(
+            eq(auditEvents.entityType, "DOCUMENT"),
+            eq(auditEvents.entityId, documentId),
           ),
-      ]);
+        ),
+    ]);
     const expense = expenseRows[0] ?? null;
 
     const expenseAudit = expense
@@ -113,7 +125,8 @@ export class DrizzleDocumentDetailRepository implements DocumentDetailRepository
       expenseAudit
         .filter(
           (event) =>
-            event.action === "MANUAL_EDIT" || event.action === "CATEGORY_CHANGE",
+            event.action === "MANUAL_EDIT" ||
+            event.action === "CATEGORY_CHANGE",
         )
         .map((event) => event.field)
         .filter(isManualField),
@@ -216,8 +229,10 @@ export class DrizzleDocumentDetailRepository implements DocumentDetailRepository
         );
       }
 
-      const documentUpdates: { transactionDate?: string | null; type?: DocumentType } =
-        {};
+      const documentUpdates: {
+        transactionDate?: string | null;
+        type?: DocumentType;
+      } = {};
       if (document.type !== input.documentType) {
         documentUpdates.type = input.documentType;
         await transaction.insert(auditEvents).values({
@@ -265,7 +280,8 @@ export class DrizzleDocumentDetailRepository implements DocumentDetailRepository
         .update(documents)
         .set({
           reviewedAt: new Date(),
-          status: document.status === "NEEDS_REVIEW" ? "READY" : document.status,
+          status:
+            document.status === "NEEDS_REVIEW" ? "READY" : document.status,
         })
         .where(eq(documents.id, documentId));
       await transaction.insert(auditEvents).values({
@@ -283,7 +299,9 @@ export class DrizzleDocumentDetailRepository implements DocumentDetailRepository
       const [updated] = await transaction
         .update(documents)
         .set({ status: "ARCHIVED" })
-        .where(and(eq(documents.id, documentId), ne(documents.status, "ARCHIVED")))
+        .where(
+          and(eq(documents.id, documentId), ne(documents.status, "ARCHIVED")),
+        )
         .returning({ id: documents.id });
       if (!updated) return false;
 

@@ -20,6 +20,9 @@ export function redactSecrets(message: string): string {
       connectionStringCredentials,
       (match) => `${match.slice(0, match.indexOf("://") + 3)}[redacted]@`,
     )
-    .replace(authorizationHeader, (_match, prefix: string) => `${prefix}[redacted]`)
+    .replace(
+      authorizationHeader,
+      (_match, prefix: string) => `${prefix}[redacted]`,
+    )
     .replace(bearerToken, (_match, scheme: string) => `${scheme} [redacted]`);
 }

@@ -49,7 +49,9 @@ export default async function CategoriesPage({
                     ↑
                   </button>
                 </form>
-                <form action={moveCategoryAction.bind(null, category.id, "down")}>
+                <form
+                  action={moveCategoryAction.bind(null, category.id, "down")}
+                >
                   <button
                     className="button button--secondary"
                     disabled={index === categories.length - 1}
@@ -120,7 +122,11 @@ export default async function CategoriesPage({
           placeholder="Name"
           required
         />
-        <input className="form-control" name="description" placeholder="Description" />
+        <input
+          className="form-control"
+          name="description"
+          placeholder="Description"
+        />
         <button className="button button--primary" type="submit">
           Add
         </button>

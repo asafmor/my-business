@@ -33,7 +33,12 @@ export default async function DocumentsPage({
       <h1 className="page-heading">Documents</h1>
       <DocumentFilters categories={categories} query={query} />
       <DocumentsTable rows={rows} />
-      <Pagination page={page} pageSize={pageSize} params={urlParams} total={total} />
+      <Pagination
+        page={page}
+        pageSize={pageSize}
+        params={urlParams}
+        total={total}
+      />
     </div>
   );
 }

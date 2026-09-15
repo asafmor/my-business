@@ -10,7 +10,10 @@ import { currentMonthCondition } from "../documents/dashboard-repository";
 import type { CategoryBreakdownRow } from "../documents/dashboard-repository";
 
 export type { CategoryBreakdownRow };
-import { attachReviewReasons, isDuplicateExpr } from "../documents/review-signals";
+import {
+  attachReviewReasons,
+  isDuplicateExpr,
+} from "../documents/review-signals";
 
 export type MonthlySummary = {
   documentCount: number;

@@ -57,21 +57,33 @@ async function run(): Promise<void> {
       await transaction
         .delete(auditEvents)
         .where(
-          and(eq(auditEvents.entityType, "DOCUMENT"), eq(auditEvents.entityId, documentId)),
+          and(
+            eq(auditEvents.entityType, "DOCUMENT"),
+            eq(auditEvents.entityId, documentId),
+          ),
         );
       if (expense) {
         await transaction
           .delete(auditEvents)
           .where(
-            and(eq(auditEvents.entityType, "EXPENSE"), eq(auditEvents.entityId, expense.id)),
+            and(
+              eq(auditEvents.entityType, "EXPENSE"),
+              eq(auditEvents.entityId, expense.id),
+            ),
           );
       }
-      await transaction.delete(reports).where(eq(reports.documentId, documentId));
+      await transaction
+        .delete(reports)
+        .where(eq(reports.documentId, documentId));
       await transaction
         .delete(processingTasks)
         .where(eq(processingTasks.documentId, documentId));
-      await transaction.delete(extractions).where(eq(extractions.documentId, documentId));
-      await transaction.delete(expenses).where(eq(expenses.documentId, documentId));
+      await transaction
+        .delete(extractions)
+        .where(eq(extractions.documentId, documentId));
+      await transaction
+        .delete(expenses)
+        .where(eq(expenses.documentId, documentId));
       await transaction
         .delete(documentFiles)
         .where(eq(documentFiles.documentId, documentId));
@@ -84,6 +96,8 @@ async function run(): Promise<void> {
 }
 
 void run().catch((error: unknown) => {
-  console.error(error instanceof Error ? error.message : "Permanent deletion failed.");
+  console.error(
+    error instanceof Error ? error.message : "Permanent deletion failed.",
+  );
   process.exitCode = 1;
 });

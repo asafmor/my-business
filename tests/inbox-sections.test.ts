@@ -1,12 +1,19 @@
 import { describe, expect, it } from "vitest";
 
-import { inboxSections, statusesForSection } from "../src/domain/documents/inbox";
+import {
+  inboxSections,
+  statusesForSection,
+} from "../src/domain/documents/inbox";
 import { documentStatuses } from "../src/domain/documents/types";
 
 describe("statusesForSection", () => {
   it("covers every non-archived document status exactly once", () => {
-    const covered = inboxSections.flatMap((section) => statusesForSection(section));
-    const nonArchived = documentStatuses.filter((status) => status !== "ARCHIVED");
+    const covered = inboxSections.flatMap((section) =>
+      statusesForSection(section),
+    );
+    const nonArchived = documentStatuses.filter(
+      (status) => status !== "ARCHIVED",
+    );
 
     expect(covered.sort()).toEqual([...nonArchived].sort());
     expect(new Set(covered).size).toBe(covered.length);
@@ -19,7 +26,10 @@ describe("statusesForSection", () => {
   });
 
   it("groups UPLOADED and PROCESSING together as 'processing'", () => {
-    expect(statusesForSection("processing")).toEqual(["UPLOADED", "PROCESSING"]);
+    expect(statusesForSection("processing")).toEqual([
+      "UPLOADED",
+      "PROCESSING",
+    ]);
   });
 
   it("maps the remaining sections to their single matching status", () => {

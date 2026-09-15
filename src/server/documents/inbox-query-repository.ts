@@ -3,7 +3,10 @@ import "server-only";
 import { desc, eq, inArray } from "drizzle-orm";
 
 import { statusesForSection } from "../../domain/documents/inbox";
-import type { DocumentStatus, DocumentType } from "../../domain/documents/types";
+import type {
+  DocumentStatus,
+  DocumentType,
+} from "../../domain/documents/types";
 import { getDatabase } from "../db/client";
 import { categories, documents, expenses, processingTasks } from "../db/schema";
 
@@ -56,9 +59,21 @@ export class DrizzleInboxQueryRepository implements InboxQueryRepository {
 
     const [needsReviewRaw, processingRaw, failedRaw, recentlyCompletedRaw] =
       await Promise.all([
-        this.selectSection(database, statusesForSection("needsReview"), sectionLimit),
-        this.selectSection(database, statusesForSection("processing"), sectionLimit),
-        this.selectSection(database, statusesForSection("failed"), sectionLimit),
+        this.selectSection(
+          database,
+          statusesForSection("needsReview"),
+          sectionLimit,
+        ),
+        this.selectSection(
+          database,
+          statusesForSection("processing"),
+          sectionLimit,
+        ),
+        this.selectSection(
+          database,
+          statusesForSection("failed"),
+          sectionLimit,
+        ),
         this.selectSection(
           database,
           statusesForSection("recentlyCompleted"),

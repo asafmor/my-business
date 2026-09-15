@@ -30,17 +30,25 @@ vi.mock("../src/server/db/schema", () => ({
   },
 }));
 
-const { DrizzleMonthlyReportRepository } = await import(
-  "../src/server/reports/monthly-report-repository"
-);
+const { DrizzleMonthlyReportRepository } =
+  await import("../src/server/reports/monthly-report-repository");
 
 function chain(result: unknown) {
   const obj: Record<string, unknown> = {};
-  for (const method of ["from", "leftJoin", "innerJoin", "where", "groupBy", "orderBy", "limit"]) {
+  for (const method of [
+    "from",
+    "leftJoin",
+    "innerJoin",
+    "where",
+    "groupBy",
+    "orderBy",
+    "limit",
+  ]) {
     obj[method] = vi.fn(() => obj);
   }
-  (obj as { then: (resolve: (value: unknown) => void) => void }).then = (resolve) =>
-    resolve(result);
+  (obj as { then: (resolve: (value: unknown) => void) => void }).then = (
+    resolve,
+  ) => resolve(result);
   return obj;
 }
 
@@ -56,7 +64,9 @@ describe("DrizzleMonthlyReportRepository.summary", () => {
       },
     ]);
     const database = { select: vi.fn(() => selectChain) };
-    const repository = new DrizzleMonthlyReportRepository((() => database) as never);
+    const repository = new DrizzleMonthlyReportRepository(
+      (() => database) as never,
+    );
 
     await expect(repository.summary("2026-09")).resolves.toEqual({
       documentCount: 2,
@@ -69,7 +79,9 @@ describe("DrizzleMonthlyReportRepository.summary", () => {
 
   it("defaults to zeroed totals when nothing matches the month", async () => {
     const database = { select: vi.fn(() => chain([])) };
-    const repository = new DrizzleMonthlyReportRepository((() => database) as never);
+    const repository = new DrizzleMonthlyReportRepository(
+      (() => database) as never,
+    );
 
     await expect(repository.summary("2026-09")).resolves.toEqual({
       documentCount: 0,
@@ -86,18 +98,26 @@ describe("DrizzleMonthlyReportRepository.categoryBreakdown / supplierBreakdown",
     const rows = [{ categoryName: "Travel", total: "100.00" }];
     const selectChain = chain(rows);
     const database = { select: vi.fn(() => selectChain) };
-    const repository = new DrizzleMonthlyReportRepository((() => database) as never);
+    const repository = new DrizzleMonthlyReportRepository(
+      (() => database) as never,
+    );
 
-    await expect(repository.categoryBreakdown("2026-09")).resolves.toEqual(rows);
+    await expect(repository.categoryBreakdown("2026-09")).resolves.toEqual(
+      rows,
+    );
   });
 
   it("groups totals by supplier", async () => {
     const rows = [{ supplierName: "Acme", total: "50.00" }];
     const selectChain = chain(rows);
     const database = { select: vi.fn(() => selectChain) };
-    const repository = new DrizzleMonthlyReportRepository((() => database) as never);
+    const repository = new DrizzleMonthlyReportRepository(
+      (() => database) as never,
+    );
 
-    await expect(repository.supplierBreakdown("2026-09")).resolves.toEqual(rows);
+    await expect(repository.supplierBreakdown("2026-09")).resolves.toEqual(
+      rows,
+    );
   });
 });
 
@@ -129,7 +149,9 @@ describe("DrizzleMonthlyReportRepository.problematicDocuments", () => {
         return chain(selectCall === 1 ? documentRows : extractionRows);
       }),
     };
-    const repository = new DrizzleMonthlyReportRepository((() => database) as never);
+    const repository = new DrizzleMonthlyReportRepository(
+      (() => database) as never,
+    );
 
     await expect(repository.problematicDocuments("2026-09")).resolves.toEqual([
       { ...documentRows[0], reviewReasons: ["MISSING_VAT"] },
