@@ -28,11 +28,6 @@ export default async function SettingsPage() {
 
   return (
     <div className="page">
-      <header className="page-heading">
-        <h1>Settings</h1>
-        <p>Application information, system status, and account controls.</p>
-      </header>
-
       <div className="dashboard-grid">
         {/* Status first: it is the only thing on this page that can be wrong. */}
         <section className="dashboard-section">

@@ -68,11 +68,6 @@ export default async function ReportsPage({
 
   return (
     <div className="page">
-      <header className="page-heading">
-        <h1>Reports</h1>
-        <p>Monthly summaries and exports.</p>
-      </header>
-
       <nav aria-label="Reporting month" className="month-nav">
         <Link
           className="month-nav__step"

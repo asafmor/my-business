@@ -131,6 +131,7 @@ import {
   ApplicationNavigation,
   getNextDrawerFocusIndex,
   MobileNavigationDrawer,
+  pageHeaderFor,
 } from "../src/components/layout/app-shell";
 import { ContentState } from "../src/components/ui/content-state";
 import { UploadTrayProvider } from "../src/components/uploads/upload-tray-provider";
@@ -142,7 +143,7 @@ describe("protected application shell", () => {
     renderToStaticMarkup(await ProtectedLayout({ children: <p>Content</p> }));
     await Promise.all(pages.map((Page) => Page()));
     await DocumentsPage({ searchParams: Promise.resolve({}) });
-    await CategoriesPage({ searchParams: Promise.resolve({}) });
+    await CategoriesPage();
     await ReportsPage({ searchParams: Promise.resolve({}) });
 
     expect(authMocks.requireSession).toHaveBeenCalledTimes(7);
@@ -182,10 +183,22 @@ describe("application navigation", () => {
     );
 
     expect(markup).toMatch(
-      /aria-current="page" class="app-navigation__link is-current" href="\/documents"/,
+      /aria-current="page" class="app-navigation__link is-current" title="Documents" href="\/documents"/,
     );
     expect(markup.match(/aria-current="page"/g)).toHaveLength(1);
     expect(markup).toContain('href="/settings"');
+  });
+
+  it("titles the header from the route, longest prefix first", () => {
+    expect(pageHeaderFor("/")).toMatchObject({ title: "Dashboard" });
+    expect(pageHeaderFor("/documents")).toMatchObject({ title: "Documents" });
+    expect(pageHeaderFor("/documents/abc")).toMatchObject({
+      title: "Document",
+    });
+    expect(pageHeaderFor("/upload")).toMatchObject({
+      title: "Upload documents",
+    });
+    expect(pageHeaderFor("/nowhere")).toMatchObject({ title: "My Business" });
   });
 
   it("provides a labelled modal drawer and wraps keyboard focus", () => {
@@ -235,7 +248,7 @@ describe("application UI states", () => {
       <UploadTrayProvider>{await UploadPage()}</UploadTrayProvider>,
     );
 
-    expect(markup).toContain("Upload documents");
+    expect(markup).toContain("Add originals securely");
     expect(markup).toContain(
       'accept="image/jpeg,image/png,image/webp,application/pdf"',
     );

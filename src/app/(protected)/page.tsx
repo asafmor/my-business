@@ -27,9 +27,6 @@ export default async function DashboardPage() {
   if (!hasAnyDocuments) {
     return (
       <>
-        <header className="page-heading">
-          <h1>Dashboard</h1>
-        </header>
         <ContentState
           action={
             <Link className="button button--primary" href="/upload">
@@ -56,11 +53,6 @@ export default async function DashboardPage() {
 
   return (
     <div className="page">
-      <header className="page-heading">
-        <h1>Dashboard</h1>
-        <p>What is the current state of your bookkeeping?</p>
-      </header>
-
       <ul className="dashboard-stats">
         <Kpi
           label="Total expenses"

@@ -1,6 +1,14 @@
 "use client";
 
 import Link from "next/link";
+import {
+  Check,
+  ChevronDown,
+  ListFilter,
+  Loader2,
+  TriangleAlert,
+  X,
+} from "lucide-react";
 import { useRef, type PointerEvent as ReactPointerEvent } from "react";
 
 import {
@@ -54,22 +62,7 @@ function TrayStatusIcon({ status }: { status: TrayStatus }) {
         aria-hidden="true"
         className="upload-tray-item__icon upload-tray-item__icon--spin"
       >
-        <svg fill="none" height={16} viewBox="0 0 24 24" width={16}>
-          <circle
-            cx="12"
-            cy="12"
-            opacity="0.25"
-            r="9"
-            stroke="currentColor"
-            strokeWidth="2.5"
-          />
-          <path
-            d="M21 12a9 9 0 0 0-9-9"
-            stroke="currentColor"
-            strokeLinecap="round"
-            strokeWidth="2.5"
-          />
-        </svg>
+        <Loader2 size={16} strokeWidth={2.5} />
       </span>
     );
   }
@@ -79,117 +72,24 @@ function TrayStatusIcon({ status }: { status: TrayStatus }) {
       aria-hidden="true"
       className={`upload-tray-item__icon upload-tray-item__icon--${tone}`}
     >
-      <svg fill="none" height={16} viewBox="0 0 24 24" width={16}>
-        {tone === "success" ? (
-          <path
-            d="m5 13 4 4 10-10"
-            stroke="currentColor"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            strokeWidth="2.5"
-          />
-        ) : tone === "warning" ? (
-          <path
-            d="M12 9v4m0 3.5h.01M10.9 4.6 2.7 18a1.5 1.5 0 0 0 1.3 2.25h16a1.5 1.5 0 0 0 1.3-2.25l-8.2-13.4a1.5 1.5 0 0 0-2.6 0Z"
-            stroke="currentColor"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            strokeWidth="2"
-          />
-        ) : (
-          <path
-            d="m7 7 10 10M17 7 7 17"
-            stroke="currentColor"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            strokeWidth="2.5"
-          />
-        )}
-      </svg>
+      {tone === "success" ? (
+        <Check size={16} strokeWidth={2.5} />
+      ) : tone === "warning" ? (
+        <TriangleAlert size={16} strokeWidth={2} />
+      ) : (
+        <X size={16} strokeWidth={2.5} />
+      )}
     </span>
   );
 }
 
 function FilterIcon({ filter }: { filter: TrayFilter }) {
-  if (filter === "all") {
-    return (
-      <svg
-        aria-hidden="true"
-        fill="none"
-        height={13}
-        viewBox="0 0 24 24"
-        width={13}
-      >
-        <path
-          d="M4 7h16M4 12h16M4 17h16"
-          stroke="currentColor"
-          strokeLinecap="round"
-          strokeWidth="2.2"
-        />
-      </svg>
-    );
-  }
-  if (filter === "processing") {
-    return (
-      <svg
-        aria-hidden="true"
-        fill="none"
-        height={13}
-        viewBox="0 0 24 24"
-        width={13}
-      >
-        <circle
-          cx="12"
-          cy="12"
-          opacity="0.3"
-          r="9"
-          stroke="currentColor"
-          strokeWidth="2.4"
-        />
-        <path
-          d="M21 12a9 9 0 0 0-9-9"
-          stroke="currentColor"
-          strokeLinecap="round"
-          strokeWidth="2.4"
-        />
-      </svg>
-    );
-  }
-  if (filter === "review") {
-    return (
-      <svg
-        aria-hidden="true"
-        fill="none"
-        height={13}
-        viewBox="0 0 24 24"
-        width={13}
-      >
-        <path
-          d="M12 9v4m0 3.5h.01M10.9 4.6 2.7 18a1.5 1.5 0 0 0 1.3 2.25h16a1.5 1.5 0 0 0 1.3-2.25l-8.2-13.4a1.5 1.5 0 0 0-2.6 0Z"
-          stroke="currentColor"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-          strokeWidth="2"
-        />
-      </svg>
-    );
-  }
-  return (
-    <svg
-      aria-hidden="true"
-      fill="none"
-      height={13}
-      viewBox="0 0 24 24"
-      width={13}
-    >
-      <path
-        d="m7 7 10 10M17 7 7 17"
-        stroke="currentColor"
-        strokeLinecap="round"
-        strokeWidth="2.4"
-      />
-    </svg>
-  );
+  const props = { "aria-hidden": true, size: 13, strokeWidth: 2.2 } as const;
+
+  if (filter === "processing") return <Loader2 {...props} />;
+  if (filter === "review") return <TriangleAlert {...props} />;
+  if (filter === "failed") return <X {...props} />;
+  return <ListFilter {...props} />;
 }
 
 const filters: { label: string; value: TrayFilter }[] = [
@@ -258,20 +158,7 @@ function TrayItemRow({ item }: { item: TrayItem }) {
               onClick={() => removeItem(item.id)}
               type="button"
             >
-              <svg
-                aria-hidden="true"
-                fill="none"
-                height={12}
-                viewBox="0 0 24 24"
-                width={12}
-              >
-                <path
-                  d="m6 6 12 12M18 6 6 18"
-                  stroke="currentColor"
-                  strokeLinecap="round"
-                  strokeWidth="2.5"
-                />
-              </svg>
+              <X aria-hidden size={12} strokeWidth={2.5} />
             </button>
           ) : null}
         </div>
@@ -439,20 +326,7 @@ export function UploadTray() {
             role="button"
             tabIndex={0}
           >
-            <svg
-              aria-hidden="true"
-              fill="none"
-              height={14}
-              viewBox="0 0 24 24"
-              width={14}
-            >
-              <path
-                d="m6 6 12 12M18 6 6 18"
-                stroke="currentColor"
-                strokeLinecap="round"
-                strokeWidth="2.5"
-              />
-            </svg>
+            <X aria-hidden size={14} strokeWidth={2.5} />
           </span>
         </button>
       </section>
@@ -487,19 +361,7 @@ export function UploadTray() {
             onClick={toggleSize}
             type="button"
           >
-            <svg
-              aria-hidden="true"
-              fill="none"
-              height={16}
-              stroke="currentColor"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={1.8}
-              viewBox="0 0 24 24"
-              width={16}
-            >
-              <path d="m6 9 6 6 6-6" />
-            </svg>
+            <ChevronDown aria-hidden size={16} strokeWidth={1.8} />
           </button>
           <button
             aria-label="Dismiss upload tray"
@@ -507,19 +369,7 @@ export function UploadTray() {
             onClick={dismiss}
             type="button"
           >
-            <svg
-              aria-hidden="true"
-              fill="none"
-              height={16}
-              stroke="currentColor"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={1.8}
-              viewBox="0 0 24 24"
-              width={16}
-            >
-              <path d="m6 6 12 12M18 6 6 18" />
-            </svg>
+            <X aria-hidden size={16} strokeWidth={1.8} />
           </button>
         </div>
       </div>

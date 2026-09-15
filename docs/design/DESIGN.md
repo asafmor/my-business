@@ -191,10 +191,11 @@ Never paint fake status bars or phone chrome. Reserve the space, leave it empty.
 - [x] Button and input state coverage (hover, pressed, focus ring, disabled,
       invalid)
 - [x] Money monospaced in the documents table (`.is-numeric`, `.num`)
-- [x] Row states beyond hover — needs-review, processing, failed. Selected is
-      deliberately absent: nothing in the app acts on a multi-row selection yet
+- [x] Row states beyond hover — needs-review, processing, failed, and selected
+      (the categories table acts on a multi-row selection)
 - [x] 38px row density
-- [x] Sidebar redesign — 212px, grouped nav sections, account card
+- [x] Sidebar redesign — 212px, one flat nav rail with Settings at the foot,
+      collapsible to a 52px icon rail, account card
 - [x] Dashboard — KPI tiles, section cards, single-hue category bars
 - [x] Mobile — bottom tab bar with capture FAB, 72px document cards, filters
       folded behind a disclosure

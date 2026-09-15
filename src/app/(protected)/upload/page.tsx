@@ -6,13 +6,6 @@ export default async function UploadPage() {
 
   return (
     <>
-      <header className="page-heading">
-        <h1>Upload documents</h1>
-        <p>
-          Keep the original document intact while adding it to your private
-          archive.
-        </p>
-      </header>
       <UploadForm />
     </>
   );

@@ -79,9 +79,9 @@ export default async function DocumentDetailPage({
 
   return (
     <div className="page document-detail">
-      <h1 className="page-heading">
+      <h2 className="record-heading">
         {detail.expense?.supplierName ?? "Document"}
-      </h1>
+      </h2>
 
       {detail.document.status === "NEEDS_REVIEW" && (
         <p className="content-state content-state--warning">

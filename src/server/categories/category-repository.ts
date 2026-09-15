@@ -1,6 +1,6 @@
 import "server-only";
 
-import { asc, eq, sql } from "drizzle-orm";
+import { asc, eq, inArray, sql } from "drizzle-orm";
 
 import type { ExpenseCategory } from "../../domain/categories/types";
 import type { CategoryInput } from "../../domain/validation";
@@ -17,9 +17,9 @@ export interface CategoryRepository {
   list(): Promise<ExpenseCategory[]>;
   create(input: CategoryInput): Promise<CategoryWriteResult>;
   update(id: string, input: CategoryInput): Promise<CategoryWriteResult>;
-  setActive(id: string, active: boolean): Promise<boolean>;
-  move(id: string, direction: "up" | "down"): Promise<boolean>;
-  remove(id: string): Promise<CategoryDeleteResult>;
+  setActive(ids: readonly string[], active: boolean): Promise<number>;
+  reorder(ids: readonly string[]): Promise<void>;
+  remove(ids: readonly string[]): Promise<CategoryDeleteResult>;
 }
 
 function isPostgresError(error: unknown, code: string): boolean {
@@ -78,55 +78,51 @@ export class DrizzleCategoryRepository implements CategoryRepository {
     }
   }
 
-  async setActive(id: string, active: boolean): Promise<boolean> {
-    const [updated] = await this.database()
+  async setActive(ids: readonly string[], active: boolean): Promise<number> {
+    if (ids.length === 0) return 0;
+    const updated = await this.database()
       .update(categories)
       .set({ active })
-      .where(eq(categories.id, id))
+      .where(inArray(categories.id, [...ids]))
       .returning({ id: categories.id });
-    return updated !== undefined;
+    return updated.length;
   }
 
-  /** Swaps sortOrder with the adjacent category in display order. */
-  async move(id: string, direction: "up" | "down"): Promise<boolean> {
-    return this.database().transaction(async (transaction) => {
-      const rows = await transaction
-        .select({ id: categories.id, sortOrder: categories.sortOrder })
-        .from(categories)
-        .orderBy(asc(categories.sortOrder), asc(categories.name))
-        .for("update");
-      const index = rows.findIndex((row) => row.id === id);
-      const swapIndex = direction === "up" ? index - 1 : index + 1;
-      if (index === -1 || swapIndex < 0 || swapIndex >= rows.length)
-        return false;
-
-      const current = rows[index]!;
-      const swap = rows[swapIndex]!;
-      await transaction
-        .update(categories)
-        .set({ sortOrder: swap.sortOrder })
-        .where(eq(categories.id, current.id));
-      await transaction
-        .update(categories)
-        .set({ sortOrder: current.sortOrder })
-        .where(eq(categories.id, swap.id));
-      return true;
+  /** Drag-and-drop hands back the whole order, so sortOrder is simply the
+   * new index. Ids the caller does not know about keep their place after. */
+  async reorder(ids: readonly string[]): Promise<void> {
+    if (ids.length === 0) return;
+    await this.database().transaction(async (transaction) => {
+      for (const [index, id] of ids.entries()) {
+        await transaction
+          .update(categories)
+          .set({ sortOrder: index })
+          .where(eq(categories.id, id));
+      }
     });
   }
 
   /** The category_id FK on expenses is onDelete: restrict, so a category
    * referenced by any expense cannot be hard-deleted — deactivate it
-   * instead. This surfaces that as a result rather than a thrown 500. */
-  async remove(id: string): Promise<CategoryDeleteResult> {
-    try {
-      const [deleted] = await this.database()
-        .delete(categories)
-        .where(eq(categories.id, id))
-        .returning({ id: categories.id });
-      return deleted ? "DELETED" : "NOT_FOUND";
-    } catch (error) {
-      if (isPostgresError(error, "23503")) return "IN_USE";
-      throw error;
+   * instead. This surfaces that as a result rather than a thrown 500.
+   * Deleting the batch in one statement would fail whole on a single
+   * referenced row, so each is attempted on its own. */
+  async remove(ids: readonly string[]): Promise<CategoryDeleteResult> {
+    let anyDeleted = false;
+    let anyInUse = false;
+    for (const id of ids) {
+      try {
+        const [deleted] = await this.database()
+          .delete(categories)
+          .where(eq(categories.id, id))
+          .returning({ id: categories.id });
+        anyDeleted ||= deleted !== undefined;
+      } catch (error) {
+        if (!isPostgresError(error, "23503")) throw error;
+        anyInUse = true;
+      }
     }
+    if (anyInUse) return "IN_USE";
+    return anyDeleted ? "DELETED" : "NOT_FOUND";
   }
 }

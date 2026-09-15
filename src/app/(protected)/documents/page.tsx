@@ -30,7 +30,6 @@ export default async function DocumentsPage({
 
   return (
     <div className="page">
-      <h1 className="page-heading">Documents</h1>
       <DocumentFilters categories={categories} query={query} />
       <DocumentsTable rows={rows} />
       <Pagination

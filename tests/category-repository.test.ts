@@ -96,7 +96,7 @@ describe("DrizzleCategoryRepository.remove", () => {
     };
     const repository = new DrizzleCategoryRepository((() => database) as never);
 
-    await expect(repository.remove(categoryId)).resolves.toBe("IN_USE");
+    await expect(repository.remove([categoryId])).resolves.toBe("IN_USE");
   });
 
   it("deletes an unreferenced category", async () => {
@@ -104,45 +104,43 @@ describe("DrizzleCategoryRepository.remove", () => {
     const database = { delete: vi.fn(() => deleteChain) };
     const repository = new DrizzleCategoryRepository((() => database) as never);
 
-    await expect(repository.remove(categoryId)).resolves.toBe("DELETED");
+    await expect(repository.remove([categoryId])).resolves.toBe("DELETED");
   });
 });
 
-describe("DrizzleCategoryRepository.move", () => {
-  it("swaps sortOrder with the previous category when moving up", async () => {
-    const rows = [
-      { id: "a", sortOrder: 0 },
-      { id: "b", sortOrder: 1 },
-    ];
-    const selectChain = chain(rows);
+describe("DrizzleCategoryRepository.reorder", () => {
+  it("writes the handed-back order straight into sortOrder", async () => {
     const updateChain = chain(undefined);
-    const transaction = {
-      select: vi.fn(() => selectChain),
-      update: vi.fn(() => updateChain),
-    };
+    const transaction = { update: vi.fn(() => updateChain) };
     const database = {
       transaction: vi.fn(async (callback) => callback(transaction)),
     };
     const repository = new DrizzleCategoryRepository((() => database) as never);
 
-    await expect(repository.move("b", "up")).resolves.toBe(true);
+    await repository.reorder(["c", "a", "b"]);
+
     expect(updateChain.set).toHaveBeenNthCalledWith(1, { sortOrder: 0 });
     expect(updateChain.set).toHaveBeenNthCalledWith(2, { sortOrder: 1 });
+    expect(updateChain.set).toHaveBeenNthCalledWith(3, { sortOrder: 2 });
   });
 
-  it("does nothing when already first and moving up", async () => {
-    const rows = [
-      { id: "a", sortOrder: 0 },
-      { id: "b", sortOrder: 1 },
-    ];
-    const selectChain = chain(rows);
-    const transaction = { select: vi.fn(() => selectChain), update: vi.fn() };
-    const database = {
-      transaction: vi.fn(async (callback) => callback(transaction)),
-    };
+  it("does not open a transaction for an empty order", async () => {
+    const database = { transaction: vi.fn() };
     const repository = new DrizzleCategoryRepository((() => database) as never);
 
-    await expect(repository.move("a", "up")).resolves.toBe(false);
-    expect(transaction.update).not.toHaveBeenCalled();
+    await repository.reorder([]);
+
+    expect(database.transaction).not.toHaveBeenCalled();
+  });
+});
+
+describe("DrizzleCategoryRepository.setActive", () => {
+  it("updates every id in one statement and counts the rows", async () => {
+    const updateChain = chain([{ id: "a" }, { id: "b" }]);
+    const database = { update: vi.fn(() => updateChain) };
+    const repository = new DrizzleCategoryRepository((() => database) as never);
+
+    await expect(repository.setActive(["a", "b"], false)).resolves.toBe(2);
+    expect(updateChain.set).toHaveBeenCalledWith({ active: false });
   });
 });
