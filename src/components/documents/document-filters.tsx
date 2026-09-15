@@ -22,8 +22,8 @@ export function DocumentFilters({
   const active = activeFilterCount(query);
 
   return (
-    <details className="filters" open={active > 0}>
-      <summary className="filters__summary">
+    <details className="filters disclosure" open={active > 0}>
+      <summary className="disclosure__summary">
         <span>Filters</span>
         {active > 0 ? (
           <span className="filters__count">{active} active</span>

@@ -50,8 +50,10 @@ test("export-report: generating a PDF report adds it to the month's report list"
   page,
 }) => {
   await page.goto(`/reports?month=${currentMonth}`);
-  await page.getByRole("button", { name: "Generate PDF report" }).click();
+  await page.getByRole("button", { name: "Generate PDF" }).click();
 
+  // The archive is folded away by default; open it to see what was generated.
+  await page.locator("summary", { hasText: "Generated PDFs" }).click();
   await expect(
     page.getByRole("link", { name: "Download" }).first(),
   ).toBeVisible({

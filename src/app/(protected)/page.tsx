@@ -1,6 +1,7 @@
 import Link from "next/link";
 
 import { ContentState } from "../../components/ui/content-state";
+import { ProportionBars } from "../../components/charts/proportion-bars";
 import { attentionReasons } from "../../domain/documents/attention-reasons";
 import { currentReportingMonth } from "../../domain/documents/dashboard";
 import { formatDate, formatMoney, humanizeEnumValue } from "../../lib/format";
@@ -117,7 +118,13 @@ export default async function DashboardPage() {
             <h2>Categories</h2>
             <span className="dashboard-section__note">this month</span>
           </div>
-          <CategoryBars rows={categoryBreakdown} />
+          <ProportionBars
+            empty="No expenses recorded this month."
+            rows={categoryBreakdown.map((row) => ({
+              label: row.categoryName ?? "Uncategorized",
+              value: row.total,
+            }))}
+          />
         </section>
 
         <section className="dashboard-section">
@@ -165,45 +172,6 @@ function Kpi({
       <span className="dashboard-stat__label">{label}</span>
       <span className="dashboard-stat__value num">{value}</span>
     </li>
-  );
-}
-
-/*
- * One hue, one series. Share of the month's spend is carried by bar length;
- * the number beside it carries the exact value.
- */
-function CategoryBars({
-  rows,
-}: {
-  rows: { categoryName: string | null; total: string }[];
-}) {
-  if (rows.length === 0) {
-    return <p className="content-state">No expenses recorded this month.</p>;
-  }
-
-  const largest = Math.max(...rows.map((row) => Number(row.total) || 0), 1);
-
-  return (
-    <ul className="category-bars">
-      {rows.map((row) => (
-        <li className="category-bar" key={row.categoryName ?? "uncategorized"}>
-          <span className="category-bar__label">
-            {row.categoryName ?? "Uncategorized"}
-          </span>
-          <span className="category-bar__track">
-            <span
-              className="category-bar__fill"
-              style={{
-                width: `${Math.max(((Number(row.total) || 0) / largest) * 100, 2)}%`,
-              }}
-            />
-          </span>
-          <span className="category-bar__value num">
-            {formatMoney(row.total, null)}
-          </span>
-        </li>
-      ))}
-    </ul>
   );
 }
 

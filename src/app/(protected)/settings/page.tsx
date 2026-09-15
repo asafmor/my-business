@@ -33,106 +33,120 @@ export default async function SettingsPage() {
         <p>Application information, system status, and account controls.</p>
       </header>
 
-      <section className="dashboard-section">
-        <h2>General</h2>
-        <ul className="data-list">
-          <li className="data-list__item">
-            <div className="data-list__item-header">
-              <span>Application</span>
-              <span>{packageJson.name}</span>
-            </div>
-          </li>
-          <li className="data-list__item">
-            <div className="data-list__item-header">
-              <span>Version</span>
-              <span>{packageJson.version}</span>
-            </div>
-          </li>
-          <li className="data-list__item">
-            <div className="data-list__item-header">
-              <span>Environment</span>
-              <span>{environment}</span>
-            </div>
-          </li>
-        </ul>
-        <p className="content-state">
-          More configuration options will appear here as the app grows.
-        </p>
-      </section>
+      <div className="dashboard-grid">
+        {/* Status first: it is the only thing on this page that can be wrong. */}
+        <section className="dashboard-section">
+          <div className="dashboard-section__header">
+            <h2>System status</h2>
+          </div>
+          <ul className="data-list">
+            <StatusRow
+              detail={database.detail}
+              label="Database"
+              tone={statusBadgeTone(database.ok)}
+              value={database.ok ? "Reachable" : "Unreachable"}
+            />
+            <StatusRow
+              detail={storage.detail}
+              label="Primary storage (R2)"
+              tone={statusBadgeTone(storage.ok)}
+              value={storage.ok ? "Configured" : "Not configured"}
+            />
+            <StatusRow
+              detail={
+                lastBackupAt
+                  ? `Database: ${backup.database ? backup.database.ranAt.toLocaleString() : "none recorded"} · Objects: ${backup.objects ? backup.objects.ranAt.toLocaleString() : "none recorded"}${backup.stale ? " (stale)" : ""}`
+                  : "No verified backup recorded yet."
+              }
+              label="Last successful backup"
+              tone={lastBackupAt ? statusBadgeTone(backupOk) : "neutral"}
+              value={
+                lastBackupAt
+                  ? lastBackupAt.toLocaleDateString("en-US", {
+                      year: "numeric",
+                      month: "short",
+                      day: "numeric",
+                    })
+                  : "Not available"
+              }
+            />
+          </ul>
+        </section>
 
-      <section className="dashboard-section">
-        <h2>System status</h2>
-        <ul className="data-list">
-          <li className="data-list__item">
-            <div className="data-list__item-header">
-              <span>Database</span>
-              <span
-                className={`status-badge status-badge--${statusBadgeTone(database.ok)}`}
-              >
-                {database.ok ? "Reachable" : "Unreachable"}
-              </span>
-            </div>
-            <div className="data-list__item-meta">{database.detail}</div>
-          </li>
-          <li className="data-list__item">
-            <div className="data-list__item-header">
-              <span>Primary storage (R2)</span>
-              <span
-                className={`status-badge status-badge--${statusBadgeTone(storage.ok)}`}
-              >
-                {storage.ok ? "Configured" : "Not configured"}
-              </span>
-            </div>
-            <div className="data-list__item-meta">{storage.detail}</div>
-          </li>
-          <li className="data-list__item">
-            <div className="data-list__item-header">
-              <span>Last successful backup</span>
-              {lastBackupAt ? (
-                <span
-                  className={`status-badge status-badge--${statusBadgeTone(backupOk)}`}
-                >
-                  {lastBackupAt.toLocaleDateString("en-US", {
-                    year: "numeric",
-                    month: "short",
-                    day: "numeric",
-                  })}
-                </span>
-              ) : (
-                <span className="status-badge status-badge--neutral">
-                  Not available
-                </span>
-              )}
-            </div>
-            <div className="data-list__item-meta">
-              {lastBackupAt
-                ? `Database: ${backup.database ? backup.database.ranAt.toLocaleString() : "none recorded"} · Objects: ${backup.objects ? backup.objects.ranAt.toLocaleString() : "none recorded"}${backup.stale ? " (stale)" : ""}`
-                : "No verified backup recorded yet."}
-            </div>
-          </li>
-        </ul>
-      </section>
+        <section className="dashboard-section">
+          <div className="dashboard-section__header">
+            <h2>General</h2>
+            <span className="dashboard-section__note">read only</span>
+          </div>
+          <dl className="spec-list">
+            <SpecRow label="Application" value={packageJson.name} />
+            <SpecRow label="Version" value={packageJson.version} />
+            <SpecRow label="Environment" value={environment} />
+          </dl>
+        </section>
 
-      <section className="dashboard-section">
-        <h2>Categories</h2>
-        <p>Manage the expense categories used across documents and reports.</p>
-        <Link className="button button--secondary" href="/categories">
-          Manage categories
-        </Link>
-      </section>
+        <section className="dashboard-section">
+          <div className="dashboard-section__header">
+            <h2>Categories</h2>
+          </div>
+          <div className="dashboard-section__body">
+            <p className="dashboard-section__prose">
+              The expense categories used across documents and reports.
+            </p>
+            <Link className="button button--secondary" href="/categories">
+              Manage categories
+            </Link>
+          </div>
+        </section>
 
-      <section className="dashboard-section">
-        <h2>Security</h2>
-        <form action={logoutAction}>
-          <button className="button button--secondary" type="submit">
-            Log out
-          </button>
-        </form>
-        <p className="content-state">
-          Password changes are managed via environment configuration; a
-          self-service flow is planned for a future release.
-        </p>
-      </section>
+        <section className="dashboard-section">
+          <div className="dashboard-section__header">
+            <h2>Security</h2>
+          </div>
+          <div className="dashboard-section__body">
+            <p className="dashboard-section__prose">
+              Password changes are managed via environment configuration; a
+              self-service flow is planned for a future release.
+            </p>
+            <form action={logoutAction}>
+              <button className="button button--secondary" type="submit">
+                Log out
+              </button>
+            </form>
+          </div>
+        </section>
+      </div>
+    </div>
+  );
+}
+
+function StatusRow({
+  detail,
+  label,
+  tone,
+  value,
+}: {
+  detail: string;
+  label: string;
+  tone: string;
+  value: string;
+}) {
+  return (
+    <li className="data-list__item">
+      <div className="data-list__item-header">
+        <span className="data-list__item-title">{label}</span>
+        <span className={`status-badge status-badge--${tone}`}>{value}</span>
+      </div>
+      <div className="data-list__item-meta">{detail}</div>
+    </li>
+  );
+}
+
+function SpecRow({ label, value }: { label: string; value: string }) {
+  return (
+    <div className="spec-list__row">
+      <dt>{label}</dt>
+      <dd className="num">{value}</dd>
     </div>
   );
 }

@@ -559,9 +559,14 @@ input:disabled {
   width: 100%;
 }
 
+/* One rhythm for every page: siblings never have to carry their own margins. */
+.page {
+  display: grid;
+  gap: 1rem;
+}
+
 .page-heading {
   box-shadow: inset 0 -1px 0 var(--line);
-  margin-bottom: 1.25rem;
   padding-bottom: 1rem;
 }
 
@@ -845,23 +850,24 @@ h1.page-heading {
   overflow: hidden;
 }
 
-.filters__summary {
-  align-items: baseline;
+/* Progressive disclosure: native <details>, a drawn chevron, no JS. */
+.disclosure__summary {
+  align-items: center;
   cursor: pointer;
   display: flex;
   font-size: 0.8125rem;
   font-weight: 600;
   gap: 0.5rem;
   list-style: none;
+  min-height: 2.75rem;
   padding: 0.625rem 0.875rem;
 }
 
-.filters__summary::-webkit-details-marker {
+.disclosure__summary::-webkit-details-marker {
   display: none;
 }
 
-/* A drawn chevron, rotated open. */
-.filters__summary::after {
+.disclosure__summary::after {
   border-bottom: 1.5px solid var(--ink-faint);
   border-right: 1.5px solid var(--ink-faint);
   content: "";
@@ -872,11 +878,11 @@ h1.page-heading {
   width: 0.4rem;
 }
 
-.filters[open] .filters__summary::after {
+[open] > .disclosure__summary::after {
   rotate: -135deg;
 }
 
-.filters[open] .filters__summary {
+[open] > .disclosure__summary {
   box-shadow: inset 0 -1px 0 var(--line);
 }
 
@@ -956,6 +962,18 @@ h1.page-heading {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+}
+
+/*
+ * Supplier names arrive in Hebrew as often as English. Let each string pick
+ * its own direction so an RTL name reads right and truncates on the correct
+ * side, without flipping the surrounding layout.
+ */
+.category-bar__label,
+.data-list__item-title,
+.document-card__title,
+.documents-table--desktop td {
+  unicode-bidi: plaintext;
 }
 
 .document-card__total {
@@ -1413,17 +1431,11 @@ h1.page-heading {
   }
 }
 
-.inbox-section {
-  margin-bottom: 2rem;
-  max-width: 46rem;
-}
-
 .dashboard-grid {
   align-items: start;
   display: grid;
   gap: 1rem;
   grid-template-columns: minmax(0, 1fr);
-  margin-bottom: 1rem;
 }
 
 @media (min-width: 60rem) {
@@ -1465,8 +1477,156 @@ h1.page-heading {
   font-size: 0.6875rem;
 }
 
+/* Inside a card, "nothing here" is a quiet line, not an empty panel. */
 .dashboard-section .content-state {
   box-shadow: none;
+  color: var(--ink-faint);
+  display: block;
+  font-size: 0.8125rem;
+  /* "Nothing here" is one row of content, so it gets one row of height. */
+  padding: 0.875rem;
+}
+
+/*
+ * A card inside a card reads as a mistake. Anything nested in a section drops
+ * its own surface and lets the section's elevation do the work.
+ */
+.dashboard-section .data-list,
+.dashboard-section .data-table,
+.dashboard-section .dashboard-stat {
+  border-radius: 0;
+  box-shadow: none;
+}
+
+.dashboard-section .dashboard-stats {
+  gap: 0;
+  grid-template-columns: repeat(auto-fit, minmax(7rem, 1fr));
+}
+
+.dashboard-section .dashboard-stat + .dashboard-stat {
+  box-shadow: inset 1px 0 0 var(--line);
+}
+
+.dashboard-section .dashboard-stat.dashboard-stat--attention {
+  background: linear-gradient(180deg, var(--warning-soft), var(--surface) 68%);
+  box-shadow: inset 0 -2px 0 var(--warning);
+}
+
+/* Prose and controls need the padding the lists provide for themselves. */
+.dashboard-section__body {
+  align-items: center;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.625rem;
+  padding: 0.875rem;
+}
+
+.dashboard-section__prose {
+  color: var(--ink-muted);
+  flex: 1 1 100%;
+  font-size: 0.8125rem;
+  margin: 0;
+  max-width: 52ch;
+}
+
+.dashboard-section__body form {
+  margin: 0;
+}
+
+/* A row with nothing beneath it has nothing to clear. */
+.data-list__item-header:only-child {
+  margin-bottom: 0;
+}
+
+/* Label/value facts. Same 38px rhythm as a table row. */
+.spec-list {
+  margin: 0;
+}
+
+.spec-list__row {
+  align-items: center;
+  box-shadow: inset 0 -1px 0 var(--line);
+  display: flex;
+  gap: 0.75rem;
+  justify-content: space-between;
+  min-height: 2.375rem;
+  padding: 0 0.875rem;
+}
+
+.spec-list__row:last-child {
+  box-shadow: none;
+}
+
+.spec-list dt {
+  color: var(--ink-muted);
+  font-size: 0.8125rem;
+}
+
+.spec-list dd {
+  font-size: 0.8125rem;
+  margin: 0;
+}
+
+/* Month stepper: the month itself is the anchor, the arrows are secondary. */
+.month-nav {
+  align-items: center;
+  background: var(--surface);
+  border-radius: 0.875rem;
+  box-shadow: var(--e1), var(--lip);
+  display: flex;
+  gap: 0.5rem;
+  justify-content: space-between;
+  padding: 0.3125rem 0.375rem;
+}
+
+.month-nav__step {
+  align-items: center;
+  border-radius: 0.5rem;
+  color: var(--ink-muted);
+  display: inline-flex;
+  /* Flex strips the whitespace between the arrow and the month. */
+  gap: 0.375rem;
+  font-size: 0.8125rem;
+  min-height: 2.75rem;
+  padding: 0 0.75rem;
+  text-decoration: none;
+}
+
+.month-nav__step:hover {
+  background: var(--surface-muted);
+  color: var(--ink);
+}
+
+.month-nav__current {
+  font-size: 0.9375rem;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+}
+
+.archive {
+  box-shadow: inset 0 1px 0 var(--line);
+}
+
+/* How many are in there, when the header already says what they are. */
+.count-pill {
+  background: var(--surface-muted);
+  border-radius: 999px;
+  color: var(--ink-muted);
+  font-size: 0.6875rem;
+  padding: 0.125rem 0.4rem;
+}
+
+.archive__row {
+  align-items: center;
+  display: flex;
+  gap: 0.75rem;
+  justify-content: space-between;
+}
+
+.archive__row .data-list__item-title,
+.archive__row .data-list__item-meta {
+  display: block;
+  font-size: 0.8125rem;
 }
 
 .dashboard-stats {
@@ -1474,7 +1634,7 @@ h1.page-heading {
   gap: 0.75rem;
   grid-template-columns: repeat(auto-fit, minmax(9rem, 1fr));
   list-style: none;
-  margin: 0 0 1rem;
+  margin: 0;
   padding: 0;
 }
 
@@ -1564,12 +1724,6 @@ h1.page-heading {
 .category-bar__value {
   font-size: 0.75rem;
   font-weight: 600;
-}
-
-.inbox-section h2 {
-  font-size: 1.125rem;
-  letter-spacing: -0.015em;
-  margin: 0 0 0.75rem;
 }
 
 .inbox-card__reasons {

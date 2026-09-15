@@ -105,10 +105,11 @@ function InboxSection({
   title: string;
 }) {
   return (
-    <section className="inbox-section">
-      <h2>
-        {title} ({rows.length})
-      </h2>
+    <section className="dashboard-section">
+      <div className="dashboard-section__header">
+        <h2>{title}</h2>
+        <span className="count-pill">{rows.length}</span>
+      </div>
       {rows.length === 0 ? (
         <p className="content-state">{emptyText}</p>
       ) : (
