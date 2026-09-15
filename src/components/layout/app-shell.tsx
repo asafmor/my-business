@@ -264,6 +264,7 @@ const tabBarItems: readonly NavigationItem[] = [
  * capture action; everything else stays behind the drawer.
  */
 function MobileTabBar({ pathname }: { pathname: string }) {
+  const { minimize } = useUploadTray();
   const [left, right] = [tabBarItems.slice(0, 2), tabBarItems.slice(2)];
 
   const tab = (item: NavigationItem) => {
@@ -275,6 +276,7 @@ function MobileTabBar({ pathname }: { pathname: string }) {
           aria-current={current ? "page" : undefined}
           className={current ? "tab-bar__link is-current" : "tab-bar__link"}
           href={item.href}
+          onClick={minimize}
         >
           <AppIcon name={item.icon} />
           <span>{item.label}</span>
@@ -288,7 +290,11 @@ function MobileTabBar({ pathname }: { pathname: string }) {
       <ul>
         {left.map(tab)}
         <li className="tab-bar__capture">
-          <Link aria-label="Upload a document" href="/upload">
+          <Link
+            aria-label="Upload a document"
+            href="/upload"
+            onClick={minimize}
+          >
             <AppIcon name="upload" />
           </Link>
         </li>

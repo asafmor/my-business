@@ -5,10 +5,12 @@ import { useRef, type PointerEvent as ReactPointerEvent } from "react";
 
 import {
   matchesFilter,
+  statusGroup,
   useUploadTray,
   type TrayFilter,
   type TrayItem,
   type TrayStatus,
+  type TrayStatusGroup,
 } from "./upload-tray-provider";
 
 const statusLabels: Record<TrayStatus, string> = {
@@ -108,10 +110,92 @@ function TrayStatusIcon({ status }: { status: TrayStatus }) {
   );
 }
 
+function FilterIcon({ filter }: { filter: TrayFilter }) {
+  if (filter === "all") {
+    return (
+      <svg
+        aria-hidden="true"
+        fill="none"
+        height={13}
+        viewBox="0 0 24 24"
+        width={13}
+      >
+        <path
+          d="M4 7h16M4 12h16M4 17h16"
+          stroke="currentColor"
+          strokeLinecap="round"
+          strokeWidth="2.2"
+        />
+      </svg>
+    );
+  }
+  if (filter === "processing") {
+    return (
+      <svg
+        aria-hidden="true"
+        fill="none"
+        height={13}
+        viewBox="0 0 24 24"
+        width={13}
+      >
+        <circle
+          cx="12"
+          cy="12"
+          opacity="0.3"
+          r="9"
+          stroke="currentColor"
+          strokeWidth="2.4"
+        />
+        <path
+          d="M21 12a9 9 0 0 0-9-9"
+          stroke="currentColor"
+          strokeLinecap="round"
+          strokeWidth="2.4"
+        />
+      </svg>
+    );
+  }
+  if (filter === "review") {
+    return (
+      <svg
+        aria-hidden="true"
+        fill="none"
+        height={13}
+        viewBox="0 0 24 24"
+        width={13}
+      >
+        <path
+          d="M12 9v4m0 3.5h.01M10.9 4.6 2.7 18a1.5 1.5 0 0 0 1.3 2.25h16a1.5 1.5 0 0 0 1.3-2.25l-8.2-13.4a1.5 1.5 0 0 0-2.6 0Z"
+          stroke="currentColor"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          strokeWidth="2"
+        />
+      </svg>
+    );
+  }
+  return (
+    <svg
+      aria-hidden="true"
+      fill="none"
+      height={13}
+      viewBox="0 0 24 24"
+      width={13}
+    >
+      <path
+        d="m7 7 10 10M17 7 7 17"
+        stroke="currentColor"
+        strokeLinecap="round"
+        strokeWidth="2.4"
+      />
+    </svg>
+  );
+}
+
 const filters: { label: string; value: TrayFilter }[] = [
   { label: "All", value: "all" },
-  { label: "Active", value: "active" },
-  { label: "Needs review", value: "review" },
+  { label: "Processing", value: "processing" },
+  { label: "Review", value: "review" },
   { label: "Failed", value: "failed" },
 ];
 
@@ -131,7 +215,8 @@ function TrayItemRow({ item }: { item: TrayItem }) {
       <div className="upload-tray-item__body">
         <div className="upload-tray-item__row">
           <span className="upload-tray-item__name">{item.name}</span>
-          {item.status === "needs-review" && item.documentId ? (
+          {(item.status === "needs-review" || item.status === "complete") &&
+          item.documentId ? (
             <Link
               className="upload-tray-item__action"
               href={`/documents/${item.documentId}`}
@@ -190,10 +275,15 @@ function TrayItemRow({ item }: { item: TrayItem }) {
             </button>
           ) : null}
         </div>
-        <p className="upload-tray-item__status">
-          {statusLabels[item.status]}
-          {item.meta ? ` · ${item.meta}` : ""}
-        </p>
+        {item.meta ? (
+          // The status word is redundant here: the group heading, the
+          // selected filter chip, and the icon's colour already say it.
+          <p className="upload-tray-item__status">{item.meta}</p>
+        ) : item.status !== "uploading" ? (
+          <p className="upload-tray-item__status">
+            {statusLabels[item.status]}
+          </p>
+        ) : null}
         {item.status === "uploading" ? (
           <span className="upload-tray-item__progress">
             <span
@@ -206,7 +296,9 @@ function TrayItemRow({ item }: { item: TrayItem }) {
           <p className="upload-tray-item__message">{item.message}</p>
         ) : null}
         {item.reasons && item.reasons.length > 0 ? (
-          <ul className="upload-tray-item__reasons">
+          <ul
+            className={`upload-tray-item__reasons upload-tray-item__reasons--${iconTones[item.status]}`}
+          >
             {item.reasons.map((reason) => (
               <li key={reason}>{reason}</li>
             ))}
@@ -217,30 +309,59 @@ function TrayItemRow({ item }: { item: TrayItem }) {
   );
 }
 
+const groupLabels: Record<TrayStatusGroup, string> = {
+  complete: "Uploaded",
+  failed: "Failed",
+  processing: "Processing",
+  review: "Needs review",
+};
+
+type ListEntry =
+  { kind: "group-label"; label: string } | { kind: "item"; item: TrayItem };
+
+// Items already arrive sorted by group, so a sub-header only needs to be
+// inserted the moment the group changes - no separate grouping pass.
+function withGroupLabels(items: readonly TrayItem[]): ListEntry[] {
+  const entries: ListEntry[] = [];
+  let currentGroup: TrayStatusGroup | null = null;
+  for (const item of items) {
+    const group = statusGroup(item.status);
+    if (group !== currentGroup) {
+      entries.push({ kind: "group-label", label: groupLabels[group] });
+      currentGroup = group;
+    }
+    entries.push({ kind: "item", item });
+  }
+  return entries;
+}
+
 const dragCollapseThresholdPx = 60;
 
+// Same priority as the list grouping: processing, then review, then failed,
+// then success - the minimized bar always reflects the highest-priority
+// group that actually has items.
 function summaryTone(counts: {
-  active: number;
   all: number;
   failed: number;
+  processing: number;
   review: number;
 }): IconTone {
-  if (counts.failed > 0) return "danger";
+  if (counts.processing > 0) return "neutral";
   if (counts.review > 0) return "warning";
-  if (counts.active > 0) return "neutral";
+  if (counts.failed > 0) return "danger";
   return "success";
 }
 
 function summaryText(counts: {
-  active: number;
   all: number;
   failed: number;
+  processing: number;
   review: number;
 }): string {
-  if (counts.failed > 0) return `${counts.failed} failed`;
+  if (counts.processing > 0)
+    return `Processing ${counts.processing} item${counts.processing === 1 ? "" : "s"}`;
   if (counts.review > 0) return `${counts.review} need review`;
-  if (counts.active > 0)
-    return `Uploading ${counts.active} item${counts.active === 1 ? "" : "s"}`;
+  if (counts.failed > 0) return `${counts.failed} failed`;
   return counts.all > 0 ? "All caught up" : "No uploads yet";
 }
 
@@ -248,10 +369,9 @@ export function UploadTray() {
   const { counts, dismiss, filter, items, setFilter, toggleSize, view } =
     useUploadTray();
   const dragStartY = useRef<number | null>(null);
+  const visibleItems = items.filter((item) => matchesFilter(item, filter));
 
   if (view === "dismissed") return null;
-
-  const visibleItems = items.filter((item) => matchesFilter(item, filter));
 
   function handleHandlePointerDown(
     event: ReactPointerEvent<HTMLDivElement>,
@@ -290,12 +410,12 @@ export function UploadTray() {
         >
           <TrayStatusIcon
             status={
-              counts.failed > 0
-                ? "failed"
+              counts.processing > 0
+                ? "processing"
                 : counts.review > 0
                   ? "needs-review"
-                  : counts.active > 0
-                    ? "processing"
+                  : counts.failed > 0
+                    ? "failed"
                     : "complete"
             }
           />
@@ -416,13 +536,24 @@ export function UploadTray() {
             onClick={() => setFilter(entry.value)}
             type="button"
           >
+            <FilterIcon filter={entry.value} />
             {entry.label}
           </button>
         ))}
       </div>
-      <ul className="upload-tray__list" aria-live="polite">
+      <ul aria-live="polite" className="upload-tray__list">
         {visibleItems.length === 0 ? (
           <li className="upload-tray__empty">Nothing matches this filter.</li>
+        ) : filter === "all" ? (
+          withGroupLabels(visibleItems).map((entry) =>
+            entry.kind === "group-label" ? (
+              <li className="upload-tray__group-label" key={entry.label}>
+                {entry.label}
+              </li>
+            ) : (
+              <TrayItemRow item={entry.item} key={entry.item.id} />
+            ),
+          )
         ) : (
           visibleItems.map((item) => <TrayItemRow item={item} key={item.id} />)
         )}

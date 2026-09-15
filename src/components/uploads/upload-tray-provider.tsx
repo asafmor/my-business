@@ -31,7 +31,7 @@ export type TrayStatus =
   | "uploading";
 
 export type TrayView = "dismissed" | "expanded" | "minimized";
-export type TrayFilter = "active" | "all" | "failed" | "review";
+export type TrayFilter = "all" | "failed" | "processing" | "review";
 
 // A session upload the browser owns, or a server row it does not.
 export type TrayItem = {
@@ -46,7 +46,7 @@ export type TrayItem = {
   status: TrayStatus;
 };
 
-const activeStatuses: readonly TrayStatus[] = [
+const processingStatuses: readonly TrayStatus[] = [
   "queued",
   "uploading",
   "processing",
@@ -60,8 +60,8 @@ const failedStatuses: readonly TrayStatus[] = [
 
 export function matchesFilter(item: TrayItem, filter: TrayFilter): boolean {
   switch (filter) {
-    case "active":
-      return activeStatuses.includes(item.status);
+    case "processing":
+      return processingStatuses.includes(item.status);
     case "review":
       return item.status === "needs-review";
     case "failed":
@@ -71,18 +71,18 @@ export function matchesFilter(item: TrayItem, filter: TrayFilter): boolean {
   }
 }
 
-// In-flight uploads first, then needs-review, then failed, then processing,
-// then recently completed.
+// Processing first (queued/uploading/processing are all "in flight" from the
+// user's point of view), then completed, then needs-review, then failed.
 const statusOrder: Record<TrayStatus, number> = {
   queued: 0,
   uploading: 0,
-  "needs-review": 1,
-  duplicate: 2,
-  failed: 2,
-  "processing-failed": 2,
-  rejected: 2,
-  processing: 3,
-  complete: 4,
+  processing: 0,
+  complete: 1,
+  "needs-review": 2,
+  duplicate: 3,
+  failed: 3,
+  "processing-failed": 3,
+  rejected: 3,
 };
 
 // Dismissing and then starting an upload restores the form factor the user
@@ -100,25 +100,64 @@ export function viewAfterToggleOpen(
   return view === "dismissed" ? lastOpenView : "dismissed";
 }
 
+// The same grouping the "All" filter's sub-headers use, so the visual
+// sections can never drift from the sort order.
+export type TrayStatusGroup = "complete" | "failed" | "processing" | "review";
+
+const groupByOrder: Record<number, TrayStatusGroup> = {
+  0: "processing",
+  1: "complete",
+  2: "review",
+  3: "failed",
+};
+
+export function statusGroup(status: TrayStatus): TrayStatusGroup {
+  return groupByOrder[statusOrder[status]];
+}
+
 export function sortItems(items: readonly TrayItem[]): TrayItem[] {
   return [...items].sort(
     (a, b) => statusOrder[a.status] - statusOrder[b.status],
   );
 }
 
-// A server row whose documentId matches a session item is dropped - the
-// session item wins, because it carries the file name the user just chose.
+// A server row whose documentId matches a session item is folded into it -
+// the session item wins on identity (it carries the file name the user just
+// chose), but borrows the server's extracted meta/reasons as soon as they
+// exist, rather than waiting for a hard refresh to show them. A completed
+// server row that isn't part of this session is dropped entirely: the tray
+// only surfaces documents this session finished, not the whole archive.
 export function mergeItems(
   sessionItems: readonly TrayItem[],
   serverItems: readonly TrayItem[],
 ): TrayItem[] {
+  const serverByDocumentId = new Map(
+    serverItems.flatMap((item) =>
+      item.documentId ? [[item.documentId, item] as const] : [],
+    ),
+  );
+
+  const enrichedSessionItems = sessionItems.map((item) => {
+    const match = item.documentId
+      ? serverByDocumentId.get(item.documentId)
+      : undefined;
+    if (!match) return item;
+    return {
+      ...item,
+      meta: item.meta ?? match.meta,
+      reasons:
+        item.reasons && item.reasons.length > 0 ? item.reasons : match.reasons,
+    };
+  });
+
   const sessionDocumentIds = new Set(
     sessionItems.flatMap((item) => (item.documentId ? [item.documentId] : [])),
   );
-  return sortItems([
-    ...sessionItems,
-    ...serverItems.filter((item) => !sessionDocumentIds.has(item.id)),
-  ]);
+  const standaloneServerItems = serverItems.filter(
+    (item) => !sessionDocumentIds.has(item.id) && item.status !== "complete",
+  );
+
+  return sortItems([...enrichedSessionItems, ...standaloneServerItems]);
 }
 
 const backlogSectionStatus: Record<keyof InboxBacklogResponse, TrayStatus> = {
@@ -130,8 +169,8 @@ const backlogSectionStatus: Record<keyof InboxBacklogResponse, TrayStatus> = {
 
 function backlogRowMeta(row: InboxBacklogRow): string {
   return [
-    formatDate(row.transactionDate),
-    formatMoney(row.total, row.currency),
+    row.transactionDate ? formatDate(row.transactionDate) : null,
+    row.total ? formatMoney(row.total, row.currency) : null,
     row.categoryName,
   ]
     .filter((part): part is string => Boolean(part))
@@ -248,10 +287,11 @@ async function fetchDocumentStatuses(
 type UploadTrayContextValue = {
   addFiles: (files: FileList | File[]) => void;
   allowDuplicateUpload: (item: TrayItem) => void;
-  counts: { active: number; all: number; failed: number; review: number };
+  counts: { all: number; failed: number; processing: number; review: number };
   dismiss: () => void;
   filter: TrayFilter;
   items: TrayItem[];
+  minimize: () => void;
   open: () => void;
   removeItem: (id: string) => void;
   retryProcessing: (item: TrayItem) => void;
@@ -290,9 +330,10 @@ export function UploadTrayProvider({ children }: { children: ReactNode }) {
 
   const counts = useMemo(
     () => ({
-      active: items.filter((item) => matchesFilter(item, "active")).length,
       all: items.length,
       failed: items.filter((item) => matchesFilter(item, "failed")).length,
+      processing: items.filter((item) => matchesFilter(item, "processing"))
+        .length,
       review: items.filter((item) => matchesFilter(item, "review")).length,
     }),
     [items],
@@ -396,6 +437,14 @@ export function UploadTrayProvider({ children }: { children: ReactNode }) {
     };
   }, [pollKey, refetchBacklog]);
 
+  // A new item entering "processing" pulls the tray into view - open (to
+  // whichever form factor the user last had open) and focused on the
+  // Processing chip, so the user sees exactly what's in flight.
+  const focusProcessing = useCallback(() => {
+    setFilter("processing");
+    setView((current) => (current === "dismissed" ? lastOpenView : current));
+  }, [lastOpenView]);
+
   const submit = useCallback(
     async (id: string, file: File, allowDuplicate = false) => {
       updateSessionItem(id, {
@@ -418,9 +467,10 @@ export function UploadTrayProvider({ children }: { children: ReactNode }) {
         progress: status === "processing" ? 100 : 0,
         status,
       });
+      if (status === "processing") focusProcessing();
       void refetchBacklog();
     },
-    [refetchBacklog],
+    [focusProcessing, refetchBacklog],
   );
 
   const addFiles = useCallback(
@@ -472,39 +522,51 @@ export function UploadTrayProvider({ children }: { children: ReactNode }) {
 
   // The one retry-processing code path: works for a document from this
   // session's upload or from the server backlog alike.
-  const retryProcessing = useCallback((item: TrayItem) => {
-    if (!item.documentId) return;
-    if (item.kind === "upload") {
-      updateSessionItem(item.id, { message: undefined, status: "processing" });
-    } else {
-      setSessionItems((current) => [
-        ...current,
-        { ...item, kind: "upload", message: undefined, status: "processing" },
-      ]);
-    }
-
-    void (async () => {
-      try {
-        const response = await fetch("/api/documents/processing/retry", {
-          body: JSON.stringify({ documentId: item.documentId }),
-          headers: { "content-type": "application/json" },
-          method: "POST",
+  const retryProcessing = useCallback(
+    (item: TrayItem) => {
+      if (!item.documentId) return;
+      if (item.kind === "upload") {
+        updateSessionItem(item.id, {
+          message: undefined,
+          status: "processing",
         });
-        const result = (await response.json()) as { queued?: boolean };
-        if (!response.ok || !result.queued) {
+      } else {
+        setSessionItems((current) => [
+          ...current,
+          {
+            ...item,
+            kind: "upload",
+            message: undefined,
+            status: "processing",
+          },
+        ]);
+      }
+      focusProcessing();
+
+      void (async () => {
+        try {
+          const response = await fetch("/api/documents/processing/retry", {
+            body: JSON.stringify({ documentId: item.documentId }),
+            headers: { "content-type": "application/json" },
+            method: "POST",
+          });
+          const result = (await response.json()) as { queued?: boolean };
+          if (!response.ok || !result.queued) {
+            updateSessionItem(item.id, {
+              message: "Processing could not be queued. Please try again.",
+              status: "processing-failed",
+            });
+          }
+        } catch {
           updateSessionItem(item.id, {
             message: "Processing could not be queued. Please try again.",
             status: "processing-failed",
           });
         }
-      } catch {
-        updateSessionItem(item.id, {
-          message: "Processing could not be queued. Please try again.",
-          status: "processing-failed",
-        });
-      }
-    })();
-  }, []);
+      })();
+    },
+    [focusProcessing],
+  );
 
   const removeItem = useCallback((id: string) => {
     filesRef.current.delete(id);
@@ -530,6 +592,16 @@ export function UploadTrayProvider({ children }: { children: ReactNode }) {
 
   const dismiss = useCallback(() => setView("dismissed"), []);
 
+  // Mobile only: navigating via the tab bar minimizes an expanded tray
+  // rather than leaving it covering the destination page.
+  const minimize = useCallback(() => {
+    setView((current) => {
+      if (current !== "expanded") return current;
+      setLastOpenView("minimized");
+      return "minimized";
+    });
+  }, []);
+
   const value: UploadTrayContextValue = {
     addFiles,
     allowDuplicateUpload,
@@ -537,6 +609,7 @@ export function UploadTrayProvider({ children }: { children: ReactNode }) {
     dismiss,
     filter,
     items,
+    minimize,
     open,
     removeItem,
     retryProcessing,
