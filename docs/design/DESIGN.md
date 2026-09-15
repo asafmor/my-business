@@ -162,6 +162,11 @@ breakpoint:
   flagged for confirmation, sticky "Confirm & next" at the bottom. Built to finish
   work at a bus stop.
 
+- **Upload tray** — a floating panel, not a page. Fixed bottom-right on desktop
+  (`--e4` + `--lip`, the first consumer of `--e4`); a bottom sheet above the tab
+  bar on mobile, with a drag handle and a collapsed summary bar. Persists across
+  navigation, cleared only by a hard refresh.
+
 Never paint fake status bars or phone chrome. Reserve the space, leave it empty.
 
 ## House rules
@@ -193,6 +198,8 @@ Never paint fake status bars or phone chrome. Reserve the space, leave it empty.
 - [x] Dashboard — KPI tiles, section cards, single-hue category bars
 - [x] Mobile — bottom tab bar with capture FAB, 72px document cards, filters
       folded behind a disclosure
+- [x] Upload tray — replaces the Inbox page; floating panel on desktop, bottom
+      sheet on mobile; first consumer of `--e4` and of `@keyframes`
 - [ ] Mobile review flow — the full "finish it at a bus stop" task screen
 - [ ] Reports and document detail
 

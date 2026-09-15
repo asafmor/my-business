@@ -324,7 +324,7 @@ A task is considered complete only when its implementation, automated tests wher
 ├── 4.3-sidebar/
 │   ├── dashboard-link
 │   ├── documents-link
-│   ├── inbox-link
+│   ├── upload-tray-link
 │   ├── reports-link
 │   ├── categories-link
 │   └── settings-link
@@ -675,11 +675,11 @@ A task is considered complete only when its implementation, automated tests wher
 
 ---
 
-# 11-inbox/
+# 11-upload-tray/
 
 ```text
-11-inbox/
-├── 11.1-inbox-query/
+11-upload-tray/
+├── 11.1-upload-tray-query/
 │   ├── needs-review
 │   ├── processing
 │   ├── failed
@@ -717,7 +717,7 @@ A task is considered complete only when its implementation, automated tests wher
 │
 ├── 12.2-needs-attention/
 │   ├── recent-review-items
-│   └── link-to-inbox
+│   └── link-to-tray
 │
 ├── 12.3-recent-documents/
 │   ├── recently-uploaded
@@ -728,7 +728,7 @@ A task is considered complete only when its implementation, automated tests wher
 │
 ├── 12.5-quick-actions/
 │   ├── upload-document
-│   ├── open-inbox
+│   ├── open-tray
 │   └── open-monthly-report
 │
 └── 12.6-empty-state/
@@ -1301,7 +1301,7 @@ A task is considered complete only when its implementation, automated tests wher
 ├── 28.5-mobile-review/
 │   ├── login
 │   ├── photo-upload
-│   ├── inbox
+│   ├── upload-tray
 │   ├── edit-document
 │   └── monthly-report
 │
@@ -1364,7 +1364,7 @@ The tree above captures most dependencies naturally, but these cross-branch depe
    7-document-processing-and-ai/
    9-document-management-ui/
 
-11-inbox/
+11-upload-tray/
 ↳ depends on:
    7-document-processing-and-ai/
    8-background-processing/
@@ -1373,7 +1373,7 @@ The tree above captures most dependencies naturally, but these cross-branch depe
 12-dashboard/
 ↳ depends on:
    10-bookkeeping-workflow/
-   11-inbox/
+   11-upload-tray/
 
 13-reporting/
 ↳ depends on:
@@ -1438,7 +1438,7 @@ The tree above captures most dependencies naturally, but these cross-branch depe
 ↳ depends on:
    4-application-shell/
    9-document-management-ui/
-   11-inbox/
+   11-upload-tray/
    12-dashboard/
    13-reporting/
 
@@ -1507,7 +1507,7 @@ wave-5/
 ```text
 wave-6/
 ├── bookkeeping-workflow
-├── inbox
+├── upload-tray
 ├── backup-observability
 └── disaster-recovery-tooling
 ```
@@ -1561,7 +1561,7 @@ project-bootstrap
                             └── background-processing
                                 └── document-detail
                                     └── bookkeeping-workflow
-                                        └── inbox
+                                        └── upload-tray
                                             └── reporting
 ```
 
@@ -1623,7 +1623,7 @@ v1-release/
 │   ├── desktop
 │   ├── mobile
 │   ├── dashboard
-│   ├── inbox
+│   ├── upload-tray
 │   ├── documents
 │   └── reports
 │

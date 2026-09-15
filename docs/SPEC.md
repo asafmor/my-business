@@ -375,10 +375,6 @@ Overview of the current month and anything requiring attention.
 
 Complete searchable document archive.
 
-### Inbox
-
-New, processing, failed, or review-required documents.
-
 ### Reports
 
 Monthly summaries and generated exports.
@@ -438,7 +434,7 @@ A simple expense breakdown.
 ### Quick actions
 
 * upload document
-* open inbox
+* open the upload tray
 * generate/export monthly report
 
 Avoid turning the dashboard into a dense analytics product.
@@ -447,16 +443,19 @@ Its main purpose is orientation and action.
 
 ---
 
-# 15. Inbox
+# 15. Upload tray
 
-The Inbox is workflow-oriented rather than archival.
+New, processing, failed, or review-required documents live in a persistent
+floating tray rather than a dedicated page. It mounts inside the app shell, so
+it survives client-side navigation and is only cleared by a hard refresh. It
+seeds itself from the server backlog on load and merges live session uploads
+on top, workflow-oriented rather than archival.
 
-Sections or filters:
+Filters:
 
+* Active (queued, uploading, processing)
 * Needs review
-* Processing
 * Failed
-* Recently completed
 
 A document requiring attention should clearly state why.
 
@@ -679,7 +678,6 @@ src/
     (app)/
       dashboard/
       documents/
-      inbox/
       reports/
       categories/
       settings/
@@ -1244,7 +1242,6 @@ app/
   (protected)/
     dashboard/
     documents/
-    inbox/
     reports/
     settings/
 ```
@@ -1730,7 +1727,7 @@ A good first production release consists of:
 * header
 * sidebar
 * dashboard
-* inbox
+* upload tray
 * documents
 * reports
 * responsive/mobile UI

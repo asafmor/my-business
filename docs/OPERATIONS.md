@@ -89,16 +89,14 @@ attempts, one- and five-minute delays; invalid AI responses fail
 immediately — see README.md's "Background processing") gets status
 `FAILED`. It surfaces in two places:
 
-- **Inbox** (`/inbox`) — the "Failed" section lists it with a
-  **Retry processing** button.
+- **Upload tray** — the "Failed" filter lists it with a
+  **Retry processing** button (`POST /api/documents/processing/retry`).
 - **Document detail** (`/documents/{id}`) — shows "Processing failed.
   Reprocess to try again, or edit the fields below manually." with a
   **Reprocess** button.
 
-Both buttons re-enqueue a `processing_tasks` row
-(`reprocessDocumentAction` in `src/app/(protected)/documents/[id]/actions.ts`)
-for the same best-effort recovery path uploads use — no manual database
-edit is needed. If a document repeatedly fails, the fields can always be
+Both buttons re-enqueue a `processing_tasks` row for the same best-effort
+recovery path uploads use — no manual database edit is needed. If a document repeatedly fails, the fields can always be
 corrected by hand on the document detail page regardless of processing
 status (manual corrections take priority over AI output — SPEC.md §26).
 

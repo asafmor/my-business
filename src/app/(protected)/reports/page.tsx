@@ -2,6 +2,7 @@ import Link from "next/link";
 
 import { generateReportAction } from "./actions";
 import { ProportionBars } from "../../../components/charts/proportion-bars";
+import { OpenTrayButton } from "../../../components/uploads/open-tray-button";
 import { attentionReasons } from "../../../domain/documents/attention-reasons";
 import {
   parseReportMonth,
@@ -135,7 +136,9 @@ export default async function ReportsPage({
         <section className="dashboard-section">
           <div className="dashboard-section__header">
             <h2>Needs attention</h2>
-            <Link href="/inbox">View all in Inbox</Link>
+            <OpenTrayButton className="text-button">
+              View all in tray
+            </OpenTrayButton>
           </div>
           {problematicDocuments.length === 0 ? (
             <p className="content-state">Nothing needs review this month.</p>

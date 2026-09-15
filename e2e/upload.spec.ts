@@ -26,10 +26,10 @@ test("a valid file uploads and reaches a processing state", async ({
       mimeType: "application/pdf",
       name: "e2e-receipt.pdf",
     });
-  await page.getByRole("button", { name: "Upload selected" }).click();
-
-  const card = page.locator(".upload-card", { hasText: "e2e-receipt.pdf" });
-  await expect(card).toContainText(/Processing|Needs review|Uploaded/, {
+  const item = page.locator(".upload-tray-item", {
+    hasText: "e2e-receipt.pdf",
+  });
+  await expect(item).toContainText(/Processing|Needs review|Uploaded/, {
     timeout: 15_000,
   });
 });
@@ -46,9 +46,7 @@ test("an unsupported file is rejected with a clear message", async ({
       mimeType: "text/plain",
       name: "e2e-notes.txt",
     });
-  await page.getByRole("button", { name: "Upload selected" }).click();
-
-  const card = page.locator(".upload-card", { hasText: "e2e-notes.txt" });
-  await expect(card).toContainText("Not accepted");
-  await expect(card).toContainText("File type is not supported.");
+  const item = page.locator(".upload-tray-item", { hasText: "e2e-notes.txt" });
+  await expect(item).toContainText("Not accepted");
+  await expect(item).toContainText("File type is not supported.");
 });

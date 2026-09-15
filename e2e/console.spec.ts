@@ -16,7 +16,7 @@ test("no console errors on a clean browser", async ({
   page.on("pageerror", (e) => messages.push(`pageerror: ${e.message}`));
 
   await signIn(context, baseURL as string);
-  for (const path of ["/", "/reports", "/settings", "/documents", "/inbox"]) {
+  for (const path of ["/", "/reports", "/settings", "/documents", "/upload"]) {
     await page.goto(path);
     await page.waitForTimeout(900);
   }

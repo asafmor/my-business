@@ -123,7 +123,6 @@ import { logoutAction } from "../src/app/(protected)/actions";
 import DashboardPage from "../src/app/(protected)/page";
 import CategoriesPage from "../src/app/(protected)/categories/page";
 import DocumentsPage from "../src/app/(protected)/documents/page";
-import InboxPage from "../src/app/(protected)/inbox/page";
 import ProtectedLayout from "../src/app/(protected)/layout";
 import ReportsPage from "../src/app/(protected)/reports/page";
 import SettingsPage from "../src/app/(protected)/settings/page";
@@ -134,10 +133,11 @@ import {
   MobileNavigationDrawer,
 } from "../src/components/layout/app-shell";
 import { ContentState } from "../src/components/ui/content-state";
+import { UploadTrayProvider } from "../src/components/uploads/upload-tray-provider";
 
 describe("protected application shell", () => {
   it("enforces a shared server session in the layout and every shell route", async () => {
-    const pages = [DashboardPage, InboxPage, SettingsPage, UploadPage];
+    const pages = [DashboardPage, SettingsPage, UploadPage];
 
     renderToStaticMarkup(await ProtectedLayout({ children: <p>Content</p> }));
     await Promise.all(pages.map((Page) => Page()));
@@ -145,7 +145,7 @@ describe("protected application shell", () => {
     await CategoriesPage({ searchParams: Promise.resolve({}) });
     await ReportsPage({ searchParams: Promise.resolve({}) });
 
-    expect(authMocks.requireSession).toHaveBeenCalledTimes(8);
+    expect(authMocks.requireSession).toHaveBeenCalledTimes(7);
     expect(
       dispatcherMocks.dispatchDueDocumentProcessing,
     ).toHaveBeenCalledOnce();
@@ -161,6 +161,7 @@ describe("protected application shell", () => {
     expect(markup).toContain('href="/upload"');
     expect(markup).toContain(">Upload<");
     expect(markup).toContain(">Log out<");
+    expect(markup).toContain('aria-label="Upload tray"');
   });
 
   it("gives mobile its own thumb-reachable navigation and capture action", async () => {
@@ -194,7 +195,7 @@ describe("application navigation", () => {
         drawerRef={{ current: null }}
         isOpen
         onClose={() => undefined}
-        pathname="/inbox"
+        pathname="/documents"
       />,
     );
 
@@ -229,8 +230,10 @@ describe("application UI states", () => {
     expect(loadingMarkup).toContain('aria-live="polite"');
   });
 
-  it("renders a multi-file upload queue with camera and duplicate affordances", async () => {
-    const markup = renderToStaticMarkup(await UploadPage());
+  it("renders a dropzone with camera and multi-file pickers", async () => {
+    const markup = renderToStaticMarkup(
+      <UploadTrayProvider>{await UploadPage()}</UploadTrayProvider>,
+    );
 
     expect(markup).toContain("Upload documents");
     expect(markup).toContain(

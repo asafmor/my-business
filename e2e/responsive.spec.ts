@@ -30,10 +30,24 @@ async function checkNoOverflowAndReachableNav(
   await expect(menuButton.or(sidebarNav)).toBeVisible();
 }
 
-for (const path of ["/", "/inbox", "/documents"]) {
+for (const path of ["/", "/documents", "/reports"]) {
   test(`${path} has no horizontal overflow and its navigation is reachable`, async ({
     page,
   }) => {
     await checkNoOverflowAndReachableNav(page, path);
   });
 }
+
+test("the upload tray opens on mobile without causing horizontal overflow", async ({
+  page,
+}) => {
+  await page.goto("/");
+  await page.getByRole("button", { name: /Upload tray/ }).click();
+  await expect(page.getByRole("region", { name: "Upload tray" })).toBeVisible();
+
+  const viewport = page.viewportSize();
+  const scrollWidth = await page.evaluate(
+    () => document.documentElement.scrollWidth,
+  );
+  expect(scrollWidth).toBeLessThanOrEqual((viewport?.width ?? 0) + 1);
+});

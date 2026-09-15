@@ -59,7 +59,7 @@ export async function saveDocumentEditAction(
 
   await repository.saveEdit(parsed.data);
   revalidatePath(`/documents/${documentId}`);
-  revalidatePath("/inbox");
+  revalidatePath("/");
   return { error: null, fieldErrors: {} };
 }
 
@@ -67,7 +67,7 @@ export async function markReviewedAction(documentId: string): Promise<void> {
   await requireSession();
   await repository.markReviewed(documentId);
   revalidatePath(`/documents/${documentId}`);
-  revalidatePath("/inbox");
+  revalidatePath("/");
 }
 
 export async function reprocessDocumentAction(
@@ -77,7 +77,7 @@ export async function reprocessDocumentAction(
   const queued = await getBackgroundProcessingService().retry(documentId);
   if (queued) dispatchDueDocumentProcessing();
   revalidatePath(`/documents/${documentId}`);
-  revalidatePath("/inbox");
+  revalidatePath("/");
 }
 
 export async function archiveDocumentAction(documentId: string): Promise<void> {

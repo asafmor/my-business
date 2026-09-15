@@ -20,19 +20,25 @@ are JPEG, PNG, WebP, or PDF, up to 10 MB each.
 On a phone, select **Take photo** instead to open the camera directly and
 photograph a receipt on the spot, rather than picking an existing photo.
 
-Each upload shows live progress and a status (Uploaded, Needs review,
-Possible duplicate, Upload failed, etc). A likely duplicate is flagged
-before it's stored twice.
+A floating **upload tray** appears as soon as you add a file, and follows
+you around the app — it survives navigating between pages and is only
+cleared by a hard refresh. Each upload shows live progress and a status
+(Uploaded, Needs review, Possible duplicate, Upload failed, etc). A likely
+duplicate is flagged before it's stored twice.
+
+Reopen the tray any time with the tray icon in the header (it shows a live
+count) or the collapsed summary bar above the mobile tab bar. Filter its
+contents by _Active_, _Needs review_, or _Failed_.
 
 ## Review
 
-Documents that need attention appear on the **Inbox** (`/inbox`) page in
-one of four sections: _Needs review_, _Processing_, _Failed_, _Recently
-completed_.
+Documents that need attention appear in the upload tray, which seeds itself
+from the server so nothing already on file is missing, and merges in
+whatever you're uploading this session.
 
 - For a document under **Needs review**, check the flagged reasons shown
-  under it, correct any fields inline or open it (**Open** link) for the
-  full document detail page, then select **Approve** once it's correct.
+  under it and select **Open** to go to the full document detail page and
+  correct fields, then select **Approve** once it's correct.
 - For a document under **Failed**, select **Retry processing** to try AI
   extraction again, or open it and correct fields by hand.
 
@@ -40,7 +46,7 @@ On the document detail page (`/documents/{id}`), edit any field in the form,
 then:
 
 - **Mark reviewed** — accept the document as reviewed.
-- **Reprocess** — re-run AI extraction (same as Inbox's Retry processing).
+- **Reprocess** — re-run AI extraction (same as the tray's Retry processing).
 - **Archive** — move the document out of the active list (see "Archive"
   below).
 
@@ -60,7 +66,7 @@ Go to **Reports** (`/reports`). It defaults to the current month; use the
 `←`/`→` month links to move between months. It shows a summary (document
 count, gross/net/VAT totals, count needing review), breakdowns by category
 and by supplier, and a list of documents needing attention for that month
-(linking back to Inbox).
+(linking to the document detail page).
 
 Under **Export**:
 
@@ -74,6 +80,7 @@ Under **Export**:
 From a document's detail page, select **Archive**. This is a status change
 (`ARCHIVED`), not a permanent delete — the underlying file and history stay
 intact (original documents are never deleted by normal application use —
-see docs/SPEC.md §2.1). Archiving removes it from Inbox and redirects you
-to Documents; to find it again, go to **Documents** and set the **Status**
-filter to **Archived**. There is currently no in-app "unarchive" action.
+see docs/SPEC.md §2.1). Archiving removes it from the upload tray and
+redirects you to Documents; to find it again, go to **Documents** and set
+the **Status** filter to **Archived**. There is currently no in-app
+"unarchive" action.

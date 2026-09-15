@@ -41,7 +41,7 @@ export type InboxResult = {
 };
 
 export interface InboxQueryRepository {
-  list(): Promise<InboxResult>;
+  list(limit?: number): Promise<InboxResult>;
 }
 
 // ponytail: fixed caps keep the Inbox fast without pagination; add
@@ -54,7 +54,7 @@ type RawInboxRow = Omit<InboxRow, "reviewReasons">;
 export class DrizzleInboxQueryRepository implements InboxQueryRepository {
   constructor(private readonly database: typeof getDatabase = getDatabase) {}
 
-  async list(): Promise<InboxResult> {
+  async list(limit?: number): Promise<InboxResult> {
     const database = this.database();
 
     const [needsReviewRaw, processingRaw, failedRaw, recentlyCompletedRaw] =
@@ -62,22 +62,22 @@ export class DrizzleInboxQueryRepository implements InboxQueryRepository {
         this.selectSection(
           database,
           statusesForSection("needsReview"),
-          sectionLimit,
+          limit ?? sectionLimit,
         ),
         this.selectSection(
           database,
           statusesForSection("processing"),
-          sectionLimit,
+          limit ?? sectionLimit,
         ),
         this.selectSection(
           database,
           statusesForSection("failed"),
-          sectionLimit,
+          limit ?? sectionLimit,
         ),
         this.selectSection(
           database,
           statusesForSection("recentlyCompleted"),
-          recentlyCompletedLimit,
+          limit ?? recentlyCompletedLimit,
         ),
       ]);
 

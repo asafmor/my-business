@@ -2,6 +2,7 @@ import Link from "next/link";
 
 import { ContentState } from "../../components/ui/content-state";
 import { ProportionBars } from "../../components/charts/proportion-bars";
+import { OpenTrayButton } from "../../components/uploads/open-tray-button";
 import { attentionReasons } from "../../domain/documents/attention-reasons";
 import { currentReportingMonth } from "../../domain/documents/dashboard";
 import { formatDate, formatMoney, humanizeEnumValue } from "../../lib/format";
@@ -78,7 +79,9 @@ export default async function DashboardPage() {
         <section className="dashboard-section">
           <div className="dashboard-section__header">
             <h2>Needs attention</h2>
-            <Link href="/inbox">View all in Inbox</Link>
+            <OpenTrayButton className="text-button">
+              View all in tray
+            </OpenTrayButton>
           </div>
           {needsAttention.length === 0 ? (
             <p className="content-state">Nothing needs review right now.</p>
@@ -143,9 +146,9 @@ export default async function DashboardPage() {
       </div>
 
       <div className="dashboard-quick-actions">
-        <Link className="button button--secondary" href="/inbox">
-          Open inbox
-        </Link>
+        <OpenTrayButton className="button button--secondary">
+          Open tray
+        </OpenTrayButton>
         <Link className="button button--secondary" href="/reports">
           Monthly report
         </Link>

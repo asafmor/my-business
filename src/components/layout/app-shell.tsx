@@ -11,6 +11,11 @@ import {
 } from "react";
 
 import { logoutAction } from "../../app/(protected)/actions";
+import { UploadTray } from "../uploads/upload-tray";
+import {
+  UploadTrayProvider,
+  useUploadTray,
+} from "../uploads/upload-tray-provider";
 
 type IconName =
   | "categories"
@@ -37,10 +42,7 @@ type NavigationSection = {
 export const navigationSections: readonly NavigationSection[] = [
   {
     label: "Workspace",
-    items: [
-      { href: "/", icon: "dashboard", label: "Dashboard" },
-      { href: "/inbox", icon: "inbox", label: "Inbox" },
-    ],
+    items: [{ href: "/", icon: "dashboard", label: "Dashboard" }],
   },
   {
     label: "Business",
@@ -253,8 +255,8 @@ function LogoutForm() {
 const tabBarItems: readonly NavigationItem[] = [
   { href: "/", icon: "dashboard", label: "Home" },
   { href: "/documents", icon: "documents", label: "Docs" },
-  { href: "/inbox", icon: "inbox", label: "Inbox" },
   { href: "/reports", icon: "reports", label: "Reports" },
+  { href: "/settings", icon: "settings", label: "Settings" },
 ];
 
 /*
@@ -308,6 +310,31 @@ function AccountCard() {
       </span>
       <LogoutForm />
     </div>
+  );
+}
+
+function UploadTrayToggleButton() {
+  const { counts, toggleOpen, view } = useUploadTray();
+
+  return (
+    <button
+      aria-expanded={view !== "dismissed"}
+      aria-label={
+        counts.all > 0
+          ? `Upload tray, ${counts.all} item${counts.all === 1 ? "" : "s"}`
+          : "Upload tray"
+      }
+      className="icon-button upload-tray-toggle"
+      onClick={toggleOpen}
+      type="button"
+    >
+      <AppIcon name="inbox" />
+      {counts.all > 0 ? (
+        <span aria-hidden="true" className="upload-tray-toggle__badge">
+          {counts.all > 99 ? "99+" : counts.all}
+        </span>
+      ) : null}
+    </button>
   );
 }
 
@@ -372,65 +399,69 @@ export function AppShell({ children }: { children: ReactNode }) {
   }, [isDrawerOpen]);
 
   return (
-    <div className="app-shell">
-      <a className="skip-link" href="#main-content">
-        Skip to main content
-      </a>
-      <header className="app-header">
-        <div className="app-header__identity">
-          <button
-            aria-controls="mobile-navigation"
-            aria-expanded={isDrawerOpen}
-            aria-label="Open navigation"
-            className="icon-button app-header__menu-button"
-            onClick={() => setIsDrawerOpen(true)}
-            ref={navigationButtonRef}
-            type="button"
-          >
-            <AppIcon name="menu" />
-          </button>
-          <Link
-            aria-label="My Business dashboard"
-            className="app-brand"
-            href="/"
-          >
-            <BrandMark />
-            <span>My Business</span>
-          </Link>
+    <UploadTrayProvider>
+      <div className="app-shell">
+        <a className="skip-link" href="#main-content">
+          Skip to main content
+        </a>
+        <header className="app-header">
+          <div className="app-header__identity">
+            <button
+              aria-controls="mobile-navigation"
+              aria-expanded={isDrawerOpen}
+              aria-label="Open navigation"
+              className="icon-button app-header__menu-button"
+              onClick={() => setIsDrawerOpen(true)}
+              ref={navigationButtonRef}
+              type="button"
+            >
+              <AppIcon name="menu" />
+            </button>
+            <Link
+              aria-label="My Business dashboard"
+              className="app-brand"
+              href="/"
+            >
+              <BrandMark />
+              <span>My Business</span>
+            </Link>
+          </div>
+          <div className="app-header__tools">
+            <label className="global-search">
+              <span className="sr-only">Global search</span>
+              <input
+                aria-label="Global search, coming soon"
+                disabled
+                placeholder="Search documents"
+                type="search"
+              />
+            </label>
+            <UploadTrayToggleButton />
+            <Link className="button button--primary" href="/upload">
+              <AppIcon name="upload" />
+              <span>Upload</span>
+            </Link>
+          </div>
+        </header>
+        <div className="app-frame">
+          <aside className="app-sidebar" aria-label="Application navigation">
+            <ApplicationNavigation pathname={pathname} />
+            <AccountCard />
+          </aside>
+          <main className="app-main" id="main-content" tabIndex={-1}>
+            {children}
+          </main>
         </div>
-        <div className="app-header__tools">
-          <label className="global-search">
-            <span className="sr-only">Global search</span>
-            <input
-              aria-label="Global search, coming soon"
-              disabled
-              placeholder="Search documents"
-              type="search"
-            />
-          </label>
-          <Link className="button button--primary" href="/upload">
-            <AppIcon name="upload" />
-            <span>Upload</span>
-          </Link>
-        </div>
-      </header>
-      <div className="app-frame">
-        <aside className="app-sidebar" aria-label="Application navigation">
-          <ApplicationNavigation pathname={pathname} />
-          <AccountCard />
-        </aside>
-        <main className="app-main" id="main-content" tabIndex={-1}>
-          {children}
-        </main>
+        <MobileTabBar pathname={pathname} />
+        <MobileNavigationDrawer
+          closeButtonRef={closeButtonRef}
+          drawerRef={drawerRef}
+          isOpen={isDrawerOpen}
+          onClose={() => setIsDrawerOpen(false)}
+          pathname={pathname}
+        />
+        <UploadTray />
       </div>
-      <MobileTabBar pathname={pathname} />
-      <MobileNavigationDrawer
-        closeButtonRef={closeButtonRef}
-        drawerRef={drawerRef}
-        isOpen={isDrawerOpen}
-        onClose={() => setIsDrawerOpen(false)}
-        pathname={pathname}
-      />
-    </div>
+    </UploadTrayProvider>
   );
 }
