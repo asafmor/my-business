@@ -46,8 +46,8 @@ export function DocumentsTable({ rows }: { rows: DocumentListRow[] }) {
             <th>Supplier</th>
             <th>Type</th>
             <th>Category</th>
-            <th>Total</th>
-            <th>VAT</th>
+            <th className="is-numeric">Total</th>
+            <th className="is-numeric">VAT</th>
             <th>Status</th>
           </tr>
         </thead>
@@ -67,8 +67,8 @@ export function DocumentsTable({ rows }: { rows: DocumentListRow[] }) {
               </td>
               <td>{humanizeEnumValue(row.type)}</td>
               <td>{row.categoryName ?? "—"}</td>
-              <td>{formatMoney(row.total, null)}</td>
-              <td>{formatMoney(row.vat, null)}</td>
+              <td className="is-numeric">{formatMoney(row.total, null)}</td>
+              <td className="is-numeric">{formatMoney(row.vat, null)}</td>
               <td>
                 <StatusBadge status={row.status} />
               </td>
@@ -97,8 +97,9 @@ export function DocumentsTable({ rows }: { rows: DocumentListRow[] }) {
                 {row.categoryName ? ` · ${row.categoryName}` : ""}
               </div>
               <div className="data-list__item-meta">
-                Total {formatMoney(row.total, null)} · VAT{" "}
-                {formatMoney(row.vat, null)}
+                Total{" "}
+                <span className="num">{formatMoney(row.total, null)}</span> ·
+                VAT <span className="num">{formatMoney(row.vat, null)}</span>
               </div>
             </Link>
           </li>

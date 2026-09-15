@@ -106,18 +106,23 @@ calm in a screenshot and exhausts you by noon.
 
 Quiet until touched. Flat at rest, lift on hover, sink when pressed.
 
-| State    | Treatment                                                                |
-| -------- | ------------------------------------------------------------------------ |
-| Rest     | `--e1` + `--lip` (secondary); gradient + coloured shadow (primary)       |
-| Hover    | step up one elevation                                                    |
-| Pressed  | `--well`, `translateY(1px)`                                              |
-| Focus    | `0 0 0 2px #fff, 0 0 0 4.5px rgb(74 58 128 / 50%)` — **never** `outline` |
-| Disabled | flat `--surface-muted`, no shadow, `--ink-faint`                         |
-| Selected | `--accent-soft` wash + 1px accent ring                                   |
-| Loading  | spinner replaces the leading icon; label changes to the verb in progress |
+| State    | Treatment                                                                   |
+| -------- | --------------------------------------------------------------------------- |
+| Rest     | `--e1` + `--lip` (secondary); gradient + coloured shadow (primary)          |
+| Hover    | step up one elevation                                                       |
+| Pressed  | `--well`, `translateY(1px)`                                                 |
+| Focus    | `0 0 0 2px #fff, 0 0 0 4.5px rgb(74 58 128 / 50%)` — a ring, not an outline |
+| Disabled | flat `--surface-muted`, no shadow, `--ink-faint`                            |
+| Selected | `--accent-soft` wash + 1px accent ring                                      |
+| Loading  | spinner replaces the leading icon; label changes to the verb in progress    |
 
 Inputs are **wells**, not boxes. Validation speaks in a sentence under the field —
 a red ring alone is not a message.
+
+Buttons and form controls get the ring. Everything else keeps the global
+`:focus-visible` outline in `--accent` as the accessibility catch-all — a ring
+can be clipped by an ancestor's `overflow: hidden`, an outline can't, so the
+fallback stays.
 
 **One primary action per view.**
 
@@ -175,7 +180,18 @@ Never paint fake status bars or phone chrome. Reserve the space, leave it empty.
 
 - [x] Tokens in `globals.css`
 - [x] Archivo + IBM Plex Mono via `next/font`
-- [ ] Replace the remaining `border: 1px solid` declarations with elevation
-- [ ] `.num` on every currency cell
-- [ ] Table row states in `documents-table.tsx`
+- [x] Every solid border replaced by elevation, tone, or an inset hairline —
+      `grep "border: 1px solid" src/app/globals.css` returns nothing, and should
+      keep returning nothing
+- [x] Button and input state coverage (hover, pressed, focus ring, disabled,
+      invalid)
+- [x] Money monospaced in the documents table (`.is-numeric`, `.num`)
+- [ ] Row states beyond hover — selected, needs-review, processing, failed
+      (needs selection state in `documents-table.tsx` first)
+- [ ] 38px row density; today's rows are still 0.75rem-padded
+- [ ] Sidebar redesign — 212px, grouped nav sections, account card
+- [ ] Overview page and charts
 - [ ] Mobile screens
+
+The one deliberate exception to rule 1: `.upload-dropzone` keeps a **dashed**
+border. Dashes read as "drop something here" — an affordance, not a separator.
