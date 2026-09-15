@@ -1,0 +1,2054 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <script src="./support.js"></script>
+  </head>
+  <body>
+    <x-dc>
+      <helmet>
+        <link
+          rel="stylesheet"
+          href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap"
+        />
+        <style>
+          :root {
+            --canvas: #f0f0f3;
+            --surface: #ffffff;
+            --sunk: #f6f6f8;
+            --sunk2: #eaeaee;
+            --ink: #15151c;
+            --ink2: #55555f;
+            --ink3: #8b8b95;
+            --hair: rgba(21, 21, 28, 0.07);
+            --purple: #4a3a80;
+            --purple2: #3b2e68;
+            --purpleSoft: #edeaf7;
+            --navy: #2c4177;
+            --navySoft: #e8ecf7;
+            --cream: #efe4c8;
+            --creamInk: #77622f;
+            --creamSoft: #faf3e2;
+            --pos: #2f6b51;
+            --posSoft: #e6efea;
+            --neg: #9d4436;
+            --negSoft: #f7e9e5;
+            --e1:
+              0 1px 1px rgba(21, 21, 28, 0.04),
+              0 2px 5px -2px rgba(21, 21, 28, 0.06);
+            --e2:
+              0 1px 2px rgba(21, 21, 28, 0.05),
+              0 8px 18px -6px rgba(21, 21, 28, 0.13);
+            --e3:
+              0 2px 5px rgba(21, 21, 28, 0.06),
+              0 16px 32px -10px rgba(21, 21, 28, 0.18);
+            --e4:
+              0 4px 10px rgba(21, 21, 28, 0.08),
+              0 34px 64px -16px rgba(21, 21, 28, 0.3);
+            --lip: inset 0 1px 0 rgba(255, 255, 255, 0.85);
+            --well:
+              inset 0 1px 2px rgba(21, 21, 28, 0.07),
+              inset 0 0 0 1px rgba(21, 21, 28, 0.045);
+          }
+          * {
+            box-sizing: border-box;
+          }
+          body {
+            margin: 0;
+            background: var(--canvas);
+            color: var(--ink);
+            font-family: Archivo, "Helvetica Neue", Arial, sans-serif;
+            font-size: 13px;
+            line-height: 1.45;
+            -webkit-font-smoothing: antialiased;
+          }
+          a {
+            color: var(--navy);
+            text-decoration: none;
+          }
+          a:hover {
+            color: var(--purple);
+          }
+          .num {
+            font-family: "IBM Plex Mono", ui-monospace, Menlo, monospace;
+            font-variant-numeric: tabular-nums;
+            font-feature-settings: "tnum";
+          }
+          .lbl {
+            font-size: 10px;
+            font-weight: 600;
+            letter-spacing: 0.07em;
+            text-transform: uppercase;
+            color: var(--ink3);
+          }
+          .sec {
+            background: var(--surface);
+            border-radius: 14px;
+            box-shadow: var(--e1), var(--lip);
+            padding: 16px 18px 18px;
+          }
+          .sech {
+            font-size: 14px;
+            font-weight: 700;
+            letter-spacing: -0.01em;
+            margin-bottom: 2px;
+          }
+          .secs {
+            font-size: 11.5px;
+            color: var(--ink3);
+            margin-bottom: 13px;
+          }
+          .cap {
+            font-size: 10px;
+            color: var(--ink3);
+            margin-top: 5px;
+            text-align: center;
+          }
+          .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 7px;
+            height: 30px;
+            padding: 0 13px;
+            border-radius: 8px;
+            font-size: 12.5px;
+            font-weight: 600;
+            white-space: nowrap;
+          }
+          .p {
+            background: linear-gradient(180deg, #584697, #4a3a80);
+            color: #fff;
+            box-shadow:
+              0 1px 1px rgba(21, 21, 28, 0.12),
+              0 4px 10px -3px rgba(74, 58, 128, 0.45),
+              inset 0 1px 0 rgba(255, 255, 255, 0.24);
+          }
+          .s {
+            background: #fff;
+            color: var(--ink);
+            box-shadow: var(--e1), var(--lip);
+          }
+          .g {
+            background: transparent;
+            color: var(--ink2);
+          }
+          .inp {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            height: 30px;
+            padding: 0 10px;
+            border-radius: 8px;
+            background: #fff;
+            box-shadow: var(--well);
+            font-size: 12.5px;
+            color: var(--ink3);
+          }
+          .stat {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            height: 19px;
+            padding: 0 7px;
+            border-radius: 5px;
+            font-size: 10.5px;
+            font-weight: 600;
+          }
+          .stat i {
+            width: 5px;
+            height: 5px;
+            border-radius: 99px;
+            background: currentColor;
+            display: block;
+          }
+          .row {
+            display: grid;
+            grid-template-columns: 28px minmax(0, 1fr) 72px 88px 96px;
+            align-items: center;
+            height: 38px;
+            padding: 0 10px;
+            font-size: 12.5px;
+          }
+          .cb {
+            width: 14px;
+            height: 14px;
+            border-radius: 4px;
+            background: #fff;
+            box-shadow:
+              inset 0 0 0 1px rgba(21, 21, 28, 0.13),
+              var(--lip);
+            flex: 0 0 auto;
+          }
+          .rt {
+            text-align: right;
+          }
+        </style>
+      </helmet>
+
+      <div
+        style="
+          width: 1360px;
+          height: 1180px;
+          background: var(--canvas);
+          padding: 28px 32px;
+          display: flex;
+          flex-direction: column;
+          gap: 14px;
+        "
+      >
+        <div style="display: flex; align-items: baseline; gap: 14px">
+          <div
+            style="font-size: 23px; font-weight: 700; letter-spacing: -0.025em"
+          >
+            Controls &amp; states
+          </div>
+          <div style="font-size: 12.5px; color: var(--ink2)">
+            Every control is flat against its surface at rest and gains depth
+            the moment it matters. Focus is a purple ring, never a browser
+            outline.
+          </div>
+        </div>
+
+        <div style="flex: 1; min-height: 0; display: flex; gap: 18px">
+          <!-- ══ Column A ══ -->
+          <div
+            style="
+              flex: 1;
+              min-width: 0;
+              display: flex;
+              flex-direction: column;
+              gap: 14px;
+            "
+          >
+            <div class="sec">
+              <div class="sech">Buttons</div>
+              <div class="secs">
+                One primary per view. Secondary is a raised surface; ghost is
+                nothing at all until you point at it.
+              </div>
+
+              <div
+                style="
+                  display: grid;
+                  grid-template-columns: repeat(6, minmax(0, 1fr));
+                  gap: 10px;
+                  margin-bottom: 14px;
+                "
+              >
+                <div>
+                  <span class="btn p" style="width: 100%">Upload</span>
+                  <div class="cap">rest</div>
+                </div>
+                <div>
+                  <span
+                    class="btn p"
+                    style="
+                      width: 100%;
+                      background: linear-gradient(180deg, #65529f, #4f3e87);
+                      box-shadow:
+                        0 2px 3px rgba(21, 21, 28, 0.14),
+                        0 7px 16px -4px rgba(74, 58, 128, 0.55),
+                        inset 0 1px 0 rgba(255, 255, 255, 0.28);
+                    "
+                    >Upload</span
+                  >
+                  <div class="cap">hover</div>
+                </div>
+                <div>
+                  <span
+                    class="btn p"
+                    style="
+                      width: 100%;
+                      background: #3b2e68;
+                      box-shadow: inset 0 2px 4px rgba(21, 21, 28, 0.4);
+                      transform: translateY(1px);
+                    "
+                    >Upload</span
+                  >
+                  <div class="cap">pressed</div>
+                </div>
+                <div>
+                  <span
+                    class="btn p"
+                    style="
+                      width: 100%;
+                      box-shadow:
+                        0 0 0 2px #fff,
+                        0 0 0 4.5px rgba(74, 58, 128, 0.55),
+                        inset 0 1px 0 rgba(255, 255, 255, 0.24);
+                    "
+                    >Upload</span
+                  >
+                  <div class="cap">focus</div>
+                </div>
+                <div>
+                  <span
+                    class="btn"
+                    style="
+                      width: 100%;
+                      background: #e6e6eb;
+                      color: #a9a9b3;
+                      box-shadow: none;
+                    "
+                    >Upload</span
+                  >
+                  <div class="cap">disabled</div>
+                </div>
+                <div>
+                  <span class="btn p" style="width: 100%; opacity: 0.86">
+                    <svg
+                      width="14"
+                      height="14"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      stroke-width="2.4"
+                      stroke-linecap="round"
+                    >
+                      <path d="M12 3a9 9 0 1 0 9 9" opacity=".95" />
+                      <path d="M21 12a9 9 0 0 0-4.5-7.8" opacity=".35" />
+                    </svg>
+                    Saving</span
+                  >
+                  <div class="cap">loading</div>
+                </div>
+              </div>
+
+              <div
+                style="
+                  display: grid;
+                  grid-template-columns: repeat(6, minmax(0, 1fr));
+                  gap: 10px;
+                  margin-bottom: 14px;
+                "
+              >
+                <div>
+                  <span class="btn s" style="width: 100%">Export</span>
+                  <div class="cap">rest</div>
+                </div>
+                <div>
+                  <span
+                    class="btn s"
+                    style="width: 100%; box-shadow: var(--e2), var(--lip)"
+                    >Export</span
+                  >
+                  <div class="cap">hover</div>
+                </div>
+                <div>
+                  <span
+                    class="btn s"
+                    style="
+                      width: 100%;
+                      background: #eeeef2;
+                      box-shadow: var(--well);
+                      transform: translateY(1px);
+                    "
+                    >Export</span
+                  >
+                  <div class="cap">pressed</div>
+                </div>
+                <div>
+                  <span
+                    class="btn s"
+                    style="
+                      width: 100%;
+                      box-shadow:
+                        var(--e1),
+                        var(--lip),
+                        0 0 0 2px #fff,
+                        0 0 0 4.5px rgba(74, 58, 128, 0.5);
+                    "
+                    >Export</span
+                  >
+                  <div class="cap">focus</div>
+                </div>
+                <div>
+                  <span
+                    class="btn"
+                    style="
+                      width: 100%;
+                      background: #f2f2f5;
+                      color: #b3b3bc;
+                      box-shadow: inset 0 0 0 1px var(--hair);
+                    "
+                    >Export</span
+                  >
+                  <div class="cap">disabled</div>
+                </div>
+                <div>
+                  <span
+                    class="btn s"
+                    style="
+                      width: 100%;
+                      background: var(--purpleSoft);
+                      color: var(--purple2);
+                      box-shadow: inset 0 0 0 1px rgba(74, 58, 128, 0.2);
+                    "
+                    >Export</span
+                  >
+                  <div class="cap">selected</div>
+                </div>
+              </div>
+
+              <div style="display: flex; gap: 10px; align-items: center">
+                <span class="btn g">Cancel</span>
+                <span
+                  class="btn g"
+                  style="background: var(--sunk); box-shadow: var(--well)"
+                  >Cancel</span
+                >
+                <div
+                  style="width: 1px; height: 22px; background: var(--hair)"
+                ></div>
+                <span
+                  class="btn"
+                  style="
+                    background: #fff;
+                    color: var(--neg);
+                    box-shadow: var(--e1), var(--lip);
+                  "
+                >
+                  <svg
+                    width="13"
+                    height="13"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="1.8"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                  >
+                    <path d="M5 7h14M9 7V5h6v2M7 7l1 13h8l1-13" />
+                  </svg>
+                  Delete
+                </span>
+                <span
+                  class="btn"
+                  style="
+                    background: linear-gradient(180deg, #a95344, #9d4436);
+                    color: #fff;
+                    box-shadow:
+                      0 1px 1px rgba(21, 21, 28, 0.12),
+                      0 4px 10px -3px rgba(157, 68, 54, 0.45),
+                      inset 0 1px 0 rgba(255, 255, 255, 0.22);
+                  "
+                  >Delete 3 documents</span
+                >
+                <div style="flex: 1"></div>
+                <span
+                  style="
+                    display: inline-flex;
+                    align-items: center;
+                    justify-content: center;
+                    width: 30px;
+                    height: 30px;
+                    border-radius: 8px;
+                    background: #fff;
+                    box-shadow: var(--e1), var(--lip);
+                    color: var(--ink2);
+                  "
+                >
+                  <svg
+                    width="15"
+                    height="15"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="1.9"
+                    stroke-linecap="round"
+                  >
+                    <circle cx="12" cy="12" r="1" />
+                    <circle cx="12" cy="5" r="1" />
+                    <circle cx="12" cy="19" r="1" />
+                  </svg>
+                </span>
+              </div>
+            </div>
+
+            <div class="sec">
+              <div class="sech">Inputs</div>
+              <div class="secs">
+                Fields are wells, not boxes. Validation speaks in a sentence
+                under the field, never in a red border alone.
+              </div>
+
+              <div
+                style="
+                  display: grid;
+                  grid-template-columns: repeat(2, minmax(0, 1fr));
+                  gap: 12px 16px;
+                "
+              >
+                <div>
+                  <div class="lbl" style="margin-bottom: 5px">Supplier</div>
+                  <div class="inp">Search suppliers</div>
+                  <div class="cap" style="text-align: left; margin-top: 4px">
+                    rest — placeholder in ink 3
+                  </div>
+                </div>
+                <div>
+                  <div class="lbl" style="margin-bottom: 5px">Supplier</div>
+                  <div
+                    class="inp"
+                    style="
+                      color: var(--ink);
+                      box-shadow:
+                        var(--well),
+                        0 0 0 2px #fff,
+                        0 0 0 4.5px rgba(74, 58, 128, 0.5);
+                    "
+                  >
+                    SodaStream Ltd<span
+                      style="
+                        width: 1px;
+                        height: 15px;
+                        background: var(--purple);
+                        margin-left: -6px;
+                      "
+                    ></span>
+                  </div>
+                  <div class="cap" style="text-align: left; margin-top: 4px">
+                    focus — ring, no outline
+                  </div>
+                </div>
+                <div>
+                  <div class="lbl" style="margin-bottom: 5px">Total</div>
+                  <div class="inp" style="color: var(--ink)">
+                    <span style="color: var(--ink3)">₪</span>
+                    <span class="num" style="flex: 1; font-weight: 600"
+                      >280.00</span
+                    >
+                    <span
+                      style="
+                        display: inline-flex;
+                        align-items: center;
+                        justify-content: center;
+                        width: 16px;
+                        height: 16px;
+                        border-radius: 99px;
+                        background: var(--posSoft);
+                        color: var(--pos);
+                      "
+                    >
+                      <svg
+                        width="10"
+                        height="10"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        stroke-width="3.2"
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                      >
+                        <path d="m5 13 4.5 4.5L19 7" />
+                      </svg>
+                    </span>
+                  </div>
+                  <div class="cap" style="text-align: left; margin-top: 4px">
+                    filled &amp; validated
+                  </div>
+                </div>
+                <div>
+                  <div
+                    class="lbl"
+                    style="margin-bottom: 5px; color: var(--neg)"
+                  >
+                    Total
+                  </div>
+                  <div
+                    class="inp"
+                    style="
+                      color: var(--ink);
+                      background: #fffbfa;
+                      box-shadow:
+                        var(--well),
+                        inset 0 0 0 1.5px rgba(157, 68, 54, 0.5);
+                    "
+                  >
+                    <span style="color: var(--ink3)">₪</span>
+                    <span class="num" style="flex: 1; font-weight: 600"
+                      >28O.OO</span
+                    >
+                  </div>
+                  <div
+                    style="
+                      display: flex;
+                      align-items: center;
+                      gap: 5px;
+                      margin-top: 5px;
+                      font-size: 11px;
+                      color: var(--neg);
+                      font-weight: 500;
+                    "
+                  >
+                    <svg
+                      width="12"
+                      height="12"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      stroke-width="2.2"
+                      stroke-linecap="round"
+                    >
+                      <path d="M12 8v5M12 16.5v.01" />
+                      <circle cx="12" cy="12" r="9" />
+                    </svg>
+                    Letters found where digits belong
+                  </div>
+                </div>
+                <div>
+                  <div class="lbl" style="margin-bottom: 5px">Category</div>
+                  <div class="inp" style="color: var(--ink)">
+                    <span style="flex: 1">Office</span>
+                    <svg
+                      width="12"
+                      height="12"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="#8b8b95"
+                      stroke-width="2.4"
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                    >
+                      <path d="m6 9 6 6 6-6" />
+                    </svg>
+                  </div>
+                  <div class="cap" style="text-align: left; margin-top: 4px">
+                    select
+                  </div>
+                </div>
+                <div>
+                  <div class="lbl" style="margin-bottom: 5px; color: #b3b3bc">
+                    Project
+                  </div>
+                  <div
+                    class="inp"
+                    style="
+                      background: #f2f2f5;
+                      box-shadow: inset 0 0 0 1px var(--hair);
+                      color: #b3b3bc;
+                    "
+                  >
+                    Not assigned
+                  </div>
+                  <div class="cap" style="text-align: left; margin-top: 4px">
+                    disabled
+                  </div>
+                </div>
+              </div>
+
+              <div
+                style="
+                  display: flex;
+                  gap: 10px;
+                  margin-top: 14px;
+                  align-items: flex-end;
+                "
+              >
+                <div style="flex: 1">
+                  <div class="lbl" style="margin-bottom: 5px">Period</div>
+                  <div class="inp" style="color: var(--ink)">
+                    <svg
+                      width="13"
+                      height="13"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="#8b8b95"
+                      stroke-width="1.8"
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                    >
+                      <rect x="4" y="5" width="16" height="15" rx="2" />
+                      <path d="M4 10h16M9 3v4M15 3v4" />
+                    </svg>
+                    <span class="num" style="flex: 1">1 Jun – 30 Jun 2026</span>
+                    <svg
+                      width="12"
+                      height="12"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="#8b8b95"
+                      stroke-width="2.4"
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                    >
+                      <path d="m6 9 6 6 6-6" />
+                    </svg>
+                  </div>
+                </div>
+                <div style="flex: 1">
+                  <div class="lbl" style="margin-bottom: 5px">Search</div>
+                  <div class="inp">
+                    <svg
+                      width="13"
+                      height="13"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="#8b8b95"
+                      stroke-width="1.9"
+                      stroke-linecap="round"
+                    >
+                      <circle cx="11" cy="11" r="6.5" />
+                      <path d="m16 16 4 4" />
+                    </svg>
+                    <span style="flex: 1">Search everything</span>
+                    <span
+                      class="num"
+                      style="
+                        font-size: 10px;
+                        background: var(--sunk2);
+                        padding: 1px 4px;
+                        border-radius: 4px;
+                      "
+                      >⌘K</span
+                    >
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="sec" style="flex: 1">
+              <div class="sech">Selection &amp; filters</div>
+              <div class="secs">
+                A chip that is doing something wears the purple wash and says
+                how many.
+              </div>
+
+              <div
+                style="
+                  display: flex;
+                  align-items: center;
+                  gap: 18px;
+                  margin-bottom: 16px;
+                "
+              >
+                <span
+                  style="
+                    display: inline-flex;
+                    align-items: center;
+                    gap: 7px;
+                    font-size: 12.5px;
+                  "
+                  ><span class="cb"></span>Unchecked</span
+                >
+                <span
+                  style="
+                    display: inline-flex;
+                    align-items: center;
+                    gap: 7px;
+                    font-size: 12.5px;
+                  "
+                  ><span
+                    class="cb"
+                    style="
+                      background: var(--purple);
+                      box-shadow:
+                        inset 0 0 0 1px var(--purple2),
+                        0 1px 2px rgba(74, 58, 128, 0.4);
+                      display: flex;
+                      align-items: center;
+                      justify-content: center;
+                    "
+                    ><svg
+                      width="9"
+                      height="9"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="#fff"
+                      stroke-width="3.4"
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                    >
+                      <path d="m5 13 4.5 4.5L19 7" /></svg></span
+                  >Checked</span
+                >
+                <span
+                  style="
+                    display: inline-flex;
+                    align-items: center;
+                    gap: 7px;
+                    font-size: 12.5px;
+                  "
+                  ><span
+                    class="cb"
+                    style="
+                      background: var(--purple);
+                      box-shadow: inset 0 0 0 1px var(--purple2);
+                      display: flex;
+                      align-items: center;
+                      justify-content: center;
+                    "
+                    ><span
+                      style="
+                        width: 7px;
+                        height: 2px;
+                        border-radius: 2px;
+                        background: #fff;
+                      "
+                    ></span></span
+                  >Mixed</span
+                >
+                <span
+                  style="
+                    display: inline-flex;
+                    align-items: center;
+                    gap: 7px;
+                    font-size: 12.5px;
+                  "
+                  ><span
+                    style="
+                      width: 32px;
+                      height: 18px;
+                      border-radius: 99px;
+                      background: var(--sunk2);
+                      box-shadow: var(--well);
+                      display: flex;
+                      align-items: center;
+                      padding: 2px;
+                    "
+                    ><span
+                      style="
+                        width: 14px;
+                        height: 14px;
+                        border-radius: 99px;
+                        background: #fff;
+                        box-shadow: var(--e1);
+                      "
+                    ></span></span
+                  >Off</span
+                >
+                <span
+                  style="
+                    display: inline-flex;
+                    align-items: center;
+                    gap: 7px;
+                    font-size: 12.5px;
+                  "
+                  ><span
+                    style="
+                      width: 32px;
+                      height: 18px;
+                      border-radius: 99px;
+                      background: var(--purple);
+                      box-shadow: inset 0 1px 2px rgba(21, 21, 28, 0.2);
+                      display: flex;
+                      align-items: center;
+                      justify-content: flex-end;
+                      padding: 2px;
+                    "
+                    ><span
+                      style="
+                        width: 14px;
+                        height: 14px;
+                        border-radius: 99px;
+                        background: #fff;
+                        box-shadow: 0 1px 2px rgba(21, 21, 28, 0.3);
+                      "
+                    ></span></span
+                  >On</span
+                >
+              </div>
+
+              <div
+                style="
+                  display: flex;
+                  align-items: center;
+                  gap: 8px;
+                  flex-wrap: wrap;
+                "
+              >
+                <span
+                  style="
+                    display: inline-flex;
+                    align-items: center;
+                    gap: 6px;
+                    height: 28px;
+                    padding: 0 11px;
+                    border-radius: 999px;
+                    background: #fff;
+                    box-shadow: var(--e1), var(--lip);
+                    font-size: 12px;
+                    font-weight: 500;
+                    color: var(--ink2);
+                  "
+                  >Type
+                  <svg
+                    width="11"
+                    height="11"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2.4"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                  >
+                    <path d="m6 9 6 6 6-6" />
+                  </svg>
+                </span>
+                <span
+                  style="
+                    display: inline-flex;
+                    align-items: center;
+                    gap: 6px;
+                    height: 28px;
+                    padding: 0 11px;
+                    border-radius: 999px;
+                    background: #fff;
+                    box-shadow: var(--e2), var(--lip);
+                    font-size: 12px;
+                    font-weight: 500;
+                    color: var(--ink);
+                  "
+                  >Category
+                  <svg
+                    width="11"
+                    height="11"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2.4"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                  >
+                    <path d="m6 9 6 6 6-6" />
+                  </svg>
+                </span>
+                <span
+                  style="
+                    display: inline-flex;
+                    align-items: center;
+                    gap: 6px;
+                    height: 28px;
+                    padding: 0 11px;
+                    border-radius: 999px;
+                    background: var(--purpleSoft);
+                    color: var(--purple2);
+                    box-shadow: inset 0 0 0 1px rgba(74, 58, 128, 0.18);
+                    font-size: 12px;
+                    font-weight: 600;
+                  "
+                  >Status
+                  <span
+                    class="num"
+                    style="
+                      font-size: 10px;
+                      background: rgba(74, 58, 128, 0.16);
+                      padding: 0 5px;
+                      border-radius: 999px;
+                    "
+                    >2</span
+                  >
+                  <svg
+                    width="11"
+                    height="11"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2.4"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                  >
+                    <path d="m6 9 6 6 6-6" />
+                  </svg>
+                </span>
+                <span
+                  style="
+                    display: inline-flex;
+                    align-items: center;
+                    gap: 6px;
+                    height: 28px;
+                    padding: 0 11px;
+                    border-radius: 999px;
+                    background: transparent;
+                    box-shadow: inset 0 0 0 1px rgba(21, 21, 28, 0.1);
+                    font-size: 12px;
+                    font-weight: 500;
+                    color: var(--ink3);
+                  "
+                >
+                  <svg
+                    width="12"
+                    height="12"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2"
+                    stroke-linecap="round"
+                  >
+                    <path d="M12 5v14M5 12h14" />
+                  </svg>
+                  Add filter
+                </span>
+                <span
+                  style="
+                    font-size: 11.5px;
+                    font-weight: 600;
+                    color: var(--navy);
+                    margin-left: 4px;
+                  "
+                  >Clear all</span
+                >
+              </div>
+
+              <div
+                style="
+                  display: flex;
+                  gap: 16px;
+                  margin-top: 16px;
+                  align-items: flex-start;
+                "
+              >
+                <div
+                  style="
+                    width: 196px;
+                    padding: 5px;
+                    border-radius: 11px;
+                    background: #fff;
+                    box-shadow: var(--e3), var(--lip);
+                  "
+                >
+                  <div class="lbl" style="padding: 5px 8px 4px">Status</div>
+                  <div
+                    style="
+                      display: flex;
+                      align-items: center;
+                      gap: 8px;
+                      height: 30px;
+                      padding: 0 8px;
+                      border-radius: 7px;
+                      font-size: 12.5px;
+                    "
+                  >
+                    <span
+                      class="cb"
+                      style="
+                        background: var(--purple);
+                        box-shadow: inset 0 0 0 1px var(--purple2);
+                        display: flex;
+                        align-items: center;
+                        justify-content: center;
+                      "
+                      ><svg
+                        width="9"
+                        height="9"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="#fff"
+                        stroke-width="3.4"
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                      >
+                        <path d="m5 13 4.5 4.5L19 7" /></svg></span
+                    >Needs review<span
+                      class="num"
+                      style="
+                        margin-left: auto;
+                        font-size: 10.5px;
+                        color: var(--ink3);
+                      "
+                      >6</span
+                    >
+                  </div>
+                  <div
+                    style="
+                      display: flex;
+                      align-items: center;
+                      gap: 8px;
+                      height: 30px;
+                      padding: 0 8px;
+                      border-radius: 7px;
+                      font-size: 12.5px;
+                      background: var(--sunk);
+                    "
+                  >
+                    <span
+                      class="cb"
+                      style="
+                        background: var(--purple);
+                        box-shadow: inset 0 0 0 1px var(--purple2);
+                        display: flex;
+                        align-items: center;
+                        justify-content: center;
+                      "
+                      ><svg
+                        width="9"
+                        height="9"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="#fff"
+                        stroke-width="3.4"
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                      >
+                        <path d="m5 13 4.5 4.5L19 7" /></svg></span
+                    >Failed<span
+                      class="num"
+                      style="
+                        margin-left: auto;
+                        font-size: 10.5px;
+                        color: var(--ink3);
+                      "
+                      >2</span
+                    >
+                  </div>
+                  <div
+                    style="
+                      display: flex;
+                      align-items: center;
+                      gap: 8px;
+                      height: 30px;
+                      padding: 0 8px;
+                      border-radius: 7px;
+                      font-size: 12.5px;
+                    "
+                  >
+                    <span class="cb"></span>Ready<span
+                      class="num"
+                      style="
+                        margin-left: auto;
+                        font-size: 10.5px;
+                        color: var(--ink3);
+                      "
+                      >1,264</span
+                    >
+                  </div>
+                  <div
+                    style="
+                      display: flex;
+                      align-items: center;
+                      gap: 8px;
+                      height: 30px;
+                      padding: 0 8px;
+                      border-radius: 7px;
+                      font-size: 12.5px;
+                    "
+                  >
+                    <span class="cb"></span>Archived<span
+                      class="num"
+                      style="
+                        margin-left: auto;
+                        font-size: 10.5px;
+                        color: var(--ink3);
+                      "
+                      >12</span
+                    >
+                  </div>
+                  <div
+                    class="cap"
+                    style="text-align: left; padding: 4px 8px 2px"
+                  >
+                    menu — elevation 3
+                  </div>
+                </div>
+
+                <div>
+                  <div
+                    style="
+                      display: flex;
+                      gap: 3px;
+                      padding: 3px;
+                      border-radius: 10px;
+                      background: #e6e6eb;
+                      box-shadow: var(--well);
+                      width: fit-content;
+                    "
+                  >
+                    <span
+                      style="
+                        display: inline-flex;
+                        align-items: center;
+                        height: 24px;
+                        padding: 0 12px;
+                        border-radius: 7px;
+                        font-size: 11.5px;
+                        font-weight: 600;
+                        background: #fff;
+                        box-shadow: var(--e1), var(--lip);
+                      "
+                      >Table</span
+                    >
+                    <span
+                      style="
+                        display: inline-flex;
+                        align-items: center;
+                        height: 24px;
+                        padding: 0 12px;
+                        border-radius: 7px;
+                        font-size: 11.5px;
+                        font-weight: 500;
+                        color: var(--ink2);
+                      "
+                      >Board</span
+                    >
+                    <span
+                      style="
+                        display: inline-flex;
+                        align-items: center;
+                        height: 24px;
+                        padding: 0 12px;
+                        border-radius: 7px;
+                        font-size: 11.5px;
+                        font-weight: 500;
+                        color: var(--ink2);
+                      "
+                      >Calendar</span
+                    >
+                  </div>
+                  <div class="cap" style="text-align: left; margin-top: 5px">
+                    segmented — the track is recessed, the choice is raised
+                  </div>
+
+                  <div
+                    style="
+                      display: flex;
+                      align-items: center;
+                      gap: 14px;
+                      margin-top: 14px;
+                    "
+                  >
+                    <span
+                      style="
+                        display: inline-flex;
+                        align-items: center;
+                        gap: 7px;
+                        font-size: 12.5px;
+                        font-weight: 600;
+                        padding-bottom: 7px;
+                        box-shadow: inset 0 -2px 0 var(--purple);
+                      "
+                      >All documents</span
+                    >
+                    <span
+                      style="
+                        display: inline-flex;
+                        align-items: center;
+                        gap: 7px;
+                        font-size: 12.5px;
+                        font-weight: 500;
+                        color: var(--ink2);
+                        padding-bottom: 7px;
+                      "
+                      >Inbox
+                      <span
+                        class="num"
+                        style="
+                          font-size: 10px;
+                          font-weight: 700;
+                          color: var(--creamInk);
+                          background: var(--cream);
+                          padding: 1px 6px;
+                          border-radius: 999px;
+                        "
+                        >6</span
+                      ></span
+                    >
+                    <span
+                      style="
+                        display: inline-flex;
+                        align-items: center;
+                        gap: 7px;
+                        font-size: 12.5px;
+                        font-weight: 500;
+                        color: var(--ink2);
+                        padding-bottom: 7px;
+                      "
+                      >Archive</span
+                    >
+                  </div>
+                  <div class="cap" style="text-align: left">tabs</div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- ══ Column B ══ -->
+          <div
+            style="
+              flex: 1;
+              min-width: 0;
+              display: flex;
+              flex-direction: column;
+              gap: 14px;
+            "
+          >
+            <div class="sec">
+              <div class="sech">Status, metrics &amp; trend</div>
+              <div class="secs">
+                A status is a colour, a word, and a shape — so it survives
+                greyscale, colour blindness and a squint across the room.
+              </div>
+
+              <div
+                style="
+                  display: flex;
+                  gap: 8px;
+                  flex-wrap: wrap;
+                  margin-bottom: 14px;
+                "
+              >
+                <span
+                  class="stat"
+                  style="background: var(--posSoft); color: var(--pos)"
+                  ><i></i>Ready</span
+                >
+                <span
+                  class="stat"
+                  style="
+                    background: var(--creamSoft);
+                    color: var(--creamInk);
+                    box-shadow: inset 0 0 0 1px rgba(119, 98, 47, 0.16);
+                  "
+                  ><svg
+                    width="11"
+                    height="11"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2.2"
+                    stroke-linecap="round"
+                  >
+                    <path d="M12 8v5M12 16.5v.01" />
+                    <circle cx="12" cy="12" r="9" /></svg
+                  >Needs review</span
+                >
+                <span
+                  class="stat"
+                  style="background: var(--navySoft); color: var(--navy)"
+                  ><i></i>Processing</span
+                >
+                <span
+                  class="stat"
+                  style="background: var(--negSoft); color: var(--neg)"
+                  ><svg
+                    width="11"
+                    height="11"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2.3"
+                    stroke-linecap="round"
+                  >
+                    <path d="m7 7 10 10M17 7 7 17" /></svg
+                  >Failed</span
+                >
+                <span
+                  class="stat"
+                  style="background: var(--sunk2); color: var(--ink3)"
+                  ><i></i>Archived</span
+                >
+                <span
+                  class="stat"
+                  style="background: var(--purpleSoft); color: var(--purple2)"
+                  ><i></i>Draft</span
+                >
+                <span
+                  class="stat"
+                  style="
+                    background: #fff;
+                    color: var(--ink2);
+                    box-shadow: inset 0 0 0 1px var(--hair);
+                  "
+                  >Software</span
+                >
+                <span
+                  class="stat"
+                  style="
+                    background: #fff;
+                    color: var(--ink2);
+                    box-shadow: inset 0 0 0 1px var(--hair);
+                  "
+                  >Atlas rebuild</span
+                >
+              </div>
+
+              <div style="display: flex; gap: 12px; margin-bottom: 14px">
+                <div
+                  style="
+                    flex: 1;
+                    padding: 12px 13px;
+                    border-radius: 12px;
+                    background: #fff;
+                    box-shadow: var(--e1), var(--lip);
+                  "
+                >
+                  <div class="lbl">VAT reclaimable</div>
+                  <div
+                    class="num"
+                    style="
+                      font-size: 23px;
+                      font-weight: 600;
+                      letter-spacing: -0.02em;
+                      line-height: 1.15;
+                      margin-top: 2px;
+                    "
+                  >
+                    ₪ 5,326<span style="font-size: 16px; color: var(--ink3)"
+                      >.55</span
+                    >
+                  </div>
+                  <div
+                    style="
+                      display: flex;
+                      align-items: flex-end;
+                      justify-content: space-between;
+                      margin-top: 4px;
+                    "
+                  >
+                    <span
+                      style="
+                        display: inline-flex;
+                        align-items: center;
+                        gap: 3px;
+                        font-size: 11px;
+                        font-weight: 600;
+                        color: var(--pos);
+                      "
+                      ><svg
+                        width="11"
+                        height="11"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        stroke-width="2.6"
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                      >
+                        <path d="M6 15l6-6 6 6" /></svg
+                      >8.4%</span
+                    >
+                    <svg width="76" height="22" viewBox="0 0 76 22" fill="none">
+                      <path
+                        d="M1 17 12 14 23 18 34 9 45 12 56 6 74 3"
+                        stroke="#8d82b8"
+                        stroke-width="1.6"
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                      />
+                      <circle cx="74" cy="3" r="2.4" fill="#4a3a80" />
+                    </svg>
+                  </div>
+                </div>
+                <div
+                  style="
+                    flex: 1;
+                    padding: 12px 13px;
+                    border-radius: 12px;
+                    background: #fff;
+                    box-shadow: var(--e1), var(--lip);
+                  "
+                >
+                  <div class="lbl">Uncategorised</div>
+                  <div
+                    class="num"
+                    style="
+                      font-size: 23px;
+                      font-weight: 600;
+                      letter-spacing: -0.02em;
+                      line-height: 1.15;
+                      margin-top: 2px;
+                    "
+                  >
+                    18
+                  </div>
+                  <div
+                    style="font-size: 11px; color: var(--ink3); margin-top: 3px"
+                  >
+                    of 1,284 documents · 1.4%
+                  </div>
+                  <div
+                    style="
+                      margin-top: 7px;
+                      height: 6px;
+                      border-radius: 99px;
+                      background: var(--sunk2);
+                      box-shadow: var(--well);
+                      overflow: hidden;
+                    "
+                  >
+                    <span
+                      style="
+                        display: block;
+                        height: 6px;
+                        width: 14%;
+                        border-radius: 99px;
+                        background: linear-gradient(90deg, #6a5a9e, #4a3a80);
+                      "
+                    ></span>
+                  </div>
+                </div>
+              </div>
+
+              <div
+                style="
+                  display: flex;
+                  align-items: center;
+                  gap: 20px;
+                  font-size: 12.5px;
+                "
+              >
+                <span class="num" style="font-weight: 600; color: var(--pos)"
+                  >+ ₪ 21,240.00</span
+                >
+                <span class="num" style="font-weight: 600; color: var(--neg)"
+                  >− ₪ 6,962.00</span
+                >
+                <span class="num" style="font-weight: 600">₪ 0.00</span>
+                <span class="num" style="color: var(--ink3)">—</span>
+                <span class="num" style="color: var(--ink3); font-size: 11.5px"
+                  >exempt</span
+                >
+                <div style="flex: 1"></div>
+                <span
+                  style="
+                    display: inline-flex;
+                    align-items: center;
+                    gap: 6px;
+                    font-size: 11px;
+                    color: var(--ink3);
+                  "
+                >
+                  <span
+                    style="
+                      display: block;
+                      width: 46px;
+                      height: 8px;
+                      border-radius: 99px;
+                      background: linear-gradient(90deg, #ecebf3, #4a3a80);
+                    "
+                  ></span>
+                  sequential, one hue
+                </span>
+              </div>
+            </div>
+
+            <div class="sec">
+              <div class="sech">Table row states</div>
+              <div class="secs">
+                The grid has no lines. Rows separate by a 7% inset hairline and
+                tell you what they are by tone and height.
+              </div>
+
+              <div
+                style="
+                  border-radius: 11px;
+                  overflow: hidden;
+                  box-shadow: var(--e1), var(--lip);
+                "
+              >
+                <div
+                  class="row"
+                  style="
+                    height: 30px;
+                    background: var(--sunk);
+                    box-shadow: var(--well);
+                  "
+                >
+                  <span><span class="cb" style="display: block"></span></span>
+                  <span class="lbl">Supplier</span>
+                  <span class="lbl">Date</span>
+                  <span class="lbl rt" style="padding-right: 12px">Total</span>
+                  <span class="lbl">Status</span>
+                </div>
+                <div class="row">
+                  <span><span class="cb"></span></span>
+                  <span style="font-weight: 600">Amazon Web Services</span>
+                  <span class="num" style="color: var(--ink2)">14 Jun</span>
+                  <span
+                    class="num rt"
+                    style="font-weight: 600; padding-right: 12px"
+                    >1,284.66</span
+                  >
+                  <span
+                    ><span
+                      class="stat"
+                      style="background: var(--posSoft); color: var(--pos)"
+                      ><i></i>Ready</span
+                    ></span
+                  >
+                </div>
+                <div
+                  class="row"
+                  style="
+                    background: #fff;
+                    border-radius: 9px;
+                    box-shadow: var(--e2);
+                    position: relative;
+                    z-index: 2;
+                  "
+                >
+                  <span><span class="cb"></span></span>
+                  <span style="font-weight: 600"
+                    >SodaStream Ltd
+                    <span
+                      style="
+                        font-size: 10px;
+                        color: var(--ink3);
+                        font-weight: 500;
+                      "
+                      >— hover lifts the row</span
+                    ></span
+                  >
+                  <span class="num" style="color: var(--ink2)">13 Jun</span>
+                  <span
+                    class="num rt"
+                    style="font-weight: 600; padding-right: 12px"
+                    >280.00</span
+                  >
+                  <span
+                    ><span
+                      class="stat"
+                      style="background: var(--posSoft); color: var(--pos)"
+                      ><i></i>Ready</span
+                    ></span
+                  >
+                </div>
+                <div
+                  class="row"
+                  style="
+                    background: rgba(74, 58, 128, 0.055);
+                    box-shadow:
+                      inset 2px 0 0 var(--purple),
+                      inset 0 1px 0 var(--hair);
+                  "
+                >
+                  <span
+                    ><span
+                      class="cb"
+                      style="
+                        background: var(--purple);
+                        box-shadow: inset 0 0 0 1px var(--purple2);
+                        display: flex;
+                        align-items: center;
+                        justify-content: center;
+                      "
+                      ><svg
+                        width="9"
+                        height="9"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="#fff"
+                        stroke-width="3.4"
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                      >
+                        <path d="m5 13 4.5 4.5L19 7" /></svg></span
+                  ></span>
+                  <span style="font-weight: 600"
+                    >WeWork Herzliya
+                    <span
+                      style="
+                        font-size: 10px;
+                        color: var(--ink3);
+                        font-weight: 500;
+                      "
+                      >— selected</span
+                    ></span
+                  >
+                  <span class="num" style="color: var(--ink2)">11 Jun</span>
+                  <span
+                    class="num rt"
+                    style="font-weight: 600; padding-right: 12px"
+                    >6,962.00</span
+                  >
+                  <span
+                    ><span
+                      class="stat"
+                      style="background: var(--posSoft); color: var(--pos)"
+                      ><i></i>Ready</span
+                    ></span
+                  >
+                </div>
+                <div
+                  class="row"
+                  style="
+                    background: linear-gradient(
+                      90deg,
+                      rgba(239, 228, 200, 0.5),
+                      rgba(239, 228, 200, 0.2)
+                    );
+                    box-shadow:
+                      inset 2px 0 0 var(--cream),
+                      inset 0 1px 0 var(--hair);
+                  "
+                >
+                  <span><span class="cb"></span></span>
+                  <span
+                    style="
+                      font-weight: 600;
+                      color: var(--ink2);
+                      font-style: italic;
+                    "
+                    >Supplier not detected</span
+                  >
+                  <span class="num" style="color: var(--ink2)">13 Jun</span>
+                  <span
+                    class="num rt"
+                    style="color: var(--ink3); padding-right: 12px"
+                    >—</span
+                  >
+                  <span
+                    ><span
+                      class="stat"
+                      style="
+                        background: var(--creamSoft);
+                        color: var(--creamInk);
+                        box-shadow: inset 0 0 0 1px rgba(119, 98, 47, 0.16);
+                      "
+                      ><svg
+                        width="11"
+                        height="11"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        stroke-width="2.2"
+                        stroke-linecap="round"
+                      >
+                        <path d="M12 8v5M12 16.5v.01" />
+                        <circle cx="12" cy="12" r="9" /></svg
+                      >Review</span
+                    ></span
+                  >
+                </div>
+                <div
+                  class="row"
+                  style="
+                    background: rgba(157, 68, 54, 0.045);
+                    box-shadow:
+                      inset 2px 0 0 var(--neg),
+                      inset 0 1px 0 var(--hair);
+                  "
+                >
+                  <span><span class="cb"></span></span>
+                  <span style="font-weight: 600">Ironi Auto Garage</span>
+                  <span class="num" style="color: var(--ink2)">8 Jun</span>
+                  <span
+                    class="num rt"
+                    style="color: var(--ink3); padding-right: 12px"
+                    >—</span
+                  >
+                  <span
+                    ><span
+                      class="stat"
+                      style="background: var(--negSoft); color: var(--neg)"
+                      ><svg
+                        width="11"
+                        height="11"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        stroke-width="2.3"
+                        stroke-linecap="round"
+                      >
+                        <path d="m7 7 10 10M17 7 7 17" /></svg
+                      >Failed</span
+                    ></span
+                  >
+                </div>
+                <div class="row">
+                  <span><span class="cb" style="opacity: 0.4"></span></span>
+                  <span
+                    ><span
+                      style="
+                        display: block;
+                        width: 140px;
+                        height: 9px;
+                        border-radius: 99px;
+                        background: linear-gradient(
+                          90deg,
+                          #eeeef2,
+                          #e3e3e9,
+                          #eeeef2
+                        );
+                      "
+                    ></span
+                  ></span>
+                  <span
+                    ><span
+                      style="
+                        display: block;
+                        width: 44px;
+                        height: 9px;
+                        border-radius: 99px;
+                        background: #eeeef2;
+                      "
+                    ></span
+                  ></span>
+                  <span
+                    style="
+                      display: flex;
+                      justify-content: flex-end;
+                      padding-right: 12px;
+                    "
+                    ><span
+                      style="
+                        display: block;
+                        width: 56px;
+                        height: 9px;
+                        border-radius: 99px;
+                        background: #eeeef2;
+                      "
+                    ></span
+                  ></span>
+                  <span
+                    ><span
+                      style="
+                        display: block;
+                        width: 60px;
+                        height: 9px;
+                        border-radius: 99px;
+                        background: #eeeef2;
+                      "
+                    ></span
+                  ></span>
+                </div>
+              </div>
+            </div>
+
+            <div class="sec" style="flex: 1">
+              <div class="sech">Feedback</div>
+              <div class="secs">
+                Dialogs dim the page; toasts never do. Empty states say what to
+                do next, not that there is nothing here.
+              </div>
+
+              <div style="display: flex; gap: 14px; align-items: flex-start">
+                <div style="flex: 1; min-width: 0">
+                  <div
+                    style="
+                      position: relative;
+                      border-radius: 12px;
+                      overflow: hidden;
+                      background: var(--canvas);
+                      padding: 16px 14px;
+                      box-shadow: var(--well);
+                    "
+                  >
+                    <div
+                      style="
+                        position: absolute;
+                        inset: 0;
+                        background: rgba(21, 21, 28, 0.34);
+                      "
+                    ></div>
+                    <div
+                      style="
+                        position: relative;
+                        border-radius: 12px;
+                        background: #fff;
+                        box-shadow: var(--e4), var(--lip);
+                        padding: 14px 15px 13px;
+                      "
+                    >
+                      <div
+                        style="
+                          font-size: 14px;
+                          font-weight: 700;
+                          letter-spacing: -0.01em;
+                        "
+                      >
+                        Delete 3 documents?
+                      </div>
+                      <div
+                        style="
+                          font-size: 12px;
+                          color: var(--ink2);
+                          margin-top: 3px;
+                          line-height: 1.5;
+                        "
+                      >
+                        The originals stay in your backup for 30 days. Extracted
+                        bookkeeping data is removed now.
+                      </div>
+                      <div
+                        style="
+                          display: flex;
+                          justify-content: flex-end;
+                          gap: 8px;
+                          margin-top: 13px;
+                        "
+                      >
+                        <span class="btn s">Cancel</span>
+                        <span
+                          class="btn"
+                          style="
+                            background: linear-gradient(
+                              180deg,
+                              #a95344,
+                              #9d4436
+                            );
+                            color: #fff;
+                            box-shadow:
+                              0 1px 1px rgba(21, 21, 28, 0.12),
+                              0 4px 10px -3px rgba(157, 68, 54, 0.45),
+                              inset 0 1px 0 rgba(255, 255, 255, 0.22);
+                          "
+                          >Delete</span
+                        >
+                      </div>
+                    </div>
+                  </div>
+                  <div class="cap" style="text-align: left; margin-top: 5px">
+                    dialog — elevation 4 over a dimmed page
+                  </div>
+                </div>
+
+                <div
+                  style="
+                    flex: 1;
+                    min-width: 0;
+                    display: flex;
+                    flex-direction: column;
+                    gap: 12px;
+                  "
+                >
+                  <div>
+                    <div
+                      style="
+                        display: flex;
+                        align-items: center;
+                        gap: 10px;
+                        padding: 9px 11px;
+                        border-radius: 11px;
+                        background: #1b1b24;
+                        color: #fff;
+                        box-shadow:
+                          var(--e3),
+                          inset 0 1px 0 rgba(255, 255, 255, 0.1);
+                      "
+                    >
+                      <span
+                        style="
+                          display: inline-flex;
+                          align-items: center;
+                          justify-content: center;
+                          width: 20px;
+                          height: 20px;
+                          border-radius: 99px;
+                          background: rgba(255, 255, 255, 0.14);
+                          flex: 0 0 auto;
+                        "
+                      >
+                        <svg
+                          width="12"
+                          height="12"
+                          viewBox="0 0 24 24"
+                          fill="none"
+                          stroke="#9fd0b8"
+                          stroke-width="3"
+                          stroke-linecap="round"
+                          stroke-linejoin="round"
+                        >
+                          <path d="m5 13 4.5 4.5L19 7" />
+                        </svg>
+                      </span>
+                      <span style="flex: 1; font-size: 12.5px; font-weight: 500"
+                        >3 documents categorised as Software</span
+                      >
+                      <span
+                        style="
+                          font-size: 12px;
+                          font-weight: 600;
+                          color: #b9aef0;
+                        "
+                        >Undo</span
+                      >
+                    </div>
+                    <div class="cap" style="text-align: left; margin-top: 5px">
+                      toast
+                    </div>
+                  </div>
+
+                  <div>
+                    <div
+                      style="
+                        display: inline-flex;
+                        align-items: center;
+                        gap: 7px;
+                        padding: 6px 10px;
+                        border-radius: 8px;
+                        background: #1b1b24;
+                        color: #fff;
+                        font-size: 11.5px;
+                        box-shadow: var(--e3);
+                      "
+                    >
+                      <span class="num" style="color: #b9aef0; font-weight: 600"
+                        >18%</span
+                      >
+                      VAT · ₪ 42.71 of ₪ 280.00
+                    </div>
+                    <div class="cap" style="text-align: left; margin-top: 5px">
+                      tooltip
+                    </div>
+                  </div>
+
+                  <div
+                    style="
+                      flex: 1;
+                      display: flex;
+                      flex-direction: column;
+                      align-items: center;
+                      justify-content: center;
+                      text-align: center;
+                      gap: 3px;
+                      padding: 16px 14px;
+                      border-radius: 12px;
+                      background: var(--sunk);
+                      box-shadow: var(--well);
+                    "
+                  >
+                    <span
+                      style="
+                        display: inline-flex;
+                        align-items: center;
+                        justify-content: center;
+                        width: 38px;
+                        height: 38px;
+                        border-radius: 12px;
+                        background: #fff;
+                        box-shadow: var(--e1), var(--lip);
+                        color: var(--ink3);
+                        margin-bottom: 4px;
+                      "
+                    >
+                      <svg
+                        width="19"
+                        height="19"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        stroke-width="1.7"
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                      >
+                        <path d="M4 5h16v14H4z" />
+                        <path d="M4 13h4l2 3h4l2-3h4" />
+                      </svg>
+                    </span>
+                    <span style="font-size: 13px; font-weight: 600"
+                      >Inbox is clear</span
+                    >
+                    <span
+                      style="
+                        font-size: 11.5px;
+                        color: var(--ink3);
+                        max-width: 30ch;
+                        line-height: 1.5;
+                      "
+                      >Everything uploaded this month has been read and
+                      checked.</span
+                    >
+                    <span class="btn s" style="margin-top: 7px"
+                      >Upload documents</span
+                    >
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </x-dc>
+  </body>
+</html>

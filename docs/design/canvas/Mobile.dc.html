@@ -1,0 +1,965 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <script src="./support.js"></script>
+  </head>
+  <body>
+    <x-dc>
+      <helmet>
+        <link
+          rel="stylesheet"
+          href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap"
+        />
+        <style>
+          :root {
+            --canvas: #f0f0f3;
+            --surface: #ffffff;
+            --sunk: #f6f6f8;
+            --sunk2: #eaeaee;
+            --ink: #15151c;
+            --ink2: #55555f;
+            --ink3: #8b8b95;
+            --hair: rgba(21, 21, 28, 0.07);
+            --purple: #4a3a80;
+            --purple2: #3b2e68;
+            --purpleSoft: #edeaf7;
+            --navy: #2c4177;
+            --navySoft: #e8ecf7;
+            --cream: #efe4c8;
+            --creamInk: #77622f;
+            --creamSoft: #faf3e2;
+            --pos: #2f6b51;
+            --posSoft: #e6efea;
+            --neg: #9d4436;
+            --negSoft: #f7e9e5;
+            --e1:
+              0 1px 1px rgba(21, 21, 28, 0.04),
+              0 2px 5px -2px rgba(21, 21, 28, 0.06);
+            --e2:
+              0 1px 2px rgba(21, 21, 28, 0.05),
+              0 8px 18px -6px rgba(21, 21, 28, 0.13);
+            --e3:
+              0 2px 5px rgba(21, 21, 28, 0.06),
+              0 16px 32px -10px rgba(21, 21, 28, 0.18);
+            --lip: inset 0 1px 0 rgba(255, 255, 255, 0.85);
+            --well:
+              inset 0 1px 2px rgba(21, 21, 28, 0.07),
+              inset 0 0 0 1px rgba(21, 21, 28, 0.045);
+          }
+          * {
+            box-sizing: border-box;
+          }
+          body {
+            margin: 0;
+            background: var(--canvas);
+            color: var(--ink);
+            font-family: Archivo, "Helvetica Neue", Arial, sans-serif;
+            font-size: 14px;
+            line-height: 1.45;
+            -webkit-font-smoothing: antialiased;
+          }
+          a {
+            color: var(--navy);
+            text-decoration: none;
+          }
+          a:hover {
+            color: var(--purple);
+          }
+          .num {
+            font-family: "IBM Plex Mono", ui-monospace, Menlo, monospace;
+            font-variant-numeric: tabular-nums;
+            font-feature-settings: "tnum";
+          }
+          .lbl {
+            font-size: 10.5px;
+            font-weight: 600;
+            letter-spacing: 0.07em;
+            text-transform: uppercase;
+            color: var(--ink3);
+          }
+          .card {
+            background: var(--surface);
+            border-radius: 14px;
+            box-shadow: var(--e1), var(--lip);
+          }
+          .tile {
+            width: 38px;
+            height: 38px;
+            border-radius: 11px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: var(--sunk);
+            box-shadow: var(--well);
+            color: var(--ink3);
+            flex: 0 0 auto;
+          }
+          .tab {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 3px;
+            height: 52px;
+            color: var(--ink3);
+            font-size: 10px;
+            font-weight: 600;
+          }
+          .tab.on {
+            color: var(--purple);
+          }
+        </style>
+      </helmet>
+
+      <div
+        style="
+          width: 390px;
+          height: 844px;
+          background: var(--canvas);
+          display: flex;
+          flex-direction: column;
+          overflow: hidden;
+          position: relative;
+        "
+      >
+        <!-- space reserved for the device status bar: intentionally empty -->
+        <div style="height: 50px; flex: 0 0 50px"></div>
+
+        <div
+          style="
+            flex: 1;
+            min-height: 0;
+            padding: 0 16px;
+            display: flex;
+            flex-direction: column;
+            gap: 14px;
+          "
+        >
+          <!-- Greeting -->
+          <div style="display: flex; align-items: center; gap: 12px">
+            <div style="flex: 1; min-width: 0">
+              <div
+                style="
+                  font-size: 21px;
+                  font-weight: 700;
+                  letter-spacing: -0.02em;
+                  line-height: 1.2;
+                "
+              >
+                Good morning, Asaf
+              </div>
+              <div
+                style="font-size: 12.5px; color: var(--ink3); margin-top: 1px"
+              >
+                Monday, 15 June · 6 things waiting
+              </div>
+            </div>
+            <div
+              style="
+                width: 44px;
+                height: 44px;
+                border-radius: 14px;
+                background: linear-gradient(160deg, #3a4b7c, #2c4177);
+                color: #fff;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                font-size: 13px;
+                font-weight: 700;
+                box-shadow:
+                  var(--e2),
+                  inset 0 1px 0 rgba(255, 255, 255, 0.22);
+              "
+            >
+              AM
+            </div>
+          </div>
+
+          <!-- Hero KPI (swipeable) -->
+          <div
+            class="card"
+            style="padding: 15px 16px 14px; box-shadow: var(--e2), var(--lip)"
+          >
+            <div
+              style="
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+              "
+            >
+              <span class="lbl">Cash position</span>
+              <span
+                style="
+                  display: inline-flex;
+                  align-items: center;
+                  gap: 5px;
+                  height: 26px;
+                  padding: 0 10px;
+                  border-radius: 999px;
+                  background: var(--sunk);
+                  box-shadow: var(--well);
+                  font-size: 11.5px;
+                  font-weight: 600;
+                  color: var(--ink2);
+                "
+                >Jun 2026
+                <svg
+                  width="10"
+                  height="10"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2.6"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                >
+                  <path d="m6 9 6 6 6-6" />
+                </svg>
+              </span>
+            </div>
+            <div
+              class="num"
+              style="
+                font-size: 33px;
+                font-weight: 600;
+                letter-spacing: -0.025em;
+                line-height: 1.15;
+                margin-top: 5px;
+              "
+            >
+              ₪ 284,120<span style="font-size: 21px; color: var(--ink3)"
+                >.75</span
+              >
+            </div>
+            <div
+              style="
+                display: flex;
+                align-items: flex-end;
+                justify-content: space-between;
+                margin-top: 3px;
+              "
+            >
+              <span
+                style="
+                  display: inline-flex;
+                  align-items: center;
+                  gap: 4px;
+                  font-size: 12px;
+                  font-weight: 600;
+                  color: var(--pos);
+                "
+              >
+                <svg
+                  width="12"
+                  height="12"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2.6"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                >
+                  <path d="M6 15l6-6 6 6" />
+                </svg>
+                4.2%
+                <span style="color: var(--ink3); font-weight: 500">vs May</span>
+              </span>
+              <svg width="112" height="34" viewBox="0 0 112 34" fill="none">
+                <path
+                  d="M2 27 17 23 32 28 47 16 62 19 77 10 92 13 108 4"
+                  stroke="#8d82b8"
+                  stroke-width="2"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                />
+                <circle cx="108" cy="4" r="3.2" fill="#4a3a80" />
+              </svg>
+            </div>
+            <div style="display: flex; gap: 10px; margin-top: 13px">
+              <div
+                style="
+                  flex: 1;
+                  padding: 9px 11px;
+                  border-radius: 10px;
+                  background: var(--sunk);
+                  box-shadow: var(--well);
+                "
+              >
+                <div
+                  style="
+                    font-size: 10.5px;
+                    color: var(--ink3);
+                    font-weight: 600;
+                  "
+                >
+                  Money in
+                </div>
+                <div
+                  class="num"
+                  style="font-size: 14.5px; font-weight: 600; margin-top: 1px"
+                >
+                  ₪ 70,780
+                </div>
+              </div>
+              <div
+                style="
+                  flex: 1;
+                  padding: 9px 11px;
+                  border-radius: 10px;
+                  background: var(--sunk);
+                  box-shadow: var(--well);
+                "
+              >
+                <div
+                  style="
+                    font-size: 10.5px;
+                    color: var(--ink3);
+                    font-weight: 600;
+                  "
+                >
+                  Money out
+                </div>
+                <div
+                  class="num"
+                  style="font-size: 14.5px; font-weight: 600; margin-top: 1px"
+                >
+                  ₪ 41,880
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div
+            style="
+              display: flex;
+              justify-content: center;
+              gap: 5px;
+              margin-top: -6px;
+            "
+          >
+            <span
+              style="
+                width: 16px;
+                height: 5px;
+                border-radius: 99px;
+                background: var(--purple);
+              "
+            ></span>
+            <span
+              style="
+                width: 5px;
+                height: 5px;
+                border-radius: 99px;
+                background: #c6c6ce;
+              "
+            ></span>
+            <span
+              style="
+                width: 5px;
+                height: 5px;
+                border-radius: 99px;
+                background: #c6c6ce;
+              "
+            ></span>
+          </div>
+
+          <!-- Needs you -->
+          <div>
+            <div class="lbl" style="margin-bottom: 8px">Needs you</div>
+
+            <div
+              class="card"
+              style="
+                display: flex;
+                align-items: center;
+                gap: 12px;
+                padding: 12px 13px;
+                background: linear-gradient(180deg, #fdf9ef, #faf3e2);
+                box-shadow: var(--e2), var(--lip);
+              "
+            >
+              <span
+                class="tile"
+                style="
+                  background: #fff;
+                  color: var(--creamInk);
+                  box-shadow: var(--e1), var(--lip);
+                "
+              >
+                <svg
+                  width="19"
+                  height="19"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="1.9"
+                  stroke-linecap="round"
+                >
+                  <path d="M12 8v5M12 16.5v.01" />
+                  <circle cx="12" cy="12" r="9" />
+                </svg>
+              </span>
+              <span style="flex: 1; min-width: 0">
+                <span
+                  style="
+                    display: block;
+                    font-size: 14.5px;
+                    font-weight: 700;
+                    letter-spacing: -0.01em;
+                  "
+                  >6 documents to review</span
+                >
+                <span
+                  style="
+                    display: block;
+                    font-size: 12px;
+                    color: var(--creamInk);
+                    margin-top: -1px;
+                  "
+                  >About 3 minutes of work</span
+                >
+              </span>
+              <span
+                style="
+                  display: inline-flex;
+                  align-items: center;
+                  height: 44px;
+                  padding: 0 16px;
+                  border-radius: 12px;
+                  background: linear-gradient(180deg, #584697, #4a3a80);
+                  color: #fff;
+                  font-size: 13.5px;
+                  font-weight: 600;
+                  box-shadow:
+                    0 1px 1px rgba(21, 21, 28, 0.12),
+                    0 5px 12px -3px rgba(74, 58, 128, 0.5),
+                    inset 0 1px 0 rgba(255, 255, 255, 0.24);
+                "
+                >Review</span
+              >
+            </div>
+
+            <div style="display: flex; gap: 9px; margin-top: 9px">
+              <span
+                style="
+                  flex: 1;
+                  display: inline-flex;
+                  align-items: center;
+                  gap: 8px;
+                  height: 44px;
+                  padding: 0 12px;
+                  border-radius: 12px;
+                  background: #fff;
+                  box-shadow: var(--e1), var(--lip);
+                "
+              >
+                <span
+                  style="
+                    width: 8px;
+                    height: 8px;
+                    border-radius: 99px;
+                    background: var(--neg);
+                  "
+                ></span>
+                <span
+                  style="
+                    flex: 1;
+                    font-size: 12.5px;
+                    font-weight: 600;
+                    color: var(--ink2);
+                  "
+                  >2 failed</span
+                >
+                <svg
+                  width="14"
+                  height="14"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="#8b8b95"
+                  stroke-width="2"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                >
+                  <path d="m10 6 6 6-6 6" />
+                </svg>
+              </span>
+              <span
+                style="
+                  flex: 1;
+                  display: inline-flex;
+                  align-items: center;
+                  gap: 8px;
+                  height: 44px;
+                  padding: 0 12px;
+                  border-radius: 12px;
+                  background: #fff;
+                  box-shadow: var(--e1), var(--lip);
+                "
+              >
+                <span
+                  style="
+                    width: 8px;
+                    height: 8px;
+                    border-radius: 99px;
+                    background: var(--navy);
+                  "
+                ></span>
+                <span
+                  style="
+                    flex: 1;
+                    font-size: 12.5px;
+                    font-weight: 600;
+                    color: var(--ink2);
+                  "
+                  >1 duplicate</span
+                >
+                <svg
+                  width="14"
+                  height="14"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="#8b8b95"
+                  stroke-width="2"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                >
+                  <path d="m10 6 6 6-6 6" />
+                </svg>
+              </span>
+            </div>
+          </div>
+
+          <!-- Recent -->
+          <div style="flex: 1; min-height: 0">
+            <div
+              style="
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+                margin-bottom: 8px;
+              "
+            >
+              <span class="lbl">Recent documents</span>
+              <span
+                style="font-size: 12px; font-weight: 600; color: var(--navy)"
+                >See all</span
+              >
+            </div>
+
+            <div class="card" style="overflow: hidden">
+              <div
+                style="
+                  display: flex;
+                  align-items: center;
+                  gap: 11px;
+                  padding: 11px 13px;
+                  min-height: 62px;
+                "
+              >
+                <span class="tile"
+                  ><svg
+                    width="17"
+                    height="17"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="1.7"
+                    stroke-linejoin="round"
+                  >
+                    <path d="M7 3h7l4 4v14H7z" />
+                    <path d="M14 3v5h4" /></svg
+                ></span>
+                <span style="flex: 1; min-width: 0">
+                  <span
+                    style="
+                      display: block;
+                      font-size: 14px;
+                      font-weight: 600;
+                      overflow: hidden;
+                      text-overflow: ellipsis;
+                      white-space: nowrap;
+                    "
+                    >Amazon Web Services</span
+                  >
+                  <span
+                    style="
+                      display: block;
+                      font-size: 11.5px;
+                      color: var(--ink3);
+                      margin-top: -1px;
+                    "
+                    >14 Jun · Software</span
+                  >
+                </span>
+                <span style="text-align: right">
+                  <span
+                    class="num"
+                    style="display: block; font-size: 14px; font-weight: 600"
+                    >1,284.66</span
+                  >
+                  <span
+                    style="
+                      display: inline-flex;
+                      align-items: center;
+                      gap: 4px;
+                      font-size: 10.5px;
+                      font-weight: 600;
+                      color: var(--pos);
+                      margin-top: -1px;
+                    "
+                    ><span
+                      style="
+                        width: 5px;
+                        height: 5px;
+                        border-radius: 99px;
+                        background: currentColor;
+                      "
+                    ></span
+                    >Ready</span
+                  >
+                </span>
+              </div>
+
+              <div
+                style="
+                  display: flex;
+                  align-items: center;
+                  gap: 11px;
+                  padding: 11px 13px;
+                  min-height: 62px;
+                  box-shadow: inset 0 1px 0 var(--hair);
+                  background: linear-gradient(
+                    90deg,
+                    rgba(239, 228, 200, 0.42),
+                    rgba(239, 228, 200, 0.14)
+                  );
+                "
+              >
+                <span class="tile" style="color: var(--creamInk)"
+                  ><svg
+                    width="17"
+                    height="17"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="1.7"
+                    stroke-linejoin="round"
+                  >
+                    <path d="M7 3h7l4 4v14H7z" />
+                    <path d="M14 3v5h4" /></svg
+                ></span>
+                <span style="flex: 1; min-width: 0">
+                  <span
+                    style="
+                      display: block;
+                      font-size: 14px;
+                      font-weight: 600;
+                      color: var(--ink2);
+                      font-style: italic;
+                    "
+                    >Supplier not detected</span
+                  >
+                  <span
+                    style="
+                      display: block;
+                      font-size: 11.5px;
+                      color: var(--ink3);
+                      margin-top: -1px;
+                    "
+                    >13 Jun · scan_0093.pdf</span
+                  >
+                </span>
+                <span style="text-align: right">
+                  <span
+                    class="num"
+                    style="
+                      display: block;
+                      font-size: 14px;
+                      font-weight: 600;
+                      color: var(--ink3);
+                    "
+                    >—</span
+                  >
+                  <span
+                    style="
+                      display: inline-flex;
+                      align-items: center;
+                      gap: 4px;
+                      font-size: 10.5px;
+                      font-weight: 600;
+                      color: var(--creamInk);
+                      margin-top: -1px;
+                    "
+                    ><span
+                      style="
+                        width: 5px;
+                        height: 5px;
+                        border-radius: 99px;
+                        background: currentColor;
+                      "
+                    ></span
+                    >Review</span
+                  >
+                </span>
+              </div>
+
+              <div
+                style="
+                  display: flex;
+                  align-items: center;
+                  gap: 11px;
+                  padding: 11px 13px;
+                  min-height: 62px;
+                  box-shadow: inset 0 1px 0 var(--hair);
+                "
+              >
+                <span class="tile"
+                  ><svg
+                    width="17"
+                    height="17"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="1.7"
+                    stroke-linejoin="round"
+                  >
+                    <path d="M4 6h16v12H4z" />
+                    <circle cx="9" cy="10.5" r="1.6" />
+                    <path d="m5 17 5-4.5 4 3 3-2.5 3 3" /></svg
+                ></span>
+                <span style="flex: 1; min-width: 0">
+                  <span
+                    style="display: block; font-size: 14px; font-weight: 600"
+                    >SodaStream Ltd</span
+                  >
+                  <span
+                    style="
+                      display: block;
+                      font-size: 11.5px;
+                      color: var(--ink3);
+                      margin-top: -1px;
+                    "
+                    >13 Jun · Office</span
+                  >
+                </span>
+                <span style="text-align: right">
+                  <span
+                    class="num"
+                    style="display: block; font-size: 14px; font-weight: 600"
+                    >280.00</span
+                  >
+                  <span
+                    style="
+                      display: inline-flex;
+                      align-items: center;
+                      gap: 4px;
+                      font-size: 10.5px;
+                      font-weight: 600;
+                      color: var(--pos);
+                      margin-top: -1px;
+                    "
+                    ><span
+                      style="
+                        width: 5px;
+                        height: 5px;
+                        border-radius: 99px;
+                        background: currentColor;
+                      "
+                    ></span
+                    >Ready</span
+                  >
+                </span>
+              </div>
+
+              <div
+                style="
+                  display: flex;
+                  align-items: center;
+                  gap: 11px;
+                  padding: 11px 13px;
+                  min-height: 62px;
+                  box-shadow: inset 0 1px 0 var(--hair);
+                "
+              >
+                <span class="tile"
+                  ><svg
+                    width="17"
+                    height="17"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="1.7"
+                    stroke-linejoin="round"
+                  >
+                    <path d="M7 3h7l4 4v14H7z" />
+                    <path d="M14 3v5h4" /></svg
+                ></span>
+                <span style="flex: 1; min-width: 0">
+                  <span
+                    style="display: block; font-size: 14px; font-weight: 600"
+                    >WeWork Herzliya</span
+                  >
+                  <span
+                    style="
+                      display: block;
+                      font-size: 11.5px;
+                      color: var(--ink3);
+                      margin-top: -1px;
+                    "
+                    >11 Jun · Rent</span
+                  >
+                </span>
+                <span style="text-align: right">
+                  <span
+                    class="num"
+                    style="display: block; font-size: 14px; font-weight: 600"
+                    >6,962.00</span
+                  >
+                  <span
+                    style="
+                      display: inline-flex;
+                      align-items: center;
+                      gap: 4px;
+                      font-size: 10.5px;
+                      font-weight: 600;
+                      color: var(--pos);
+                      margin-top: -1px;
+                    "
+                    ><span
+                      style="
+                        width: 5px;
+                        height: 5px;
+                        border-radius: 99px;
+                        background: currentColor;
+                      "
+                    ></span
+                    >Ready</span
+                  >
+                </span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Bottom navigation -->
+        <div
+          style="
+            flex: 0 0 auto;
+            position: relative;
+            padding: 0 6px 22px;
+            background: rgba(255, 255, 255, 0.94);
+            box-shadow:
+              0 -1px 0 var(--hair),
+              0 -8px 24px -12px rgba(21, 21, 28, 0.18);
+          "
+        >
+          <div style="display: flex; align-items: flex-end">
+            <span class="tab on">
+              <svg
+                width="21"
+                height="21"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="1.9"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              >
+                <path d="M4 11 12 4l8 7v9H4z" />
+                <path d="M9.5 20v-5h5v5" />
+              </svg>
+              Home
+            </span>
+            <span class="tab">
+              <svg
+                width="21"
+                height="21"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="1.8"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              >
+                <path d="M7 3h7l4 4v14H7a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2z" />
+                <path d="M14 3v5h5M9 13h6M9 17h4" />
+              </svg>
+              Documents
+            </span>
+            <span
+              style="flex: 0 0 78px; display: flex; justify-content: center"
+            >
+              <span
+                style="
+                  width: 56px;
+                  height: 56px;
+                  margin-top: -22px;
+                  border-radius: 19px;
+                  background: linear-gradient(170deg, #5b4a9c, #3b2e68);
+                  display: flex;
+                  align-items: center;
+                  justify-content: center;
+                  box-shadow:
+                    0 2px 4px rgba(21, 21, 28, 0.14),
+                    0 12px 24px -8px rgba(59, 46, 104, 0.65),
+                    inset 0 1px 0 rgba(255, 255, 255, 0.26);
+                "
+              >
+                <svg
+                  width="25"
+                  height="25"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="#fff"
+                  stroke-width="1.9"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                >
+                  <path
+                    d="M4 8V6a2 2 0 0 1 2-2h2M16 4h2a2 2 0 0 1 2 2v2M20 16v2a2 2 0 0 1-2 2h-2M8 20H6a2 2 0 0 1-2-2v-2"
+                  />
+                  <path d="M12 9v6M9 12h6" />
+                </svg>
+              </span>
+            </span>
+            <span class="tab">
+              <svg
+                width="21"
+                height="21"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="1.8"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              >
+                <path d="M3 7h18v11H3z" />
+                <path d="M3 11h18" />
+                <circle cx="17" cy="14.5" r="1.4" />
+              </svg>
+              Money
+            </span>
+            <span class="tab">
+              <svg
+                width="21"
+                height="21"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="1.9"
+                stroke-linecap="round"
+              >
+                <circle cx="5" cy="12" r="1.3" />
+                <circle cx="12" cy="12" r="1.3" />
+                <circle cx="19" cy="12" r="1.3" />
+              </svg>
+              More
+            </span>
+          </div>
+        </div>
+      </div>
+    </x-dc>
+  </body>
+</html>

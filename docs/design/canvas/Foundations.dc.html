@@ -1,0 +1,714 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <script src="./support.js"></script>
+  </head>
+  <body>
+    <x-dc>
+      <helmet>
+        <link
+          rel="stylesheet"
+          href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap"
+        />
+        <style>
+          :root {
+            --canvas: #f0f0f3;
+            --surface: #ffffff;
+            --sunk: #f6f6f8;
+            --sunk2: #eaeaee;
+            --ink: #15151c;
+            --ink2: #55555f;
+            --ink3: #8b8b95;
+            --hair: rgba(21, 21, 28, 0.07);
+            --purple: #4a3a80;
+            --purple2: #3b2e68;
+            --purpleSoft: #edeaf7;
+            --navy: #2c4177;
+            --navySoft: #e8ecf7;
+            --cream: #efe4c8;
+            --creamInk: #77622f;
+            --creamSoft: #faf3e2;
+            --pos: #2f6b51;
+            --posSoft: #e6efea;
+            --neg: #9d4436;
+            --negSoft: #f7e9e5;
+            --e1:
+              0 1px 1px rgba(21, 21, 28, 0.04),
+              0 2px 5px -2px rgba(21, 21, 28, 0.06);
+            --e2:
+              0 1px 2px rgba(21, 21, 28, 0.05),
+              0 8px 18px -6px rgba(21, 21, 28, 0.13);
+            --e3:
+              0 2px 5px rgba(21, 21, 28, 0.06),
+              0 16px 32px -10px rgba(21, 21, 28, 0.18);
+            --e4:
+              0 4px 10px rgba(21, 21, 28, 0.08),
+              0 34px 64px -16px rgba(21, 21, 28, 0.3);
+            --lip: inset 0 1px 0 rgba(255, 255, 255, 0.85);
+            --well:
+              inset 0 1px 2px rgba(21, 21, 28, 0.07),
+              inset 0 0 0 1px rgba(21, 21, 28, 0.045);
+          }
+          * {
+            box-sizing: border-box;
+          }
+          body {
+            margin: 0;
+            background: var(--canvas);
+            color: var(--ink);
+            font-family: Archivo, "Helvetica Neue", Arial, sans-serif;
+            font-size: 13px;
+            line-height: 1.45;
+            -webkit-font-smoothing: antialiased;
+          }
+          a {
+            color: var(--navy);
+            text-decoration: none;
+          }
+          a:hover {
+            color: var(--purple);
+          }
+          .num {
+            font-family: "IBM Plex Mono", ui-monospace, Menlo, monospace;
+            font-variant-numeric: tabular-nums;
+            font-feature-settings: "tnum";
+          }
+          .lbl {
+            font-size: 10px;
+            font-weight: 600;
+            letter-spacing: 0.07em;
+            text-transform: uppercase;
+            color: var(--ink3);
+          }
+          .sec {
+            background: var(--surface);
+            border-radius: 14px;
+            box-shadow: var(--e1), var(--lip);
+            padding: 18px 20px 20px;
+          }
+          .sech {
+            font-size: 14px;
+            font-weight: 700;
+            letter-spacing: -0.01em;
+            margin-bottom: 2px;
+          }
+          .secs {
+            font-size: 11.5px;
+            color: var(--ink3);
+            margin-bottom: 14px;
+          }
+          .sw {
+            width: 100px;
+          }
+          .sw .chip {
+            height: 52px;
+            border-radius: 9px;
+          }
+          .swn {
+            font-size: 11px;
+            font-weight: 600;
+            margin-top: 6px;
+          }
+          .swh {
+            font-size: 10px;
+            color: var(--ink3);
+          }
+        </style>
+      </helmet>
+
+      <div
+        style="
+          width: 1120px;
+          height: 1160px;
+          background: var(--canvas);
+          padding: 28px 32px 32px;
+          display: flex;
+          flex-direction: column;
+          gap: 16px;
+        "
+      >
+        <!-- Masthead -->
+        <div style="display: flex; align-items: flex-end; gap: 16px">
+          <div
+            style="
+              width: 44px;
+              height: 44px;
+              border-radius: 13px;
+              background: linear-gradient(160deg, #5b4a9c, #3b2e68);
+              box-shadow:
+                0 3px 10px -2px rgba(59, 46, 104, 0.55),
+                inset 0 1px 0 rgba(255, 255, 255, 0.28);
+              display: flex;
+              align-items: center;
+              justify-content: center;
+              flex: 0 0 auto;
+            "
+          >
+            <svg
+              width="24"
+              height="24"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="#fff"
+              stroke-width="1.8"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            >
+              <path d="M4 19V9l8-5 8 5v10" />
+              <path d="M9 19v-5h6v5" />
+            </svg>
+          </div>
+          <div style="flex: 1; min-width: 0">
+            <div
+              style="
+                font-size: 23px;
+                font-weight: 700;
+                letter-spacing: -0.025em;
+                line-height: 1.15;
+              "
+            >
+              My Business — Foundations
+            </div>
+            <div style="font-size: 13px; color: var(--ink2); margin-top: 2px">
+              Quiet surfaces, real depth, monospaced money. Nothing is separated
+              by a hard border; everything is separated by light.
+            </div>
+          </div>
+          <div
+            class="num"
+            style="
+              font-size: 11px;
+              color: var(--ink3);
+              text-align: right;
+              flex: 0 0 auto;
+            "
+          >
+            v1 · Jun 2026
+          </div>
+        </div>
+
+        <!-- Colour -->
+        <div class="sec">
+          <div class="sech">Colour</div>
+          <div class="secs">
+            Neutral by default. Purple carries action and selection; navy
+            carries information and links; cream carries "a human should look at
+            this". Semantic colour never appears without a word or a shape
+            beside it.
+          </div>
+
+          <div class="lbl" style="margin-bottom: 8px">
+            Neutrals — surfaces run light to dark, ink runs dark to light
+          </div>
+          <div style="display: flex; gap: 10px; margin-bottom: 16px">
+            <div class="sw">
+              <div
+                class="chip"
+                style="
+                  background: #f0f0f3;
+                  box-shadow: inset 0 0 0 1px var(--hair);
+                "
+              ></div>
+              <div class="swn">Canvas</div>
+              <div class="swh num">#f0f0f3</div>
+            </div>
+            <div class="sw">
+              <div
+                class="chip"
+                style="
+                  background: #f6f6f8;
+                  box-shadow: inset 0 0 0 1px var(--hair);
+                "
+              ></div>
+              <div class="swn">Sunken</div>
+              <div class="swh num">#f6f6f8</div>
+            </div>
+            <div class="sw">
+              <div
+                class="chip"
+                style="
+                  background: #eaeaee;
+                  box-shadow: inset 0 0 0 1px var(--hair);
+                "
+              ></div>
+              <div class="swn">Track</div>
+              <div class="swh num">#eaeaee</div>
+            </div>
+            <div class="sw">
+              <div
+                class="chip"
+                style="background: #ffffff; box-shadow: var(--e1), var(--lip)"
+              ></div>
+              <div class="swn">Surface</div>
+              <div class="swh num">#ffffff</div>
+            </div>
+            <div
+              style="width: 1px; background: var(--hair); margin: 0 6px 22px"
+            ></div>
+            <div class="sw">
+              <div class="chip" style="background: #8b8b95"></div>
+              <div class="swn">Ink 3</div>
+              <div class="swh num">#8b8b95</div>
+            </div>
+            <div class="sw">
+              <div class="chip" style="background: #55555f"></div>
+              <div class="swn">Ink 2</div>
+              <div class="swh num">#55555f</div>
+            </div>
+            <div class="sw">
+              <div class="chip" style="background: #15151c"></div>
+              <div class="swn">Ink</div>
+              <div class="swh num">#15151c</div>
+            </div>
+          </div>
+
+          <div class="lbl" style="margin-bottom: 8px">
+            Accents — rare, and each with one job
+          </div>
+          <div style="display: flex; gap: 10px; margin-bottom: 16px">
+            <div class="sw">
+              <div class="chip" style="background: #4a3a80"></div>
+              <div class="swn">Purple — action</div>
+              <div class="swh num">#4a3a80</div>
+            </div>
+            <div class="sw">
+              <div class="chip" style="background: #3b2e68"></div>
+              <div class="swn">Purple pressed</div>
+              <div class="swh num">#3b2e68</div>
+            </div>
+            <div class="sw">
+              <div class="chip" style="background: #edeaf7"></div>
+              <div class="swn">Purple wash</div>
+              <div class="swh num">#edeaf7</div>
+            </div>
+            <div class="sw">
+              <div class="chip" style="background: #2c4177"></div>
+              <div class="swn">Navy — info</div>
+              <div class="swh num">#2c4177</div>
+            </div>
+            <div class="sw">
+              <div class="chip" style="background: #e8ecf7"></div>
+              <div class="swn">Navy wash</div>
+              <div class="swh num">#e8ecf7</div>
+            </div>
+            <div class="sw">
+              <div class="chip" style="background: #efe4c8"></div>
+              <div class="swn">Cream — attend</div>
+              <div class="swh num">#efe4c8</div>
+            </div>
+            <div class="sw">
+              <div class="chip" style="background: #77622f"></div>
+              <div class="swn">Cream ink</div>
+              <div class="swh num">#77622f</div>
+            </div>
+          </div>
+
+          <div class="lbl" style="margin-bottom: 8px">
+            Semantic — money direction and processing state only
+          </div>
+          <div style="display: flex; gap: 10px">
+            <div class="sw">
+              <div class="chip" style="background: #2f6b51"></div>
+              <div class="swn">Positive</div>
+              <div class="swh num">#2f6b51</div>
+            </div>
+            <div class="sw">
+              <div class="chip" style="background: #e6efea"></div>
+              <div class="swn">Positive wash</div>
+              <div class="swh num">#e6efea</div>
+            </div>
+            <div class="sw">
+              <div class="chip" style="background: #9d4436"></div>
+              <div class="swn">Negative</div>
+              <div class="swh num">#9d4436</div>
+            </div>
+            <div class="sw">
+              <div class="chip" style="background: #f7e9e5"></div>
+              <div class="swn">Negative wash</div>
+              <div class="swh num">#f7e9e5</div>
+            </div>
+            <div
+              style="
+                flex: 1;
+                align-self: stretch;
+                margin-bottom: 22px;
+                padding: 10px 14px;
+                border-radius: 9px;
+                background: var(--sunk);
+                box-shadow: var(--well);
+                font-size: 11.5px;
+                color: var(--ink2);
+                line-height: 1.5;
+              "
+            >
+              <strong style="color: var(--ink)">Chart rule.</strong> Purple and
+              navy are indistinguishable to a deuteranope (ΔE 1.7) — they may
+              never be two series in one plot. Every chart in this system is
+              single-hue; polarity is carried by position around a zero line,
+              and any second dimension becomes a second chart.
+            </div>
+          </div>
+        </div>
+
+        <!-- Type -->
+        <div style="display: flex; gap: 16px">
+          <div class="sec" style="flex: 1; min-width: 0">
+            <div class="sech">Typography</div>
+            <div class="secs">
+              Archivo for everything you read. IBM Plex Mono, tabular, for
+              everything you compare — money, dates, counts, IDs. Numbers must
+              line up in a column without you trying.
+            </div>
+
+            <div
+              style="
+                display: grid;
+                grid-template-columns: minmax(0, 1fr) 168px;
+                row-gap: 12px;
+                align-items: baseline;
+              "
+            >
+              <div
+                style="
+                  font-size: 23px;
+                  font-weight: 700;
+                  letter-spacing: -0.025em;
+                "
+              >
+                Page title
+              </div>
+              <div class="num swh" style="text-align: right">
+                Archivo 700 · 23/1.15 · -.025em
+              </div>
+
+              <div
+                style="
+                  font-size: 15.5px;
+                  font-weight: 700;
+                  letter-spacing: -0.015em;
+                "
+              >
+                Screen title
+              </div>
+              <div class="num swh" style="text-align: right">
+                Archivo 700 · 15.5 · -.015em
+              </div>
+
+              <div
+                style="
+                  font-size: 13.5px;
+                  font-weight: 600;
+                  letter-spacing: -0.01em;
+                "
+              >
+                Card heading
+              </div>
+              <div class="num swh" style="text-align: right">
+                Archivo 600 · 13.5
+              </div>
+
+              <div style="font-size: 13px">
+                Body — reads comfortably for an hour
+              </div>
+              <div class="num swh" style="text-align: right">
+                Archivo 400 · 13/1.45
+              </div>
+
+              <div style="font-size: 12.5px; color: var(--ink2)">
+                Table cell — one step down, one step lighter
+              </div>
+              <div class="num swh" style="text-align: right">
+                Archivo 400 · 12.5 · ink 2
+              </div>
+
+              <div class="lbl">Column label</div>
+              <div class="num swh" style="text-align: right">
+                Archivo 600 · 10 · .07em caps
+              </div>
+
+              <div
+                class="num"
+                style="
+                  font-size: 19px;
+                  font-weight: 600;
+                  letter-spacing: -0.02em;
+                "
+              >
+                ₪ 284,120.75
+              </div>
+              <div class="num swh" style="text-align: right">
+                Plex Mono 600 · tabular
+              </div>
+
+              <div class="num" style="font-size: 12.5px">
+                1,284.66&nbsp;&nbsp;&nbsp;196.02&nbsp;&nbsp;&nbsp;14 Jun
+              </div>
+              <div class="num swh" style="text-align: right">
+                Plex Mono 400 · 12.5 · tabular
+              </div>
+            </div>
+          </div>
+
+          <div class="sec" style="width: 340px; flex: 0 0 340px">
+            <div class="sech">Geometry &amp; density</div>
+            <div class="secs">
+              Radii stay tight so nothing looks like a toy.
+            </div>
+            <div style="display: flex; gap: 10px; margin-bottom: 16px">
+              <div style="flex: 1; text-align: center">
+                <div
+                  style="
+                    height: 46px;
+                    border-radius: 5px;
+                    background: var(--sunk);
+                    box-shadow: var(--well);
+                  "
+                ></div>
+                <div class="swn">5 · badge</div>
+              </div>
+              <div style="flex: 1; text-align: center">
+                <div
+                  style="
+                    height: 46px;
+                    border-radius: 8px;
+                    background: var(--sunk);
+                    box-shadow: var(--well);
+                  "
+                ></div>
+                <div class="swn">8 · control</div>
+              </div>
+              <div style="flex: 1; text-align: center">
+                <div
+                  style="
+                    height: 46px;
+                    border-radius: 12px;
+                    background: var(--sunk);
+                    box-shadow: var(--well);
+                  "
+                ></div>
+                <div class="swn">12 · card</div>
+              </div>
+              <div style="flex: 1; text-align: center">
+                <div
+                  style="
+                    height: 46px;
+                    border-radius: 14px;
+                    background: var(--sunk);
+                    box-shadow: var(--well);
+                  "
+                ></div>
+                <div class="swn">14 · panel</div>
+              </div>
+            </div>
+
+            <div class="lbl" style="margin-bottom: 8px">
+              Sizes that don't move
+            </div>
+            <div
+              style="
+                display: grid;
+                grid-template-columns: minmax(0, 1fr) auto;
+                row-gap: 7px;
+                font-size: 11.5px;
+                color: var(--ink2);
+              "
+            >
+              <span>Desktop table row</span
+              ><span class="num" style="color: var(--ink); font-weight: 600"
+                >38 px</span
+              >
+              <span>Desktop control height</span
+              ><span class="num" style="color: var(--ink); font-weight: 600"
+                >28 / 30 px</span
+              >
+              <span>Desktop sidebar</span
+              ><span class="num" style="color: var(--ink); font-weight: 600"
+                >212 px</span
+              >
+              <span>Mobile list row</span
+              ><span class="num" style="color: var(--ink); font-weight: 600"
+                >72 px</span
+              >
+              <span>Mobile tap target — floor</span
+              ><span class="num" style="color: var(--ink); font-weight: 600"
+                >44 px</span
+              >
+              <span>Spacing step</span
+              ><span class="num" style="color: var(--ink); font-weight: 600"
+                >2 · 4 · 8 · 12 · 16</span
+              >
+            </div>
+          </div>
+        </div>
+
+        <!-- Elevation -->
+        <div class="sec">
+          <div class="sech">Elevation — five heights, five meanings</div>
+          <div class="secs">
+            Height is information, not decoration. A thing that floats higher is
+            either closer to your hand or more urgent. Every raised surface also
+            carries a one-pixel top lip of white, which is what makes it feel
+            like an object rather than a rectangle.
+          </div>
+
+          <div style="display: flex; gap: 18px">
+            <div style="flex: 1">
+              <div
+                style="
+                  height: 92px;
+                  border-radius: 12px;
+                  background: var(--canvas);
+                  box-shadow: var(--well);
+                  display: flex;
+                  align-items: center;
+                  justify-content: center;
+                  color: var(--ink3);
+                  font-size: 11.5px;
+                  font-weight: 600;
+                "
+              >
+                recessed
+              </div>
+              <div class="swn" style="margin-top: 8px">
+                0 · Page &amp; wells
+              </div>
+              <div class="swh" style="line-height: 1.5">
+                Canvas, inputs, table headers, progress tracks. Inset shadow,
+                never a border.
+              </div>
+            </div>
+            <div style="flex: 1">
+              <div
+                style="
+                  height: 92px;
+                  border-radius: 12px;
+                  background: #fff;
+                  box-shadow: var(--e1), var(--lip);
+                "
+              ></div>
+              <div class="swn" style="margin-top: 8px">1 · Resting card</div>
+              <div class="swh" style="line-height: 1.5">
+                Data tables, panels, KPI tiles, nav items at rest.
+              </div>
+            </div>
+            <div style="flex: 1">
+              <div
+                style="
+                  height: 92px;
+                  border-radius: 12px;
+                  background: #fff;
+                  box-shadow: var(--e2), var(--lip);
+                "
+              ></div>
+              <div class="swn" style="margin-top: 8px">
+                2 · Under the cursor
+              </div>
+              <div class="swh" style="line-height: 1.5">
+                Hovered rows and cards lift; that lift is the only hover
+                affordance needed.
+              </div>
+            </div>
+            <div style="flex: 1">
+              <div
+                style="
+                  height: 92px;
+                  border-radius: 12px;
+                  background: #fff;
+                  box-shadow: var(--e3), var(--lip);
+                "
+              ></div>
+              <div class="swn" style="margin-top: 8px">
+                3 · Floating control
+              </div>
+              <div class="swh" style="line-height: 1.5">
+                Menus, popovers, the bulk-selection bar, toasts.
+              </div>
+            </div>
+            <div style="flex: 1">
+              <div
+                style="
+                  height: 92px;
+                  border-radius: 12px;
+                  background: #fff;
+                  box-shadow: var(--e4), var(--lip);
+                "
+              ></div>
+              <div class="swn" style="margin-top: 8px">4 · Dialog</div>
+              <div class="swh" style="line-height: 1.5">
+                Modals and sheets. Only one may be open, and it dims what is
+                behind it.
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Laws -->
+        <div class="sec" style="flex: 1; display: flex; flex-direction: column">
+          <div class="sech">House rules</div>
+          <div class="secs">
+            Nine decisions already made, so they never have to be argued again.
+          </div>
+          <div
+            style="
+              display: grid;
+              grid-template-columns: repeat(3, minmax(0, 1fr));
+              gap: 12px 22px;
+              font-size: 12px;
+              color: var(--ink2);
+              line-height: 1.5;
+            "
+          >
+            <div>
+              <strong style="color: var(--ink)">No hard borders.</strong>
+              Separation comes from a tonal step, an inset hairline at 7% ink,
+              or a shadow. A 1px solid line is a bug.
+            </div>
+            <div>
+              <strong style="color: var(--ink)">Money is monospaced.</strong>
+              Always tabular, always right-aligned, decimals one step lighter
+              than the integer part.
+            </div>
+            <div>
+              <strong style="color: var(--ink)">Quiet until touched.</strong>
+              Secondary controls sit flush with their surface and only gain
+              contrast on hover, focus or selection.
+            </div>
+            <div>
+              <strong style="color: var(--ink)">One primary per view.</strong>
+              Exactly one gradient-filled purple button is visible at a time;
+              everything else is a surface.
+            </div>
+            <div>
+              <strong style="color: var(--ink)">Status is a word.</strong>
+              Colour ranks it, the label says it, a dot or glyph confirms it.
+              Never colour alone.
+            </div>
+            <div>
+              <strong style="color: var(--ink)">Empty is an em dash.</strong>
+              Missing data reads "—" in ink 3, never a zero, never a blank cell.
+            </div>
+            <div>
+              <strong style="color: var(--ink)"
+                >Mobile is not a narrow desktop.</strong
+              >
+              Tables become prioritised cards; toolbars become sheets; the
+              primary task gets a 50px button at the bottom of the screen.
+            </div>
+            <div>
+              <strong style="color: var(--ink)"
+                >Icons are drawn, not typed.</strong
+              >
+              1.7–1.9px stroke on a 24 grid, currentColor, no emoji anywhere.
+            </div>
+            <div>
+              <strong style="color: var(--ink)">Density is the feature.</strong>
+              A 38px row that stays readable beats a 56px row that looks calm in
+              a screenshot and exhausts you by noon.
+            </div>
+          </div>
+        </div>
+      </div>
+    </x-dc>
+  </body>
+</html>

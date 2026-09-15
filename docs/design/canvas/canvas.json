@@ -1,0 +1,115 @@
+{
+  "pages": [
+    {
+      "id": "page-1",
+      "name": "Screens"
+    },
+    {
+      "id": "page-2",
+      "name": "System"
+    }
+  ],
+  "artboards": [
+    {
+      "file": "Main.dc.html",
+      "x": 0,
+      "y": 0,
+      "w": 1440,
+      "h": 900,
+      "title": "Desktop \u00b7 Documents",
+      "page": "page-1"
+    },
+    {
+      "file": "Overview.dc.html",
+      "x": 1560,
+      "y": 0,
+      "w": 1440,
+      "h": 900,
+      "title": "Desktop \u00b7 Overview",
+      "page": "page-1"
+    },
+    {
+      "file": "Mobile.dc.html",
+      "x": 0,
+      "y": 1060,
+      "w": 390,
+      "h": 844,
+      "title": "Mobile \u00b7 Home",
+      "page": "page-1"
+    },
+    {
+      "file": "MobileList.dc.html",
+      "x": 510,
+      "y": 1060,
+      "w": 390,
+      "h": 844,
+      "title": "Mobile \u00b7 Documents",
+      "page": "page-1"
+    },
+    {
+      "file": "MobileReview.dc.html",
+      "x": 1020,
+      "y": 1060,
+      "w": 390,
+      "h": 844,
+      "title": "Mobile \u00b7 Review a document",
+      "page": "page-1"
+    },
+    {
+      "file": "Foundations.dc.html",
+      "x": 0,
+      "y": 0,
+      "w": 1120,
+      "h": 1160,
+      "title": "Foundations",
+      "page": "page-2"
+    },
+    {
+      "file": "Components.dc.html",
+      "x": 1240,
+      "y": 0,
+      "w": 1360,
+      "h": 1180,
+      "title": "Controls & states",
+      "page": "page-2"
+    }
+  ],
+  "annotations": [
+    {
+      "id": "desktop-density",
+      "x": 0,
+      "y": -150,
+      "w": 300,
+      "text": "Desktop: compact and dense. 38px rows, 30px controls, no hard borders anywhere \u2014 separation is tone, inset hairlines and shadow.",
+      "page": "page-1"
+    },
+    {
+      "id": "chart-one-hue",
+      "x": 1560,
+      "y": -150,
+      "w": 300,
+      "text": "Every chart is single-hue purple. Navy and purple are indistinguishable to a deuteranope (\u0394E 1.7), so polarity is carried by position around a zero line, never by two hues.",
+      "page": "page-1"
+    },
+    {
+      "id": "mobile-is-different",
+      "x": 0,
+      "y": 1960,
+      "w": 320,
+      "text": "Mobile is a different product, not a narrow desktop: one hero metric, a task inbox, 72px cards, a capture FAB, and a review flow built for finishing work at a bus stop.",
+      "page": "page-1"
+    },
+    {
+      "id": "quiet-until-touched",
+      "x": 1240,
+      "y": -150,
+      "w": 320,
+      "text": "Quiet until touched. Controls sit flat at rest, lift on hover, sink when pressed, and wear a purple ring on focus \u2014 never a browser outline.",
+      "page": "page-2"
+    }
+  ],
+  "launch": {
+    "view": "canvas",
+    "page": "page-1"
+  }
+}
