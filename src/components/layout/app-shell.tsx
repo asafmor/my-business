@@ -6,6 +6,7 @@ import {
   House,
   Inbox,
   LayoutGrid,
+  LogOut,
   Menu,
   PanelLeft,
   Search,
@@ -202,8 +203,13 @@ export function MobileNavigationDrawer({
 function LogoutForm() {
   return (
     <form action={logoutAction}>
-      <button className="text-button" type="submit">
-        Log out
+      <button
+        aria-label="Log out"
+        className="icon-button"
+        title="Log out"
+        type="submit"
+      >
+        <LogOut aria-hidden size={14} strokeWidth={1.8} />
       </button>
     </form>
   );
@@ -316,7 +322,7 @@ function AccountCard() {
       </span>
       <span className="account-card__identity">
         <span className="account-card__name">My Business</span>
-        <span className="account-card__role">Owner · private workspace</span>
+        <span className="account-card__role">Owner</span>
       </span>
       <LogoutForm />
     </div>

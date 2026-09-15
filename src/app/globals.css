@@ -268,6 +268,7 @@ input:disabled {
 
 .workspace-mark__identity {
   display: grid;
+  flex: 1;
   min-width: 0;
 }
 
@@ -289,18 +290,19 @@ input:disabled {
   white-space: nowrap;
 }
 
+/* As tall as the name and its note together, so it reads as the rail's edge. */
 .workspace-mark__collapse {
   align-items: center;
   background: transparent;
   border: 0;
-  border-radius: 0.375rem;
+  border-radius: var(--radius-sm);
   color: var(--ink-faint);
   display: none;
   flex: 0 0 auto;
-  height: 1.375rem;
+  height: 1.75rem;
   justify-content: center;
   padding: 0;
-  width: 1.375rem;
+  width: 1.625rem;
 }
 
 .workspace-mark__collapse:hover {
@@ -595,8 +597,8 @@ input:disabled {
 
 .app-sidebar__head {
   display: grid;
-  gap: 0.375rem;
-  margin-bottom: 0.625rem;
+  gap: 0.5rem;
+  margin-bottom: 0.75rem;
 }
 
 /* Sits at the foot of the sidebar and of the mobile drawer. */
@@ -607,8 +609,8 @@ input:disabled {
   box-shadow: var(--e1), var(--lip);
   display: grid;
   gap: 0.5rem;
-  grid-template-columns: auto minmax(0, 1fr);
-  padding: 0.5rem;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  padding: 0.4375rem 0.5rem;
 }
 
 .account-card__avatar {
@@ -648,14 +650,10 @@ input:disabled {
   white-space: nowrap;
 }
 
-.account-card form {
-  grid-column: 1 / -1;
-}
-
-.account-card .text-button {
-  min-height: 1.875rem;
-  padding-inline: 0.375rem;
-  width: 100%;
+/* Logging out is one glyph at the card's edge, not a row of its own. */
+.account-card .icon-button:hover {
+  background: var(--danger-soft);
+  color: var(--danger);
 }
 
 /* Full bleed: a wide window is screen estate, not margin. */
@@ -1352,11 +1350,12 @@ input:disabled {
 }
 
 .app-navigation li + li {
-  margin-top: 0.125rem;
+  margin-top: 0.1875rem;
 }
 
+/* Settings is its own group: a gap, not a divider, separates it. */
 .app-navigation__foot {
-  margin-top: 0.125rem;
+  margin-top: 0.5rem;
 }
 
 .app-navigation__link {
@@ -1381,22 +1380,22 @@ input:disabled {
   width: 1.0625rem;
 }
 
+/* Hover is a breath on the rail; only the current route earns a card. */
 .app-navigation__link:hover {
-  background: var(--surface);
-  box-shadow: var(--e1), var(--lip);
+  background: rgb(255 255 255 / 55%);
   color: var(--ink);
 }
 
-/* The current route is the only raised, washed item in the rail. */
+/* The current route is the one raised white card, with a purple glyph. */
 .app-navigation__link.is-current {
-  background: var(--accent-soft);
-  box-shadow:
-    inset 2px 0 0 var(--accent),
-    var(--e1);
-  color: var(--accent-strong);
+  background: var(--surface);
+  box-shadow: var(--e1), var(--lip);
+  color: var(--ink);
+  font-weight: 600;
 }
 
 .app-navigation__link.is-current svg {
+  color: var(--accent);
   opacity: 1;
 }
 
@@ -1465,6 +1464,54 @@ input:disabled {
     min-height: 1.75rem;
   }
 
+  .app-sidebar .account-card .icon-button {
+    border-radius: var(--radius-xs);
+    height: 1.75rem;
+    width: 1.75rem;
+  }
+
+  /*
+   * Header controls the way the artboard draws them: a 28px raised chip for
+   * the icon action, a 30px button for the named one, a hairline between the
+   * page and the things you can do to it.
+   */
+  .app-header .icon-button {
+    background: var(--surface);
+    border-radius: 0.4375rem;
+    box-shadow: var(--e1), var(--lip);
+    height: 1.75rem;
+    width: 1.75rem;
+  }
+
+  .app-header .icon-button:hover {
+    background: var(--surface);
+    box-shadow: var(--e2), var(--lip);
+    color: var(--ink);
+  }
+
+  .app-header .button {
+    font-size: 0.78125rem;
+    gap: 0.4375rem;
+    min-height: 1.875rem;
+    padding: 0 0.75rem;
+  }
+
+  .app-header__tools::before {
+    background: var(--line);
+    content: "";
+    height: 1.25rem;
+    width: 1px;
+  }
+
+  /* The chip shrank, so the count rides its corner instead of sitting in it. */
+  .app-header .upload-tray-toggle__badge {
+    font-size: 0.5rem;
+    height: 0.875rem;
+    min-width: 0.875rem;
+    right: -0.1875rem;
+    top: -0.1875rem;
+  }
+
   /* The rail's nav takes the slack so Settings and the card stay at the foot. */
   .app-sidebar .app-navigation {
     display: flex;
@@ -1492,45 +1539,37 @@ input:disabled {
     padding-inline: 0.4375rem;
   }
 
+  /* The glyph, then the way back out: both centred, both always visible. */
   [data-rail="collapsed"] .workspace-mark {
+    flex-direction: column;
+    gap: 0.375rem;
     justify-content: center;
     padding: 0;
   }
 
+  [data-rail="collapsed"] .workspace-mark__collapse {
+    width: 2.125rem;
+  }
+
+  /* Searching needs a field to type in; there is no room for one here. */
+  [data-rail="collapsed"] .global-search,
   [data-rail="collapsed"] .workspace-mark__identity,
-  [data-rail="collapsed"] .global-search input,
   [data-rail="collapsed"] .app-navigation__link span,
-  [data-rail="collapsed"] .account-card__identity,
-  [data-rail="collapsed"] .account-card form {
+  [data-rail="collapsed"] .account-card__identity {
     display: none;
   }
 
-  /* The toggle overlays the glyph so it stays reachable in 3.25rem. */
-  [data-rail="collapsed"] .workspace-mark__collapse {
-    inset: 0;
-    opacity: 0;
-    position: absolute;
-  }
-
-  [data-rail="collapsed"] .workspace-mark:hover .workspace-mark__collapse,
-  [data-rail="collapsed"] .workspace-mark__collapse:focus-visible {
-    background: rgb(255 255 255 / 92%);
-    opacity: 1;
-  }
-
-  [data-rail="collapsed"] .workspace-mark {
-    position: relative;
-  }
-
-  [data-rail="collapsed"] .global-search,
   [data-rail="collapsed"] .app-navigation__link,
   [data-rail="collapsed"] .account-card {
     justify-content: center;
     padding-inline: 0;
   }
 
+  /* Avatar over the way out: logging out must not need an expanded rail. */
   [data-rail="collapsed"] .account-card {
     grid-template-columns: auto;
+    justify-items: center;
+    row-gap: 0.25rem;
   }
 
   .filters-form {
@@ -2493,6 +2532,7 @@ input:disabled {
 
 .category-row--new {
   background: linear-gradient(180deg, #f8f8fa, var(--surface-muted));
+  padding-block: 0.4375rem;
 }
 
 .category-row--new .cell-input::placeholder {
@@ -2699,6 +2739,15 @@ input:disabled {
     box-shadow: var(--well);
     display: grid;
     height: 1.875rem;
+  }
+
+  /*
+   * The one row that is not a record: it holds a button, so it gets the
+   * breathing room a 38px data row does not need.
+   */
+  .category-row--new {
+    height: auto;
+    padding-block: 0.4375rem;
   }
 
   .category-row--head .lbl {

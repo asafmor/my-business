@@ -161,7 +161,7 @@ describe("protected application shell", () => {
     expect(markup).toContain('id="main-content"');
     expect(markup).toContain('href="/upload"');
     expect(markup).toContain(">Upload<");
-    expect(markup).toContain(">Log out<");
+    expect(markup).toContain('aria-label="Log out"');
     expect(markup).toContain('aria-label="Upload tray"');
   });
 
