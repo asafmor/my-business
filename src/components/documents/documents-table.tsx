@@ -12,6 +12,13 @@ const statusVariant: Record<string, string> = {
   UPLOADED: "neutral",
 };
 
+// A row only tints when its status asks something of the reader.
+const statusRowState: Record<string, string> = {
+  FAILED: "is-failed",
+  NEEDS_REVIEW: "is-attention",
+  PROCESSING: "is-processing",
+};
+
 function StatusBadge({ status }: { status: string }) {
   return (
     <span
@@ -53,7 +60,7 @@ export function DocumentsTable({ rows }: { rows: DocumentListRow[] }) {
         </thead>
         <tbody>
           {rows.map((row) => (
-            <tr key={row.id}>
+            <tr className={statusRowState[row.status]} key={row.id}>
               <td>
                 <Link href={`/documents/${row.id}`}>
                   <Preview mimeType={row.mimeType} />
@@ -79,7 +86,14 @@ export function DocumentsTable({ rows }: { rows: DocumentListRow[] }) {
 
       <ul className="data-list documents-table--mobile">
         {rows.map((row) => (
-          <li className="data-list__item" key={row.id}>
+          <li
+            className={
+              statusRowState[row.status]
+                ? `data-list__item ${statusRowState[row.status]}`
+                : "data-list__item"
+            }
+            key={row.id}
+          >
             <Link
               className="data-list__item-link"
               href={`/documents/${row.id}`}
