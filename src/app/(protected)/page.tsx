@@ -7,6 +7,7 @@ import { formatDate, formatMoney, humanizeEnumValue } from "../../lib/format";
 import { DrizzleDashboardRepository } from "../../server/documents/dashboard-repository";
 import { DrizzleInboxQueryRepository } from "../../server/documents/inbox-query-repository";
 import { requireSession } from "../../server/auth/service";
+import { statusTone } from "../../domain/documents/status-tone";
 
 export const dynamic = "force-dynamic";
 
@@ -58,114 +59,151 @@ export default async function DashboardPage() {
         <p>What is the current state of your bookkeeping?</p>
       </header>
 
-      <section className="dashboard-section">
-        <h2>This month</h2>
-        <ul className="dashboard-stats">
-          <li className="dashboard-stat">
-            <span className="dashboard-stat__value">
-              {formatMoney(summary.totalExpenses, null)}
-            </span>
-            <span className="dashboard-stat__label">Total expenses</span>
-          </li>
-          <li className="dashboard-stat">
-            <span className="dashboard-stat__value">
-              {formatMoney(summary.vatTotal, null)}
-            </span>
-            <span className="dashboard-stat__label">VAT</span>
-          </li>
-          <li className="dashboard-stat">
-            <span className="dashboard-stat__value">
-              {summary.documentCount}
-            </span>
-            <span className="dashboard-stat__label">Documents</span>
-          </li>
-          <li className="dashboard-stat">
-            <span className="dashboard-stat__value">
-              {summary.needsReviewCount}
-            </span>
-            <span className="dashboard-stat__label">Waiting for review</span>
-          </li>
-        </ul>
-      </section>
+      <ul className="dashboard-stats">
+        <Kpi
+          label="Total expenses"
+          value={formatMoney(summary.totalExpenses, null)}
+        />
+        <Kpi label="VAT" value={formatMoney(summary.vatTotal, null)} />
+        <Kpi label="Documents" value={String(summary.documentCount)} />
+        <Kpi
+          label="Waiting for review"
+          tone={summary.needsReviewCount > 0 ? "attention" : undefined}
+          value={String(summary.needsReviewCount)}
+        />
+      </ul>
 
-      <section className="dashboard-section">
-        <h2>Needs attention</h2>
-        {needsAttention.length === 0 ? (
-          <p className="content-state">Nothing needs review right now.</p>
-        ) : (
-          <ul className="data-list">
-            {needsAttention.map((row) => (
-              <li className="data-list__item" key={row.id}>
-                <Link
-                  className="data-list__item-link"
-                  href={`/documents/${row.id}`}
-                >
-                  <div className="data-list__item-title">
-                    {row.supplierName ?? "Unknown supplier"}
-                  </div>
-                  <div className="data-list__item-meta">
-                    {formatDate(row.transactionDate)} ·{" "}
-                    {formatMoney(row.total, row.currency)}
-                  </div>
-                  <ul className="inbox-card__reasons">
-                    {attentionReasons(row).map((reason) => (
-                      <li key={reason}>{reason}</li>
-                    ))}
-                  </ul>
-                </Link>
-              </li>
-            ))}
-          </ul>
-        )}
-        <Link href="/inbox">View all in Inbox</Link>
-      </section>
+      <div className="dashboard-grid">
+        <section className="dashboard-section">
+          <div className="dashboard-section__header">
+            <h2>Needs attention</h2>
+            <Link href="/inbox">View all in Inbox</Link>
+          </div>
+          {needsAttention.length === 0 ? (
+            <p className="content-state">Nothing needs review right now.</p>
+          ) : (
+            <ul className="data-list">
+              {needsAttention.map((row) => (
+                <li className="data-list__item is-attention" key={row.id}>
+                  <Link
+                    className="data-list__item-link"
+                    href={`/documents/${row.id}`}
+                  >
+                    <div className="data-list__item-header">
+                      <span className="data-list__item-title">
+                        {row.supplierName ?? "Unknown supplier"}
+                      </span>
+                      <span className="num">
+                        {formatMoney(row.total, row.currency)}
+                      </span>
+                    </div>
+                    <div className="data-list__item-meta">
+                      {formatDate(row.transactionDate)}
+                    </div>
+                    <ul className="inbox-card__reasons">
+                      {attentionReasons(row).map((reason) => (
+                        <li key={reason}>{reason}</li>
+                      ))}
+                    </ul>
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          )}
+        </section>
 
-      <section className="dashboard-section">
-        <h2>Categories</h2>
-        {categoryBreakdown.length === 0 ? (
-          <p className="content-state">No expenses recorded this month.</p>
-        ) : (
-          <ul className="data-list">
-            {categoryBreakdown.map((row) => (
-              <li
-                className="data-list__item"
-                key={row.categoryName ?? "uncategorized"}
-              >
-                <div className="data-list__item-header">
-                  <span>{row.categoryName ?? "Uncategorized"}</span>
-                  <span>{formatMoney(row.total, null)}</span>
-                </div>
-              </li>
-            ))}
-          </ul>
-        )}
-      </section>
+        <section className="dashboard-section">
+          <div className="dashboard-section__header">
+            <h2>Categories</h2>
+            <span className="dashboard-section__note">this month</span>
+          </div>
+          <CategoryBars rows={categoryBreakdown} />
+        </section>
 
-      <section className="dashboard-section">
-        <h2>Recently uploaded</h2>
-        <RecentDocumentsList rows={recentlyUploaded} />
-      </section>
+        <section className="dashboard-section">
+          <div className="dashboard-section__header">
+            <h2>Recently uploaded</h2>
+          </div>
+          <RecentDocumentsList rows={recentlyUploaded} />
+        </section>
 
-      <section className="dashboard-section">
-        <h2>Recently edited</h2>
-        <RecentDocumentsList rows={recentlyEdited} />
-      </section>
+        <section className="dashboard-section">
+          <div className="dashboard-section__header">
+            <h2>Recently edited</h2>
+          </div>
+          <RecentDocumentsList rows={recentlyEdited} />
+        </section>
+      </div>
 
-      <section className="dashboard-section">
-        <h2>Quick actions</h2>
-        <div className="dashboard-quick-actions">
-          <Link className="button button--primary" href="/upload">
-            Upload document
-          </Link>
-          <Link className="button button--secondary" href="/inbox">
-            Open inbox
-          </Link>
-          <Link className="button button--secondary" href="/reports">
-            Monthly report
-          </Link>
-        </div>
-      </section>
+      <div className="dashboard-quick-actions">
+        <Link className="button button--secondary" href="/inbox">
+          Open inbox
+        </Link>
+        <Link className="button button--secondary" href="/reports">
+          Monthly report
+        </Link>
+      </div>
     </div>
+  );
+}
+
+function Kpi({
+  label,
+  tone,
+  value,
+}: {
+  label: string;
+  tone?: "attention";
+  value: string;
+}) {
+  return (
+    <li
+      className={
+        tone ? `dashboard-stat dashboard-stat--${tone}` : "dashboard-stat"
+      }
+    >
+      <span className="dashboard-stat__label">{label}</span>
+      <span className="dashboard-stat__value num">{value}</span>
+    </li>
+  );
+}
+
+/*
+ * One hue, one series. Share of the month's spend is carried by bar length;
+ * the number beside it carries the exact value.
+ */
+function CategoryBars({
+  rows,
+}: {
+  rows: { categoryName: string | null; total: string }[];
+}) {
+  if (rows.length === 0) {
+    return <p className="content-state">No expenses recorded this month.</p>;
+  }
+
+  const largest = Math.max(...rows.map((row) => Number(row.total) || 0), 1);
+
+  return (
+    <ul className="category-bars">
+      {rows.map((row) => (
+        <li className="category-bar" key={row.categoryName ?? "uncategorized"}>
+          <span className="category-bar__label">
+            {row.categoryName ?? "Uncategorized"}
+          </span>
+          <span className="category-bar__track">
+            <span
+              className="category-bar__fill"
+              style={{
+                width: `${Math.max(((Number(row.total) || 0) / largest) * 100, 2)}%`,
+              }}
+            />
+          </span>
+          <span className="category-bar__value num">
+            {formatMoney(row.total, null)}
+          </span>
+        </li>
+      ))}
+    </ul>
   );
 }
 
@@ -184,12 +222,14 @@ function RecentDocumentsList({
         <li className="data-list__item" key={row.id}>
           <Link className="data-list__item-link" href={`/documents/${row.id}`}>
             <div className="data-list__item-header">
-              <span className="status-badge">
+              <span className="data-list__item-title">
+                {row.supplierName ?? "Unknown supplier"}
+              </span>
+              <span
+                className={`status-badge status-badge--${statusTone(row.status)}`}
+              >
                 {humanizeEnumValue(row.status)}
               </span>
-            </div>
-            <div className="data-list__item-title">
-              {row.supplierName ?? "Unknown supplier"}
             </div>
             <div className="data-list__item-meta">{formatDate(row.at)}</div>
           </Link>

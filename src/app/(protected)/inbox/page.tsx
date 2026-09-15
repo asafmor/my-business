@@ -20,17 +20,10 @@ import {
   type InboxRow,
 } from "../../../server/documents/inbox-query-repository";
 import { requireSession } from "../../../server/auth/service";
+import { statusTone } from "../../../domain/documents/status-tone";
 
 const inboxRepository = new DrizzleInboxQueryRepository();
 const documentsRepository = new DrizzleDocumentsQueryRepository();
-
-const statusVariant: Record<string, string> = {
-  FAILED: "error",
-  NEEDS_REVIEW: "warning",
-  PROCESSING: "neutral",
-  READY: "success",
-  UPLOADED: "neutral",
-};
 
 type CardSection =
   "failed" | "needsReview" | "processing" | "recentlyCompleted";
@@ -50,7 +43,7 @@ function InboxCard({
     <li className="data-list__item inbox-card">
       <div className="data-list__item-header">
         <span
-          className={`status-badge status-badge--${statusVariant[row.status] ?? "neutral"}`}
+          className={`status-badge status-badge--${statusTone(row.status)}`}
         >
           {humanizeEnumValue(row.status)}
         </span>

@@ -2,28 +2,11 @@ import Link from "next/link";
 
 import type { DocumentListRow } from "../../server/documents/documents-query-repository";
 import { formatDate, formatMoney, humanizeEnumValue } from "../../lib/format";
-
-const statusVariant: Record<string, string> = {
-  ARCHIVED: "neutral",
-  FAILED: "error",
-  NEEDS_REVIEW: "warning",
-  PROCESSING: "neutral",
-  READY: "success",
-  UPLOADED: "neutral",
-};
-
-// A row only tints when its status asks something of the reader.
-const statusRowState: Record<string, string> = {
-  FAILED: "is-failed",
-  NEEDS_REVIEW: "is-attention",
-  PROCESSING: "is-processing",
-};
+import { statusRowState, statusTone } from "../../domain/documents/status-tone";
 
 function StatusBadge({ status }: { status: string }) {
   return (
-    <span
-      className={`status-badge status-badge--${statusVariant[status] ?? "neutral"}`}
-    >
+    <span className={`status-badge status-badge--${statusTone(status)}`}>
       {humanizeEnumValue(status)}
     </span>
   );
@@ -60,7 +43,7 @@ export function DocumentsTable({ rows }: { rows: DocumentListRow[] }) {
         </thead>
         <tbody>
           {rows.map((row) => (
-            <tr className={statusRowState[row.status]} key={row.id}>
+            <tr className={statusRowState(row.status)} key={row.id}>
               <td>
                 <Link href={`/documents/${row.id}`}>
                   <Preview mimeType={row.mimeType} />
@@ -87,11 +70,7 @@ export function DocumentsTable({ rows }: { rows: DocumentListRow[] }) {
       <ul className="data-list documents-table--mobile">
         {rows.map((row) => (
           <li
-            className={
-              statusRowState[row.status]
-                ? `data-list__item ${statusRowState[row.status]}`
-                : "data-list__item"
-            }
+            className={`data-list__item ${statusRowState(row.status) ?? ""}`.trim()}
             key={row.id}
           >
             <Link
