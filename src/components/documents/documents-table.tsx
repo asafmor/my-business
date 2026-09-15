@@ -74,26 +74,20 @@ export function DocumentsTable({ rows }: { rows: DocumentListRow[] }) {
             key={row.id}
           >
             <Link
-              className="data-list__item-link"
+              className="data-list__item-link document-card"
               href={`/documents/${row.id}`}
             >
-              <div className="data-list__item-header">
-                <Preview mimeType={row.mimeType} />
-                <StatusBadge status={row.status} />
-              </div>
-              <div className="data-list__item-title">
+              <span className="document-card__title">
                 {row.supplierName ?? "Unknown supplier"}
-              </div>
-              <div className="data-list__item-meta">
+              </span>
+              <span className="document-card__total num">
+                {formatMoney(row.total, null)}
+              </span>
+              <span className="document-card__meta">
                 {formatDate(row.transactionDate)} ·{" "}
                 {humanizeEnumValue(row.type)}
-                {row.categoryName ? ` · ${row.categoryName}` : ""}
-              </div>
-              <div className="data-list__item-meta">
-                Total{" "}
-                <span className="num">{formatMoney(row.total, null)}</span> ·
-                VAT <span className="num">{formatMoney(row.vat, null)}</span>
-              </div>
+              </span>
+              <StatusBadge status={row.status} />
             </Link>
           </li>
         ))}

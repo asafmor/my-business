@@ -250,6 +250,52 @@ function LogoutForm() {
   );
 }
 
+const tabBarItems: readonly NavigationItem[] = [
+  { href: "/", icon: "dashboard", label: "Home" },
+  { href: "/documents", icon: "documents", label: "Docs" },
+  { href: "/inbox", icon: "inbox", label: "Inbox" },
+  { href: "/reports", icon: "reports", label: "Reports" },
+];
+
+/*
+ * Mobile's primary navigation. Thumb-reachable, four destinations and the
+ * capture action; everything else stays behind the drawer.
+ */
+function MobileTabBar({ pathname }: { pathname: string }) {
+  const [left, right] = [tabBarItems.slice(0, 2), tabBarItems.slice(2)];
+
+  const tab = (item: NavigationItem) => {
+    const current = isCurrentRoute(item.href, pathname);
+
+    return (
+      <li key={item.href}>
+        <Link
+          aria-current={current ? "page" : undefined}
+          className={current ? "tab-bar__link is-current" : "tab-bar__link"}
+          href={item.href}
+        >
+          <AppIcon name={item.icon} />
+          <span>{item.label}</span>
+        </Link>
+      </li>
+    );
+  };
+
+  return (
+    <nav aria-label="Quick navigation" className="tab-bar">
+      <ul>
+        {left.map(tab)}
+        <li className="tab-bar__capture">
+          <Link aria-label="Upload a document" href="/upload">
+            <AppIcon name="upload" />
+          </Link>
+        </li>
+        {right.map(tab)}
+      </ul>
+    </nav>
+  );
+}
+
 function AccountCard() {
   return (
     <div className="account-card">
@@ -377,6 +423,7 @@ export function AppShell({ children }: { children: ReactNode }) {
           {children}
         </main>
       </div>
+      <MobileTabBar pathname={pathname} />
       <MobileNavigationDrawer
         closeButtonRef={closeButtonRef}
         drawerRef={drawerRef}

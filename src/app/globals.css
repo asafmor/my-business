@@ -211,6 +211,13 @@ input:disabled {
   gap: 0.5rem;
 }
 
+/* The capture FAB owns uploading on mobile; the header need not repeat it. */
+@media (max-width: 47.999rem) {
+  .app-header .button--primary {
+    display: none;
+  }
+}
+
 @media (max-width: 23rem) {
   .app-header {
     gap: 0.5rem;
@@ -401,6 +408,86 @@ input:disabled {
   min-height: calc(100dvh - 3.25rem);
 }
 
+/*
+ * Mobile's primary navigation: a thumb-reachable bar with the capture action
+ * raised out of it. Desktop hides it — the sidebar rail does this job there.
+ */
+.tab-bar {
+  background: var(--surface);
+  bottom: 0;
+  box-shadow:
+    0 -1px 0 var(--line),
+    0 -8px 24px -12px rgb(21 21 28 / 18%);
+  left: 0;
+  padding-bottom: env(safe-area-inset-bottom);
+  position: fixed;
+  right: 0;
+  z-index: 9;
+}
+
+.tab-bar ul {
+  align-items: end;
+  display: flex;
+  justify-content: space-around;
+  list-style: none;
+  margin: 0;
+  padding: 0.25rem 0.5rem;
+}
+
+.tab-bar li {
+  flex: 1;
+}
+
+.tab-bar__link {
+  align-items: center;
+  border-radius: var(--radius-sm);
+  color: var(--ink-faint);
+  display: flex;
+  flex-direction: column;
+  font-size: 0.625rem;
+  font-weight: 600;
+  gap: 0.125rem;
+  min-height: 2.75rem;
+  justify-content: center;
+  padding: 0.25rem;
+  text-decoration: none;
+}
+
+.tab-bar__link.is-current {
+  color: var(--accent);
+}
+
+.tab-bar__link svg {
+  height: 1.25rem;
+  width: 1.25rem;
+}
+
+.tab-bar__capture {
+  display: flex;
+  justify-content: center;
+}
+
+.tab-bar__capture a {
+  align-items: center;
+  background: linear-gradient(180deg, #584697, var(--accent));
+  border-radius: 999px;
+  box-shadow:
+    0 2px 4px rgb(21 21 28 / 16%),
+    0 10px 20px -6px rgb(74 58 128 / 55%),
+    inset 0 1px 0 rgb(255 255 255 / 24%);
+  color: #fff;
+  display: flex;
+  height: 3rem;
+  justify-content: center;
+  margin-top: -1.25rem;
+  width: 3rem;
+}
+
+.tab-bar__capture a:active {
+  box-shadow: inset 0 2px 5px rgb(21 21 28 / 40%);
+  transform: translateY(1px);
+}
+
 .app-sidebar {
   display: none;
 }
@@ -467,7 +554,8 @@ input:disabled {
 .app-main {
   margin: 0 auto;
   max-width: 76rem;
-  padding: 1.25rem 1rem 3rem;
+  /* Bottom padding clears the fixed tab bar. */
+  padding: 1.25rem 1rem 5.5rem;
   width: 100%;
 }
 
@@ -785,6 +873,50 @@ input:disabled {
 
 .data-list__item:last-child {
   box-shadow: none;
+}
+
+/*
+ * Mobile documents are 72px cards, not shrunken table rows: the name and the
+ * total on the first line, the context and the status underneath.
+ */
+.documents-table--mobile .data-list__item {
+  padding: 0;
+}
+
+.document-card {
+  align-items: center;
+  column-gap: 0.75rem;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  min-height: 4.5rem;
+  padding: 0.75rem 1rem;
+  row-gap: 0.25rem;
+}
+
+.document-card__title {
+  font-size: 0.9375rem;
+  font-weight: 600;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.document-card__total {
+  font-size: 0.9375rem;
+  font-weight: 600;
+  text-align: right;
+}
+
+.document-card__meta {
+  color: var(--ink-muted);
+  font-size: 0.75rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.document-card .status-badge {
+  justify-self: end;
 }
 
 .data-list__item.is-attention {
@@ -1139,7 +1271,8 @@ input:disabled {
 }
 
 @media (min-width: 48rem) {
-  .app-header__menu-button {
+  .app-header__menu-button,
+  .tab-bar {
     display: none;
   }
 

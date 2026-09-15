@@ -162,6 +162,16 @@ describe("protected application shell", () => {
     expect(markup).toContain(">Upload<");
     expect(markup).toContain(">Log out<");
   });
+
+  it("gives mobile its own thumb-reachable navigation and capture action", async () => {
+    const markup = renderToStaticMarkup(
+      await ProtectedLayout({ children: <p>Workspace content</p> }),
+    );
+
+    expect(markup).toContain('aria-label="Quick navigation"');
+    expect(markup).toContain('aria-label="Upload a document"');
+    expect(markup).toContain("tab-bar__capture");
+  });
 });
 
 describe("application navigation", () => {
