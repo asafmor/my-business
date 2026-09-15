@@ -1,15 +1,37 @@
 import { documentStatuses, documentTypes } from "./types";
 import type { DocumentStatus, DocumentType } from "./types";
 
-export const documentListSorts = [
-  "date-desc",
-  "date-asc",
-  "total-desc",
-  "total-asc",
+/** Every sortable column, in both directions. The table header owns the toggle. */
+export const documentListSortColumns = [
+  "date",
+  "supplier",
+  "type",
+  "category",
+  "vat",
+  "total",
+  "status",
 ] as const;
+export type DocumentListSortColumn = (typeof documentListSortColumns)[number];
+
+export const documentListSorts = documentListSortColumns.flatMap(
+  (column) => [`${column}-asc`, `${column}-desc`] as const,
+);
 export type DocumentListSort = (typeof documentListSorts)[number];
 
 export const documentListPageSize = 25;
+export const documentListPageSizes = [25, 50, 100] as const;
+
+/** Splits "total-desc" back into the pieces a table header needs. */
+export function splitSort(sort: DocumentListSort): {
+  column: DocumentListSortColumn;
+  direction: "asc" | "desc";
+} {
+  const index = sort.lastIndexOf("-");
+  return {
+    column: sort.slice(0, index) as DocumentListSortColumn,
+    direction: sort.slice(index + 1) as "asc" | "desc",
+  };
+}
 
 export type DocumentListQuery = {
   amountMax: string | null;
@@ -19,6 +41,7 @@ export type DocumentListQuery = {
   dateTo: string | null;
   month: string | null;
   page: number;
+  pageSize: number;
   q: string | null;
   sort: DocumentListSort;
   status: DocumentStatus | null;
@@ -65,6 +88,7 @@ export function parseDocumentListQuery(
   const sort = firstValue(params.sort);
   const category = firstValue(params.category);
   const page = Number.parseInt(firstValue(params.page) ?? "1", 10);
+  const pageSize = Number.parseInt(firstValue(params.pageSize) ?? "", 10);
 
   return {
     amountMax: matchOrNull(firstValue(params.amountMax), amountPattern),
@@ -74,6 +98,9 @@ export function parseDocumentListQuery(
     dateTo: matchOrNull(firstValue(params.dateTo), isoDatePattern),
     month: matchOrNull(firstValue(params.month), isoMonthPattern),
     page: Number.isFinite(page) && page > 0 ? page : 1,
+    pageSize: (documentListPageSizes as readonly number[]).includes(pageSize)
+      ? pageSize
+      : documentListPageSize,
     q: normalizeSearchQuery(firstValue(params.q)),
     sort:
       sort && (documentListSorts as readonly string[]).includes(sort)

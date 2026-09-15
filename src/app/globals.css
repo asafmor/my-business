@@ -217,7 +217,7 @@ input:disabled {
 }
 
 .app-header__tools {
-  gap: 0.5rem;
+  gap: 1rem;
 }
 
 /* The capture FAB owns uploading on mobile; the header need not repeat it. */
@@ -940,14 +940,6 @@ input:disabled {
  * Eleven filters is a panel, not a toolbar. It stays folded until asked for,
  * and unfolds on its own when a filter is already applied.
  */
-.filters {
-  background: var(--surface);
-  border-radius: 0.875rem;
-  box-shadow: var(--e1), var(--lip);
-  margin-bottom: 1rem;
-  overflow: hidden;
-}
-
 /* Progressive disclosure: native <details>, a drawn chevron, no JS. */
 .disclosure__summary {
   align-items: center;
@@ -984,49 +976,6 @@ input:disabled {
   box-shadow: inset 0 -1px 0 var(--line);
 }
 
-.filters__hint {
-  color: var(--ink-faint);
-  font-weight: 400;
-}
-
-.filters__count {
-  background: var(--accent-soft);
-  border-radius: 999px;
-  color: var(--accent-strong);
-  font-size: 0.6875rem;
-  padding: 0.125rem 0.4rem;
-}
-
-.filters-form {
-  display: grid;
-  gap: 0.75rem;
-  grid-template-columns: minmax(0, 1fr);
-  padding: 0.875rem;
-}
-
-.filters-form__actions {
-  align-items: center;
-  display: flex;
-  gap: 0.75rem;
-}
-
-.pagination {
-  align-items: center;
-  display: flex;
-  gap: 1rem;
-  justify-content: center;
-  margin-top: 1.5rem;
-}
-
-.pagination__status {
-  color: var(--ink-muted);
-  font-size: 0.875rem;
-}
-
-.documents-table--desktop {
-  display: none;
-}
-
 .data-list__item {
   box-shadow: inset 0 -1px 0 var(--line);
   padding: 0.9rem 1rem;
@@ -1037,59 +986,15 @@ input:disabled {
 }
 
 /*
- * Mobile documents are 72px cards, not shrunken table rows: the name and the
- * total on the first line, the context and the status underneath.
- */
-.documents-table--mobile .data-list__item {
-  padding: 0;
-}
-
-.data-list__item-link.document-card {
-  align-items: center;
-  column-gap: 0.75rem;
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) auto;
-  min-height: 4.5rem;
-  padding: 0.75rem 1rem;
-  row-gap: 0.25rem;
-}
-
-.document-card__title {
-  font-size: 0.9375rem;
-  font-weight: 600;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-/*
  * Supplier names arrive in Hebrew as often as English. Let each string pick
  * its own direction so an RTL name reads right and truncates on the correct
  * side, without flipping the surrounding layout.
  */
 .category-bar__label,
 .data-list__item-title,
-.document-card__title,
-.documents-table--desktop td {
+.doc-row__link,
+.doc-row__sub {
   unicode-bidi: plaintext;
-}
-
-.document-card__total {
-  font-size: 0.9375rem;
-  font-weight: 600;
-  text-align: right;
-}
-
-.document-card__meta {
-  color: var(--ink-muted);
-  font-size: 0.75rem;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.document-card .status-badge {
-  justify-self: end;
 }
 
 .data-list__item.is-attention {
@@ -1135,16 +1040,6 @@ input:disabled {
   color: var(--ink-muted);
   font-size: 0.8125rem;
   margin-top: 0.15rem;
-}
-
-.document-preview-chip {
-  background: var(--surface-muted);
-  border-radius: 0.375rem;
-  color: var(--ink-muted);
-  display: inline-block;
-  font-size: 0.75rem;
-  font-weight: 700;
-  padding: 0.25rem 0.5rem;
 }
 
 .content-state--warning {
@@ -1500,7 +1395,7 @@ input:disabled {
     background: var(--line);
     content: "";
     height: 1.25rem;
-    width: 1px;
+    width: 0px;
   }
 
   /* The chip shrank, so the count rides its corner instead of sitting in it. */
@@ -1585,20 +1480,6 @@ input:disabled {
   .document-detail__preview {
     position: sticky;
     top: 1.5rem;
-  }
-}
-
-@media (min-width: 64rem) {
-  /* The desktop table's 8 columns need ~990px of content width before
-     they stop overflowing (measured empirically); the sidebar layout
-     kicks in at 48rem, so wait for 64rem before swapping away from the
-     mobile card list to keep tablet widths (e.g. iPad ~810px) overflow-free. */
-  .documents-table--desktop {
-    display: table;
-  }
-
-  .documents-table--mobile {
-    display: none;
   }
 }
 
@@ -2817,4 +2698,549 @@ input:disabled {
   gap: 0.5rem;
   justify-content: flex-end;
   margin-top: 1.125rem;
+}
+
+/*
+ * Navigation indicator
+ *
+ * A server-rendered route costs a round trip, so a click that has not painted
+ * yet still needs an answer. It floats under the header rather than pushing the
+ * page down, so nothing reflows when it appears and disappears.
+ */
+.navigation-progress {
+  align-items: center;
+  animation: navigation-progress-in 140ms ease-out 180ms both;
+  background: var(--surface);
+  border-radius: 999px;
+  box-shadow: var(--e3), var(--lip);
+  color: var(--ink-muted);
+  display: flex;
+  font-size: 0.75rem;
+  font-weight: 600;
+  gap: 0.4375rem;
+  inset-inline: 0;
+  margin-inline: auto;
+  padding: 0.3125rem 0.75rem;
+  pointer-events: none;
+  position: fixed;
+  top: 4rem;
+  width: max-content;
+  z-index: 20;
+}
+
+.navigation-progress__spinner {
+  animation: upload-tray-spin 850ms linear infinite;
+  color: var(--accent);
+}
+
+@keyframes navigation-progress-in {
+  from {
+    opacity: 0;
+    transform: translateY(-0.375rem);
+  }
+
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+/*
+ * Filter bar
+ *
+ * A chip states its own answer ("Status: Needs review"), so the bar reads as a
+ * sentence describing the list below it. The select underneath is native, which
+ * is the right control on a phone and the cheapest one everywhere else.
+ */
+.filter-bar {
+  margin-bottom: 0.75rem;
+}
+
+.filter-bar__row {
+  align-items: center;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.filter-bar__spacer {
+  display: none;
+}
+
+.filter-search {
+  align-items: center;
+  background: var(--surface);
+  border-radius: 0.5rem;
+  box-shadow: var(--well);
+  color: var(--ink-faint);
+  display: flex;
+  flex: 1 1 100%;
+  gap: 0.4375rem;
+  min-height: 2.75rem;
+  order: -1;
+  padding: 0 0.625rem;
+}
+
+.filter-search input {
+  background: none;
+  border: 0;
+  color: var(--ink);
+  flex: 1;
+  font: inherit;
+  font-size: 0.8125rem;
+  min-width: 0;
+  outline: none;
+}
+
+.filter-search input::placeholder {
+  color: var(--ink-faint);
+}
+
+.filter-search input::-webkit-search-cancel-button {
+  appearance: none;
+}
+
+.filter-search__clear {
+  align-items: center;
+  background: var(--surface-sunk);
+  border: 0;
+  border-radius: 999px;
+  color: var(--ink-muted);
+  display: flex;
+  flex: 0 0 auto;
+  height: 0.875rem;
+  justify-content: center;
+  padding: 0;
+  width: 0.875rem;
+}
+
+.filter-search__clear:hover {
+  background: var(--ink-faint);
+  color: var(--surface);
+}
+
+.filter-chip {
+  align-items: center;
+  background: var(--surface);
+  border: 0;
+  border-radius: 999px;
+  box-shadow: var(--e1), var(--lip);
+  color: var(--ink-muted);
+  cursor: pointer;
+  display: inline-flex;
+  font-size: 0.75rem;
+  font-weight: 500;
+  gap: 0.375rem;
+  list-style: none;
+  min-height: 2.75rem;
+  padding: 0 0.625rem;
+  position: relative;
+  white-space: nowrap;
+}
+
+.filter-chip::-webkit-details-marker {
+  display: none;
+}
+
+.filter-chip.is-on {
+  background: var(--accent-soft);
+  box-shadow: inset 0 0 0 1px rgb(74 58 128 / 18%);
+  color: var(--accent-strong);
+  font-weight: 600;
+}
+
+.filter-chip--ghost {
+  background: none;
+  box-shadow: none;
+  color: var(--ink-faint);
+}
+
+.filter-chip--ghost:hover {
+  color: var(--ink);
+}
+
+.filter-chip__text {
+  max-width: 11rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* The real control, invisible but hit-testable across the whole chip. */
+.filter-chip__select {
+  appearance: none;
+  border: 0;
+  cursor: pointer;
+  inset: 0;
+  opacity: 0;
+  padding: 0;
+  position: absolute;
+  width: 100%;
+}
+
+.filter-chip:focus-within {
+  box-shadow:
+    0 0 0 2px #fff,
+    0 0 0 4.5px rgb(74 58 128 / 50%);
+}
+
+.filter-more {
+  position: relative;
+}
+
+.filter-more__panel {
+  background: var(--surface);
+  border-radius: var(--radius);
+  box-shadow: var(--e3), var(--lip);
+  display: grid;
+  gap: 0.75rem;
+  grid-template-columns: minmax(0, 1fr);
+  margin-top: 0.375rem;
+  padding: 0.875rem;
+}
+
+/*
+ * Documents table
+ *
+ * One grid per row, restacked rather than replaced on a phone: the same DOM
+ * carries the selection, the link and the status at both sizes.
+ */
+.table-card {
+  background: var(--surface);
+  border-radius: var(--radius);
+  box-shadow: var(--e1), var(--lip);
+  overflow: hidden;
+}
+
+.doc-table {
+  display: flex;
+  flex-direction: column;
+}
+
+.doc-row {
+  align-items: center;
+  column-gap: 0.5rem;
+  display: grid;
+  grid-template-areas:
+    "select doc    total"
+    "select meta   status";
+  grid-template-columns: 1.25rem minmax(0, 1fr) auto;
+  min-height: 4.5rem;
+  padding: 0.625rem 0.75rem;
+  position: relative;
+  row-gap: 0.125rem;
+}
+
+.doc-row + .doc-row {
+  box-shadow: inset 0 1px 0 var(--line);
+}
+
+/* The head is a phone-hostile set of sort buttons; the chips do that job. */
+.doc-row--head {
+  display: none;
+}
+
+.doc-row__select {
+  align-items: center;
+  display: flex;
+  grid-area: select;
+  justify-content: center;
+  /* Above the stretched link so a tick never opens the document. */
+  position: relative;
+  z-index: 1;
+}
+
+.doc-row__doc {
+  align-items: center;
+  display: flex;
+  gap: 0.5625rem;
+  grid-area: doc;
+  min-width: 0;
+}
+
+.doc-row__tile {
+  align-items: center;
+  background: var(--surface-muted);
+  border-radius: 0.4375rem;
+  box-shadow: var(--well);
+  color: var(--ink-faint);
+  display: flex;
+  flex: 0 0 auto;
+  height: 1.625rem;
+  justify-content: center;
+  width: 1.625rem;
+}
+
+.doc-row:hover .doc-row__tile {
+  background: var(--surface);
+  box-shadow: var(--e1), var(--lip);
+  color: var(--accent);
+}
+
+.doc-row__names {
+  min-width: 0;
+}
+
+.doc-row__link {
+  color: var(--ink);
+  display: block;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  overflow: hidden;
+  text-decoration: none;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* Stretched link: one anchor, a whole clickable row, no click handler. */
+.doc-row__link::after {
+  content: "";
+  inset: 0;
+  position: absolute;
+}
+
+.doc-row__sub {
+  color: var(--ink-faint);
+  display: block;
+  font-size: 0.65625rem;
+  margin-top: -0.125rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.doc-row .cell {
+  color: var(--ink-muted);
+  font-size: 0.78125rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* On a phone only the date, the total and the status survive the fold. */
+.doc-row__date {
+  grid-area: meta;
+}
+
+.doc-row__category,
+.doc-row__type,
+.doc-row__vat {
+  display: none;
+}
+
+.doc-row__total {
+  font-size: 0.9375rem;
+  font-weight: 600;
+  grid-area: total;
+  justify-self: end;
+}
+
+.doc-row__status {
+  grid-area: status;
+  justify-self: end;
+}
+
+.doc-row[data-selected] {
+  background: rgb(74 58 128 / 5.5%);
+  box-shadow: inset 2px 0 0 var(--accent);
+}
+
+.doc-sort {
+  align-items: center;
+  background: none;
+  border: 0;
+  cursor: pointer;
+  display: inline-flex;
+  gap: 0.25rem;
+  padding: 0 0.375rem;
+}
+
+.doc-sort:hover {
+  color: var(--ink);
+}
+
+.doc-sort[aria-sort] {
+  color: var(--ink);
+}
+
+.doc-sort--right {
+  justify-content: flex-end;
+  padding-right: 0.875rem;
+}
+
+/*
+ * Table footer
+ *
+ * The count, the page size and the totals belong to the table, so they sit
+ * inside its card on a recessed strip rather than floating under it.
+ */
+.table-foot {
+  align-items: center;
+  background: var(--surface-muted);
+  box-shadow: inset 0 1px 0 var(--line);
+  color: var(--ink-muted);
+  display: flex;
+  flex-wrap: wrap;
+  font-size: 0.71875rem;
+  gap: 0.5rem;
+  padding: 0.5rem 0.75rem;
+}
+
+.table-foot__divider {
+  background: var(--line-strong);
+  height: 1rem;
+  width: 1px;
+}
+
+.table-foot__spacer {
+  flex: 1;
+}
+
+.table-foot__rows {
+  align-items: center;
+  color: var(--ink-faint);
+  display: flex;
+  gap: 0.375rem;
+}
+
+.table-foot__select {
+  background: var(--surface);
+  border: 0;
+  border-radius: 0.375rem;
+  box-shadow: var(--e1), var(--lip);
+  color: var(--ink);
+  cursor: pointer;
+  font: inherit;
+  font-weight: 600;
+  padding: 0.25rem 0.5rem;
+}
+
+.table-foot__label {
+  color: var(--ink-faint);
+}
+
+.table-foot__sum {
+  color: var(--ink);
+  font-size: 0.78125rem;
+  font-weight: 600;
+}
+
+.table-foot__page {
+  color: var(--ink-muted);
+}
+
+.table-foot__step {
+  align-items: center;
+  background: var(--surface);
+  border: 0;
+  border-radius: 0.375rem;
+  box-shadow: var(--e1), var(--lip);
+  color: var(--ink-muted);
+  cursor: pointer;
+  display: flex;
+  height: 1.5rem;
+  justify-content: center;
+  padding: 0;
+  width: 1.5rem;
+}
+
+.table-foot__step:hover:not(:disabled) {
+  box-shadow: var(--e2), var(--lip);
+  color: var(--ink);
+}
+
+.table-foot__step:disabled {
+  background: var(--surface-muted);
+  box-shadow: none;
+  color: var(--ink-faint);
+  cursor: default;
+}
+
+@media (min-width: 48rem) {
+  .filter-search {
+    flex: 0 0 14.5rem;
+    min-height: 1.75rem;
+    order: 0;
+  }
+
+  .filter-bar__spacer {
+    display: block;
+    flex: 1;
+  }
+
+  .filter-chip {
+    min-height: 1.75rem;
+  }
+
+  .filter-more__panel {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    left: 0;
+    margin-top: 0.5rem;
+    position: absolute;
+    top: 100%;
+    width: 26rem;
+    z-index: 5;
+  }
+}
+
+/*
+ * Desktop density: the eight columns of the artboard on one 38px line. Below
+ * this width the same rows stay stacked — a phone gets a 72px card, not a
+ * squeezed table.
+ */
+@media (min-width: 64rem) {
+  .doc-row {
+    grid-template-areas: none;
+    grid-template-columns:
+      2rem minmax(0, 1fr) 5.25rem 6.5rem 8rem
+      5.5rem 6.5rem 7rem;
+    min-height: 2.375rem;
+    padding: 0 0.625rem;
+    row-gap: 0;
+  }
+
+  .doc-row--head {
+    background: var(--surface-muted);
+    box-shadow: var(--well);
+    display: grid;
+    min-height: 1.875rem;
+  }
+
+  .doc-row__category,
+  .doc-row__date,
+  .doc-row__type,
+  .doc-row__vat {
+    display: block;
+    grid-area: auto;
+  }
+
+  .doc-row__doc,
+  .doc-row__select,
+  .doc-row__status,
+  .doc-row__total {
+    grid-area: auto;
+  }
+
+  /* Money columns align under their own right-aligned header label. */
+  .doc-row__total,
+  .doc-row__vat {
+    font-size: 0.78125rem;
+    justify-self: stretch;
+    padding-right: 0.875rem;
+    text-align: right;
+  }
+
+  .doc-row__total {
+    color: var(--ink);
+  }
+
+  .doc-row__status {
+    justify-self: start;
+  }
+
+  .doc-row:hover:not(.doc-row--head):not([data-selected]) {
+    background: var(--surface);
+    border-radius: 9px;
+    box-shadow: var(--e2);
+    z-index: 1;
+  }
 }

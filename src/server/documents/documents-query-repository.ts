@@ -1,9 +1,9 @@
 import "server-only";
 
-import { and, asc, desc, eq, gte, ilike, lte, ne, or, sql } from "drizzle-orm";
+import { and, asc, eq, gte, ilike, lte, ne, or, sql } from "drizzle-orm";
 
 import type { DocumentListQuery } from "../../domain/documents/query";
-import { documentListPageSize } from "../../domain/documents/query";
+import { splitSort } from "../../domain/documents/query";
 import type {
   DocumentStatus,
   DocumentType,
@@ -13,6 +13,7 @@ import { categories, documentFiles, documents, expenses } from "../db/schema";
 
 export type DocumentListRow = {
   categoryName: string | null;
+  documentNumber: string | null;
   id: string;
   mimeType: string | null;
   status: DocumentStatus;
@@ -27,6 +28,8 @@ export type DocumentListResult = {
   page: number;
   pageSize: number;
   rows: DocumentListRow[];
+  /** Sum of every matching row's total, not just this page's. */
+  matchedTotal: string;
   total: number;
 };
 
@@ -74,17 +77,23 @@ function buildWhere(query: DocumentListQuery) {
   return and(...conditions)!;
 }
 
+const sortColumns = {
+  category: categories.name,
+  date: documents.transactionDate,
+  status: documents.status,
+  supplier: expenses.supplierName,
+  total: expenses.total,
+  type: documents.type,
+  vat: expenses.vat,
+} as const;
+
 function orderBy(sort: DocumentListQuery["sort"]) {
-  switch (sort) {
-    case "date-asc":
-      return asc(documents.transactionDate);
-    case "total-asc":
-      return asc(expenses.total);
-    case "total-desc":
-      return desc(expenses.total);
-    default:
-      return desc(documents.transactionDate);
-  }
+  const { column, direction } = splitSort(sort);
+  const target = sortColumns[column] ?? documents.transactionDate;
+  // Nulls last in both directions: an empty cell is never the headline.
+  return direction === "asc"
+    ? sql`${target} asc nulls last`
+    : sql`${target} desc nulls last`;
 }
 
 export class DrizzleDocumentsQueryRepository implements DocumentsQueryRepository {
@@ -92,13 +101,14 @@ export class DrizzleDocumentsQueryRepository implements DocumentsQueryRepository
 
   async list(query: DocumentListQuery): Promise<DocumentListResult> {
     const where = buildWhere(query);
-    const pageSize = documentListPageSize;
+    const pageSize = query.pageSize;
     const offset = (query.page - 1) * pageSize;
 
     const [rows, countRows] = await Promise.all([
       this.database()
         .select({
           categoryName: categories.name,
+          documentNumber: expenses.documentNumber,
           id: documents.id,
           mimeType: documentFiles.mimeType,
           status: documents.status,
@@ -123,13 +133,17 @@ export class DrizzleDocumentsQueryRepository implements DocumentsQueryRepository
         .limit(pageSize)
         .offset(offset),
       this.database()
-        .select({ count: sql<number>`count(*)::int` })
+        .select({
+          count: sql<number>`count(*)::int`,
+          matchedTotal: sql<string>`coalesce(sum(${expenses.total}), 0)::text`,
+        })
         .from(documents)
         .leftJoin(expenses, eq(expenses.documentId, documents.id))
         .where(where),
     ]);
 
     return {
+      matchedTotal: countRows[0]?.matchedTotal ?? "0",
       page: query.page,
       pageSize,
       rows,

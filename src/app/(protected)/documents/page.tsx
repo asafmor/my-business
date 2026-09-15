@@ -7,6 +7,17 @@ import { requireSession } from "../../../server/auth/service";
 
 const repository = new DrizzleDocumentsQueryRepository();
 
+const money = new Intl.NumberFormat("en-US", {
+  maximumFractionDigits: 2,
+  minimumFractionDigits: 2,
+});
+
+function sum(values: (string | null)[]): string {
+  return money.format(
+    values.reduce((running, value) => running + Number(value ?? 0), 0),
+  );
+}
+
 export default async function DocumentsPage({
   searchParams,
 }: {
@@ -14,30 +25,29 @@ export default async function DocumentsPage({
 }) {
   await requireSession();
 
-  const rawParams = await searchParams;
-  const query = parseDocumentListQuery(rawParams);
-  const [{ page, pageSize, rows, total }, categories] = await Promise.all([
-    repository.list(query),
-    repository.listActiveCategories(),
-  ]);
-
-  const urlParams = new URLSearchParams();
-  for (const [key, value] of Object.entries(rawParams)) {
-    if (key === "page") continue;
-    const first = Array.isArray(value) ? value[0] : value;
-    if (first) urlParams.set(key, first);
-  }
+  const query = parseDocumentListQuery(await searchParams);
+  const [{ matchedTotal, page, pageSize, rows, total }, categories] =
+    await Promise.all([
+      repository.list(query),
+      repository.listActiveCategories(),
+    ]);
 
   return (
     <div className="page">
       <DocumentFilters categories={categories} query={query} />
-      <DocumentsTable rows={rows} />
-      <Pagination
-        page={page}
-        pageSize={pageSize}
-        params={urlParams}
-        total={total}
-      />
+      {/* One card holds the rows and the footer, so the pager reads as part of
+          the table rather than as loose page furniture. */}
+      <div className="table-card">
+        <DocumentsTable categories={categories} rows={rows} sort={query.sort} />
+        <Pagination
+          matchedTotal={sum([matchedTotal])}
+          page={page}
+          pageSize={pageSize}
+          pageTotal={sum(rows.map((row) => row.total))}
+          rowCount={rows.length}
+          total={total}
+        />
+      </div>
     </div>
   );
 }

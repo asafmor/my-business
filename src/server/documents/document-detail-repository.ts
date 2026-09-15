@@ -1,6 +1,6 @@
 import "server-only";
 
-import { and, asc, desc, eq, ne } from "drizzle-orm";
+import { and, asc, desc, eq, inArray, ne } from "drizzle-orm";
 
 import type {
   AuditEvent,
@@ -47,6 +47,7 @@ export interface DocumentDetailRepository {
   getDetail(documentId: string): Promise<DocumentDetail | null>;
   markReviewed(documentId: string): Promise<boolean>;
   saveEdit(input: DocumentEditInput): Promise<void>;
+  setCategory(documentIds: string[], categoryId: string): Promise<number>;
 }
 
 function isManualField(field: string | null): field is string {
@@ -291,6 +292,80 @@ export class DrizzleDocumentDetailRepository implements DocumentDetailRepository
         source: "USER",
       });
       return true;
+    });
+  }
+
+  /**
+   * Files a batch of documents under one category in a single transaction, so a
+   * half-applied bulk edit is impossible. Documents without an expense row yet
+   * get one, matching what saveEdit does for a single document.
+   */
+  async setCategory(
+    documentIds: string[],
+    categoryId: string,
+  ): Promise<number> {
+    if (documentIds.length === 0) return 0;
+
+    return this.database().transaction(async (transaction) => {
+      const existing = await transaction
+        .select({
+          categoryId: expenses.categoryId,
+          documentId: expenses.documentId,
+          id: expenses.id,
+        })
+        .from(expenses)
+        .where(inArray(expenses.documentId, documentIds))
+        .for("update");
+
+      const changed = existing.filter((row) => row.categoryId !== categoryId);
+      if (changed.length > 0) {
+        await transaction
+          .update(expenses)
+          .set({ categoryId })
+          .where(
+            inArray(
+              expenses.id,
+              changed.map((row) => row.id),
+            ),
+          );
+      }
+
+      const missing = documentIds.filter(
+        (id) => !existing.some((row) => row.documentId === id),
+      );
+      const created =
+        missing.length > 0
+          ? await transaction
+              .insert(expenses)
+              .values(
+                missing.map((documentId) => ({
+                  ...defaultEditableExpenseFields,
+                  categoryId,
+                  documentId,
+                })),
+              )
+              .returning({ id: expenses.id })
+          : [];
+
+      const audited = [
+        ...changed.map((row) => ({ id: row.id, oldValue: row.categoryId })),
+        ...created.map((row) => ({ id: row.id, oldValue: null })),
+      ];
+      if (audited.length > 0) {
+        await transaction.insert(auditEvents).values(
+          audited.map((row) => ({
+            action: "CATEGORY_CHANGE" as const,
+            entityId: row.id,
+            entityType: "EXPENSE" as const,
+            field: "category",
+            newValue: categoryId,
+            oldValue: row.oldValue,
+            source: "USER" as const,
+          })),
+        );
+      }
+
+      return audited.length;
     });
   }
 

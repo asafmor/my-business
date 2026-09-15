@@ -19,6 +19,7 @@ import {
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
+  Suspense,
   useEffect,
   useRef,
   useState,
@@ -27,6 +28,7 @@ import {
 } from "react";
 
 import { logoutAction } from "../../app/(protected)/actions";
+import { NavigationProgress } from "./navigation-progress";
 import { UploadTray } from "../uploads/upload-tray";
 import {
   UploadTrayProvider,
@@ -293,7 +295,7 @@ function WorkspaceMark({
         title={isCollapsed ? "Expand sidebar" : "Collapse sidebar"}
         type="button"
       >
-        <PanelLeft aria-hidden size={14} strokeWidth={1.7} />
+        <PanelLeft aria-hidden size={18} strokeWidth={1.7} />
       </button>
     </div>
   );
@@ -469,6 +471,11 @@ export function AppShell({ children }: { children: ReactNode }) {
                 </Link>
               </div>
             </header>
+            {/* Suspense: useSearchParams inside must not opt a route out of
+                static rendering just to report that it is loading. */}
+            <Suspense fallback={null}>
+              <NavigationProgress />
+            </Suspense>
             <main className="app-main" id="main-content" tabIndex={-1}>
               {children}
             </main>

@@ -34,12 +34,19 @@ describe("parseDocumentListQuery", () => {
       dateTo: null,
       month: null,
       page: 1,
+      pageSize: 25,
       q: null,
       sort: "date-desc",
       status: null,
       supplier: null,
       type: null,
     });
+  });
+
+  it("only accepts a page size the footer actually offers", () => {
+    expect(parseDocumentListQuery({ pageSize: "50" }).pageSize).toBe(50);
+    expect(parseDocumentListQuery({ pageSize: "10000" }).pageSize).toBe(25);
+    expect(parseDocumentListQuery({ pageSize: "abc" }).pageSize).toBe(25);
   });
 
   it("parses valid values, including array search params (uses first)", () => {
@@ -92,6 +99,7 @@ describe("parseDocumentListQuery", () => {
       dateTo: null,
       month: null,
       page: 1,
+      pageSize: 25,
       q: null,
       sort: "date-desc",
       status: null,
