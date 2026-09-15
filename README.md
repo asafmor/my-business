@@ -140,6 +140,22 @@ directly.
 Cloud resource boundaries, secret scopes, provisioning steps, and smoke checks
 are documented in [docs/CLOUD_FOUNDATION.md](docs/CLOUD_FOUNDATION.md).
 
+## Deployment
+
+Vercel auto-deploys `main` to Production on every push; `vercel.json`'s
+`git.deploymentEnabled` and `ignoreCommand` disable builds for every other
+branch, so there is no separate deploy step or manual promotion. Per
+[CONTRIBUTING.md](CONTRIBUTING.md)'s branch strategy, changes reach `main`
+only through a reviewed pull request that requires CI
+(`.github/workflows/ci.yml`: typecheck, lint, test, build) to pass, so that
+suite effectively gates what Vercel deploys.
+
+After a deploy, confirm the environment boots correctly using
+[docs/RESTORE.md](docs/RESTORE.md) step 7's checks. See
+[docs/CLOUD_FOUNDATION.md](docs/CLOUD_FOUNDATION.md) for the underlying
+Vercel/Neon/R2/B2 project setup, which is a one-time operation, not part of
+routine deployment.
+
 ## Contributing
 
 The repository uses npm and commits its lockfile. Keep pull requests focused,
