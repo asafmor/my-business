@@ -2,6 +2,7 @@ import {
   Archive,
   ArrowLeft,
   CircleAlert,
+  CircleCheck,
   LoaderCircle,
   TriangleAlert,
 } from "lucide-react";
@@ -165,11 +166,18 @@ export default async function DocumentDetailPage({
                 </span>
               ))}
               {detail.document.reviewedAt ? (
-                <span className="record-header__meta-item">
+                <span className="record-header__meta-item record-header__meta-item--reviewed">
                   Reviewed <LocalDateTime value={detail.document.reviewedAt} />
                 </span>
               ) : null}
             </p>
+            {/* A phone wraps the meta line; the review gets its own chip there. */}
+            {detail.document.reviewedAt ? (
+              <span className="record-header__reviewed">
+                <CircleCheck aria-hidden size={12} strokeWidth={2.2} />
+                Reviewed <LocalDateTime value={detail.document.reviewedAt} />
+              </span>
+            ) : null}
           </div>
           <div className="record-header__amount">
             <span className="lbl">Total</span>
