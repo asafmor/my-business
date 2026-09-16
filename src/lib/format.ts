@@ -48,6 +48,22 @@ export function formatDate(value: string | Date | null): string {
   return date.toLocaleDateString("en-CA", { timeZone: "UTC" });
 }
 
+/*
+ * Storage sizes, in the decimal units the cloud providers bill in - a 10 GB
+ * free tier means 10,000,000,000 bytes, not 10 GiB, and a meter that rounds
+ * the other way reads low against the invoice.
+ */
+export function formatBytes(value: number): string {
+  const units = ["B", "KB", "MB", "GB", "TB"];
+  let size = Math.max(0, value);
+  let unit = 0;
+  while (size >= 1000 && unit < units.length - 1) {
+    size /= 1000;
+    unit += 1;
+  }
+  return `${size.toFixed(unit === 0 ? 0 : 1)} ${units[unit]}`;
+}
+
 export function formatDateTime(value: Date | null): string {
   if (!value) return "—";
   return value.toLocaleString("en-CA");
