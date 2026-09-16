@@ -17,6 +17,7 @@ function chain(result: unknown) {
   const obj: Record<string, unknown> = {};
   for (const method of [
     "from",
+    "orderBy",
     "where",
     "limit",
     "for",
@@ -33,6 +34,7 @@ function chain(result: unknown) {
     for: ReturnType<typeof vi.fn>;
     from: ReturnType<typeof vi.fn>;
     limit: ReturnType<typeof vi.fn>;
+    orderBy: ReturnType<typeof vi.fn>;
     returning: ReturnType<typeof vi.fn>;
     set: ReturnType<typeof vi.fn>;
     values: ReturnType<typeof vi.fn>;
@@ -101,8 +103,8 @@ describe("DrizzleDocumentDetailRepository.markReviewed", () => {
 });
 
 describe("DrizzleDocumentDetailRepository.archive", () => {
-  it("archives a document and audits an ARCHIVE event", async () => {
-    const transaction = createTransaction([], [{ id: documentId }]);
+  it("archives a document and records the status it is reversing", async () => {
+    const transaction = createTransaction([{ status: "READY" }]);
     const database = {
       transaction: vi.fn(async (callback) => callback(transaction)),
     };
@@ -112,18 +114,20 @@ describe("DrizzleDocumentDetailRepository.archive", () => {
 
     await expect(repository.archive(documentId)).resolves.toBe(true);
 
+    expect(transaction.updateChain.set).toHaveBeenCalledWith({
+      status: "ARCHIVED",
+    });
     expect(transaction.insertChain.values).toHaveBeenCalledWith(
       expect.objectContaining({
         action: "ARCHIVE",
-        entityId: documentId,
-        entityType: "DOCUMENT",
-        source: "USER",
+        newValue: "ARCHIVED",
+        oldValue: "READY",
       }),
     );
   });
 
-  it("returns false when the document was already archived (nothing matched)", async () => {
-    const transaction = createTransaction([], []);
+  it("does not archive a document that is already archived", async () => {
+    const transaction = createTransaction([{ status: "ARCHIVED" }]);
     const database = {
       transaction: vi.fn(async (callback) => callback(transaction)),
     };
@@ -132,6 +136,101 @@ describe("DrizzleDocumentDetailRepository.archive", () => {
     );
 
     await expect(repository.archive(documentId)).resolves.toBe(false);
+    expect(transaction.update).not.toHaveBeenCalled();
+    expect(transaction.insert).not.toHaveBeenCalled();
+  });
+});
+
+/** unarchive() reads the document and then the audit trail, so each select
+    needs to answer with its own result. */
+function createRestoreTransaction(selectResults: unknown[][]) {
+  const chains = selectResults.map((result) => chain(result));
+  const updateChain = chain([]);
+  const insertChain = chain(undefined);
+  let call = 0;
+  return {
+    insert: vi.fn(() => insertChain),
+    insertChain,
+    select: vi.fn(() => chains[call++] ?? chain([])),
+    update: vi.fn(() => updateChain),
+    updateChain,
+  };
+}
+
+describe("DrizzleDocumentDetailRepository.unarchive", () => {
+  it("restores the status the document held before it was archived", async () => {
+    const transaction = createRestoreTransaction([
+      [{ status: "ARCHIVED" }],
+      [{ oldValue: "READY" }],
+    ]);
+    const database = {
+      transaction: vi.fn(async (callback) => callback(transaction)),
+    };
+    const repository = new DrizzleDocumentDetailRepository(
+      (() => database) as never,
+    );
+
+    await expect(repository.unarchive(documentId)).resolves.toBe(true);
+
+    expect(transaction.updateChain.set).toHaveBeenCalledWith({
+      status: "READY",
+    });
+    expect(transaction.insertChain.values).toHaveBeenCalledWith(
+      expect.objectContaining({
+        action: "UNARCHIVE",
+        newValue: "READY",
+        oldValue: "ARCHIVED",
+      }),
+    );
+  });
+
+  it("falls back to NEEDS_REVIEW when no earlier status was recorded", async () => {
+    const transaction = createRestoreTransaction([
+      [{ status: "ARCHIVED" }],
+      [],
+    ]);
+    const database = {
+      transaction: vi.fn(async (callback) => callback(transaction)),
+    };
+    const repository = new DrizzleDocumentDetailRepository(
+      (() => database) as never,
+    );
+
+    await expect(repository.unarchive(documentId)).resolves.toBe(true);
+    expect(transaction.updateChain.set).toHaveBeenCalledWith({
+      status: "NEEDS_REVIEW",
+    });
+  });
+
+  it("never restores a document back into ARCHIVED", async () => {
+    const transaction = createRestoreTransaction([
+      [{ status: "ARCHIVED" }],
+      [{ oldValue: "ARCHIVED" }],
+    ]);
+    const database = {
+      transaction: vi.fn(async (callback) => callback(transaction)),
+    };
+    const repository = new DrizzleDocumentDetailRepository(
+      (() => database) as never,
+    );
+
+    await expect(repository.unarchive(documentId)).resolves.toBe(true);
+    expect(transaction.updateChain.set).toHaveBeenCalledWith({
+      status: "NEEDS_REVIEW",
+    });
+  });
+
+  it("does nothing to a document that is not archived", async () => {
+    const transaction = createRestoreTransaction([[{ status: "READY" }]]);
+    const database = {
+      transaction: vi.fn(async (callback) => callback(transaction)),
+    };
+    const repository = new DrizzleDocumentDetailRepository(
+      (() => database) as never,
+    );
+
+    await expect(repository.unarchive(documentId)).resolves.toBe(false);
+    expect(transaction.update).not.toHaveBeenCalled();
     expect(transaction.insert).not.toHaveBeenCalled();
   });
 });

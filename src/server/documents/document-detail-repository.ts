@@ -1,13 +1,16 @@
 import "server-only";
 
-import { and, asc, desc, eq, inArray, ne } from "drizzle-orm";
+import { and, asc, desc, eq, inArray } from "drizzle-orm";
 
+import { documentStatuses } from "../../domain/documents/types";
 import type {
   AuditEvent,
   Document,
   DocumentFile,
+  DocumentStatus,
   DocumentType,
   Extraction,
+  JsonValue,
 } from "../../domain/documents/types";
 import {
   defaultEditableExpenseFields,
@@ -44,10 +47,25 @@ export type DocumentEditInput = EditableExpenseFields & {
 
 export interface DocumentDetailRepository {
   archive(documentId: string): Promise<boolean>;
+  unarchive(documentId: string): Promise<boolean>;
   getDetail(documentId: string): Promise<DocumentDetail | null>;
   markReviewed(documentId: string): Promise<boolean>;
   saveEdit(input: DocumentEditInput): Promise<void>;
   setCategory(documentIds: string[], categoryId: string): Promise<number>;
+}
+
+/**
+ * Documents archived before the previous status was recorded, and any value no
+ * longer in the enum, come back as NEEDS_REVIEW: a restored document is worth
+ * a glance rather than silently counting towards reports again.
+ */
+function restoredStatus(recorded: JsonValue | undefined): DocumentStatus {
+  const known =
+    typeof recorded === "string" &&
+    (documentStatuses as readonly string[]).includes(recorded);
+  return known && recorded !== "ARCHIVED"
+    ? (recorded as DocumentStatus)
+    : "NEEDS_REVIEW";
 }
 
 function isManualField(field: string | null): field is string {
@@ -371,19 +389,67 @@ export class DrizzleDocumentDetailRepository implements DocumentDetailRepository
 
   async archive(documentId: string): Promise<boolean> {
     return this.database().transaction(async (transaction) => {
-      const [updated] = await transaction
+      const [document] = await transaction
+        .select({ status: documents.status })
+        .from(documents)
+        .where(eq(documents.id, documentId))
+        .limit(1)
+        .for("update");
+      if (!document || document.status === "ARCHIVED") return false;
+
+      await transaction
         .update(documents)
         .set({ status: "ARCHIVED" })
-        .where(
-          and(eq(documents.id, documentId), ne(documents.status, "ARCHIVED")),
-        )
-        .returning({ id: documents.id });
-      if (!updated) return false;
-
+        .where(eq(documents.id, documentId));
+      // oldValue is what unarchive() reads back, so the status the user had
+      // before archiving is what makes the action reversible.
       await transaction.insert(auditEvents).values({
         action: "ARCHIVE",
         entityId: documentId,
         entityType: "DOCUMENT",
+        newValue: "ARCHIVED",
+        oldValue: document.status,
+        source: "USER",
+      });
+      return true;
+    });
+  }
+
+  /** Puts an archived document back into the status it held before archiving. */
+  async unarchive(documentId: string): Promise<boolean> {
+    return this.database().transaction(async (transaction) => {
+      const [document] = await transaction
+        .select({ status: documents.status })
+        .from(documents)
+        .where(eq(documents.id, documentId))
+        .limit(1)
+        .for("update");
+      if (!document || document.status !== "ARCHIVED") return false;
+
+      const [lastArchive] = await transaction
+        .select({ oldValue: auditEvents.oldValue })
+        .from(auditEvents)
+        .where(
+          and(
+            eq(auditEvents.entityType, "DOCUMENT"),
+            eq(auditEvents.entityId, documentId),
+            eq(auditEvents.action, "ARCHIVE"),
+          ),
+        )
+        .orderBy(desc(auditEvents.createdAt))
+        .limit(1);
+
+      const status = restoredStatus(lastArchive?.oldValue);
+      await transaction
+        .update(documents)
+        .set({ status })
+        .where(eq(documents.id, documentId));
+      await transaction.insert(auditEvents).values({
+        action: "UNARCHIVE",
+        entityId: documentId,
+        entityType: "DOCUMENT",
+        newValue: status,
+        oldValue: "ARCHIVED",
         source: "USER",
       });
       return true;

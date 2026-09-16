@@ -5,6 +5,7 @@ import {
   markReviewedAction,
   reprocessDocumentAction,
   saveDocumentEditAction,
+  unarchiveDocumentAction,
 } from "./actions";
 import { DocumentEditForm } from "../../../../components/documents/document-edit-form";
 import { formatAuditChange } from "../../../../domain/documents/audit-change";
@@ -138,11 +139,19 @@ export default async function DocumentDetailPage({
                 Reprocess
               </button>
             </form>
-            <form action={archiveDocumentAction.bind(null, id)}>
-              <button className="button button--secondary" type="submit">
-                Archive
-              </button>
-            </form>
+            {detail.document.status === "ARCHIVED" ? (
+              <form action={unarchiveDocumentAction.bind(null, id)}>
+                <button className="button button--secondary" type="submit">
+                  Restore
+                </button>
+              </form>
+            ) : (
+              <form action={archiveDocumentAction.bind(null, id)}>
+                <button className="button button--secondary" type="submit">
+                  Archive
+                </button>
+              </form>
+            )}
           </div>
         </div>
       </div>

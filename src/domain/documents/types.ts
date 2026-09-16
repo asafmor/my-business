@@ -46,6 +46,7 @@ export const auditActions = [
   "CATEGORY_CHANGE",
   "REVIEW",
   "ARCHIVE",
+  "UNARCHIVE",
   "REPORT_GENERATION",
 ] as const;
 

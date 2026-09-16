@@ -68,3 +68,17 @@ export async function archiveDocumentsAction(
   }
   return done();
 }
+
+export async function unarchiveDocumentsAction(
+  documentIds: readonly string[],
+): Promise<DocumentActionResult> {
+  await requireSession();
+  const ids = validIds(documentIds);
+  if (ids.length === 0) return { error: "Select at least one document." };
+
+  for (const id of ids) {
+    await repository.unarchive(id);
+    revalidatePath(`/documents/${id}`);
+  }
+  return done();
+}
