@@ -74,6 +74,12 @@ describe("documents table", () => {
     expect(markup).toContain("Select all documents on this page");
   });
 
+  it("makes the whole select cell the checkbox's hit area", () => {
+    const markup = render([row({ id: "a" })]);
+
+    expect(markup.match(/<label class="doc-row__select">/g)).toHaveLength(2);
+  });
+
   it("offers the row's own verbs without opening the document", () => {
     const markup = render([row({ id: "a", supplierName: "Acme" })]);
 
