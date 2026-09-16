@@ -98,6 +98,9 @@ export async function POST(request: Request): Promise<NextResponse> {
       contentLength: request.headers.get("content-length"),
       contentType: request.headers.get("content-type"),
       fields: describeFields(formData),
+      // Chrome and Android versions decide which known share bugs apply, and
+      // this is the only place the device identifies itself.
+      userAgent: request.headers.get("user-agent"),
     });
     return seeOther(request, "/upload?share=empty");
   }
