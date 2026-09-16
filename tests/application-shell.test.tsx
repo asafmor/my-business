@@ -254,7 +254,7 @@ describe("application UI states", () => {
       </UploadTrayProvider>,
     );
 
-    expect(markup).toContain("Add originals securely");
+    expect(markup).toContain("Drop files here");
     expect(markup).toContain(
       'accept="image/jpeg,image/png,image/webp,application/pdf"',
     );

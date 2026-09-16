@@ -1,11 +1,18 @@
 "use client";
 
+import { Camera, FolderOpen, Upload } from "lucide-react";
 import { useRef, useState, type ChangeEvent, type DragEvent } from "react";
 
 import { useUploadTray } from "../uploads/upload-tray-provider";
 
 const acceptedMimeTypes = "image/jpeg,image/png,image/webp,application/pdf";
 
+/*
+ * The zone is the whole screen: one drop target on desktop, one capture card on
+ * mobile whose primary action is the camera. Everything the tray already says —
+ * progress, duplicates, failures — stays in the tray rather than being repeated
+ * here as reassurance copy.
+ */
 export function UploadForm() {
   const { addFiles } = useUploadTray();
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -25,17 +32,24 @@ export function UploadForm() {
     addFiles(event.dataTransfer.files);
   }
 
+  /* The buttons are the keyboard path; the zone's own click is a bonus one, so
+     a click on a button must not open a second picker behind it. */
+  function openPicker(
+    event: { stopPropagation: () => void },
+    input: HTMLInputElement | null,
+  ): void {
+    event.stopPropagation();
+    input?.click();
+  }
+
   return (
-    <section aria-labelledby="upload-panel-title" className="upload-panel">
-      <div className="upload-panel__intro">
-        <h2 id="upload-panel-title">Add originals securely</h2>
-        <p>JPEG, PNG, WebP, or PDF. Each file can be up to 10 MB.</p>
-      </div>
+    <div className="upload-stage">
       <div
-        aria-label="Drop documents here"
+        aria-label="Add documents"
         className={
           isDragging ? "upload-dropzone is-dragging" : "upload-dropzone"
         }
+        onClick={() => fileInputRef.current?.click()}
         onDragEnter={(event) => {
           event.preventDefault();
           setIsDragging(true);
@@ -48,28 +62,42 @@ export function UploadForm() {
         onDragOver={(event) => event.preventDefault()}
         onDrop={handleDrop}
       >
-        <p>Drag files here, or choose them from your device.</p>
+        <span aria-hidden="true" className="upload-dropzone__mark">
+          <Upload size={22} strokeWidth={1.9} />
+        </span>
+        <p className="upload-dropzone__lead">Drop files here</p>
+        <p className="upload-dropzone__lead upload-dropzone__lead--touch">
+          Add a document
+        </p>
         <div className="upload-dropzone__actions">
           <button
-            className="button button--primary"
-            onClick={() => fileInputRef.current?.click()}
+            className="button button--primary upload-dropzone__camera"
+            onClick={(event) => openPicker(event, cameraInputRef.current)}
             type="button"
           >
-            Choose files
+            <Camera aria-hidden size={16} strokeWidth={1.9} />
+            <span>Take photo</span>
           </button>
           <button
             className="button button--secondary"
-            onClick={() => cameraInputRef.current?.click()}
+            onClick={(event) => openPicker(event, fileInputRef.current)}
             type="button"
           >
-            Take photo
+            <FolderOpen aria-hidden size={16} strokeWidth={1.9} />
+            <span>Choose files</span>
           </button>
         </div>
+        <p className="upload-dropzone__formats">
+          JPEG · PNG · WebP · PDF · max 10 MB
+        </p>
+        {/* input.click() dispatches a bubbling click; without this it would
+            reach the zone and open a second picker — or loop. */}
         <input
           accept={acceptedMimeTypes}
           className="sr-only"
           multiple
           onChange={handlePickerChange}
+          onClick={(event) => event.stopPropagation()}
           ref={fileInputRef}
           type="file"
         />
@@ -78,15 +106,11 @@ export function UploadForm() {
           capture="environment"
           className="sr-only"
           onChange={handlePickerChange}
+          onClick={(event) => event.stopPropagation()}
           ref={cameraInputRef}
           type="file"
         />
       </div>
-      <p className="upload-panel__note">
-        You can continue working as each file finishes. Uploaded originals are
-        saved immediately and are not changed by later processing. Track
-        progress in the upload tray.
-      </p>
-    </section>
+    </div>
   );
 }

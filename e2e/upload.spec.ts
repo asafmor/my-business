@@ -19,7 +19,7 @@ test("a valid file uploads and reaches a processing state", async ({
 }) => {
   await page.goto("/upload");
   await page
-    .getByLabel("Drop documents here")
+    .getByLabel("Add documents")
     .locator('input[type="file"]:not([capture])')
     .setInputFiles({
       buffer: minimalPdf,
@@ -39,7 +39,7 @@ test("an unsupported file is rejected with a clear message", async ({
 }) => {
   await page.goto("/upload");
   await page
-    .getByLabel("Drop documents here")
+    .getByLabel("Add documents")
     .locator('input[type="file"]:not([capture])')
     .setInputFiles({
       buffer: Buffer.from("just some text, not a document"),
