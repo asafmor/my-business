@@ -151,7 +151,7 @@ describe("share target route", () => {
     const formData = new FormData();
     formData.append("title", "Receipt");
     const response = await POST(
-      new Request("https://app.example/share-target", {
+      new Request("https://app.example/share-target?v=5", {
         body: formData,
         method: "POST",
       }),
@@ -160,7 +160,18 @@ describe("share target route", () => {
     expect(location(response)).toBe("/upload?share=empty");
     expect(logger.logWarning).toHaveBeenCalledWith(
       "share_target.no_files",
-      expect.objectContaining({ fields: "title:text(7)" }),
+      expect.objectContaining({ fields: "title:text(7)", template: "5" }),
+    );
+  });
+
+  it("reports a device whose WebAPK predates the version marker", async () => {
+    upload.uploadDocumentFiles.mockResolvedValue([]);
+
+    await POST(shareRequest([]));
+
+    expect(logger.logWarning).toHaveBeenCalledWith(
+      "share_target.no_files",
+      expect.objectContaining({ template: "pre-marker" }),
     );
   });
 

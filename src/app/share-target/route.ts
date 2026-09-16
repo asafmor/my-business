@@ -58,6 +58,16 @@ function describeFields(formData: FormData): string {
   return fields.length > 0 ? fields.join(" ") : "none";
 }
 
+/*
+ * Which template the device actually holds. The WebAPK bakes the manifest's
+ * action URL in at mint time, so this marker identifies the manifest version
+ * the phone is running rather than the one the server is serving. Absent means
+ * a WebAPK minted before the marker existed.
+ */
+function templateVersion(request: Request): string {
+  return new URL(request.url).searchParams.get("v") ?? "pre-marker";
+}
+
 export async function POST(request: Request): Promise<NextResponse> {
   try {
     await requireRequestSession(request);
@@ -78,6 +88,7 @@ export async function POST(request: Request): Promise<NextResponse> {
     logError("share_target.unreadable", error, {
       contentLength: request.headers.get("content-length"),
       contentType: request.headers.get("content-type"),
+      template: templateVersion(request),
     });
     return seeOther(request, "/upload?share=unreadable");
   }
@@ -98,6 +109,7 @@ export async function POST(request: Request): Promise<NextResponse> {
       contentLength: request.headers.get("content-length"),
       contentType: request.headers.get("content-type"),
       fields: describeFields(formData),
+      template: templateVersion(request),
       // Chrome and Android versions decide which known share bugs apply, and
       // this is the only place the device identifies itself.
       userAgent: request.headers.get("user-agent"),

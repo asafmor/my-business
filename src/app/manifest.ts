@@ -37,7 +37,7 @@ export default function manifest(): MetadataRoute.Manifest {
      * Consequence: any future share_target change needs this string (or
      * another fingerprinted member) nudged as well, or it will not ship.
      */
-    name: "My Business Files",
+    name: "My Business Share",
     scope: "/",
     /*
      * Mirrors the shape of Google's Scrapbook demo, the reference share target
@@ -56,9 +56,16 @@ export default function manifest(): MetadataRoute.Manifest {
      *
      * title/text/url are declared so a link-only share still reaches the server
      * and can say what it was.
+     *
+     * The ?v= marker is the important part for debugging. A WebAPK bakes this
+     * action URL in at mint time, so the version the device posts to is the
+     * version of the template it actually holds — the one thing that was
+     * impossible to tell from the server while three rounds were spent unsure
+     * whether a manifest change had reached the phone at all. Bump it with any
+     * share_target change, alongside name, which is what forces the re-mint.
      */
     share_target: {
-      action: "/share-target",
+      action: "/share-target?v=7",
       enctype: "multipart/form-data",
       method: "POST",
       params: {

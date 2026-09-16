@@ -27,7 +27,12 @@ describe("web app manifest", () => {
   it("offers the share sheet exactly the file types ingestion accepts", () => {
     const share = manifest().share_target;
 
-    expect(share?.action).toBe("/share-target");
+    /*
+     * The version marker rides along in the action URL a WebAPK bakes in at
+     * mint time, so the server can tell which template a device is holding.
+     * Bump it with every share_target change.
+     */
+    expect(share?.action).toMatch(/^\/share-target\?v=\d+$/);
     expect(share?.method).toBe("POST");
     expect(share?.enctype).toBe("multipart/form-data");
 
