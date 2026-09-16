@@ -105,6 +105,7 @@ vi.mock("../src/server/storage/object-storage", () => ({
   getR2ObjectStorage: vi.fn(() => ({})),
 }));
 vi.mock("../src/server/settings/status", () => ({
+  backupBadgeTone: () => "neutral",
   checkDatabaseStatus: vi.fn().mockResolvedValue({ detail: "ok", ok: true }),
   checkLastBackupStatus: vi
     .fn()

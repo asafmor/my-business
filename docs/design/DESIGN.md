@@ -206,6 +206,10 @@ Never paint fake status bars or phone chrome. Reserve the space, leave it empty.
       bar, whole row a stretched link to the document
 - [x] Navigation indicator — a floating "Loading…" pill under the header,
       delayed 180ms so a prefetched route never flashes it
+- [x] Settings — its own page rather than the dashboard grid: a read-only
+      status panel (three-way backup badge, cream only when a backup has gone
+      stale), labelled action rows with the control right-aligned, and a spec
+      list of build facts; the one primary action is "Re-check"
 - [ ] Mobile review flow — the full "finish it at a bus stop" task screen
 - [ ] Reports and document detail
 
