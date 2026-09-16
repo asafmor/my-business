@@ -28,7 +28,7 @@ function shareNotice(params: Params) {
   if (reason === "empty") {
     return {
       description:
-        "Nothing supported arrived. Share a JPEG, PNG, WebP, or PDF, or add the file below.",
+        "The share reached the app but carried no file. Some apps share a link instead of the file itself — try sharing from Files, or add the file below.",
       title: "No files were shared",
     };
   }

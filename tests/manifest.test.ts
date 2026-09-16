@@ -29,11 +29,16 @@ describe("web app manifest", () => {
     expect(files).toHaveLength(1);
     expect(files[0]?.name).toBe("files");
     /*
-     * MIME types, and exactly the ones ingestion accepts. Chrome matches a
-     * shared file's resolved type against this list to pick a form field and
-     * drops files it cannot place, so a stray extension entry here is a share
-     * that silently arrives empty.
+     * Wider than ingestion accepts, on purpose: Chrome drops a shared file it
+     * cannot match to a form field, and Android apps routinely hand out a PDF
+     * as application/octet-stream. Magic-byte validation is what keeps the
+     * wider net safe, so the real types must all still be offered.
      */
-    expect([files[0]?.accept ?? []].flat()).toEqual([...allowedFileMimeTypes]);
+    const accept = [files[0]?.accept ?? []].flat();
+    expect(accept).toEqual(expect.arrayContaining([...allowedFileMimeTypes]));
+    expect(accept).toContain("application/octet-stream");
+
+    // A link-only share must reach the server too, so it can explain itself.
+    expect(share?.params.text).toBe("text");
   });
 });
