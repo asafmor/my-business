@@ -387,8 +387,8 @@ export function DocumentDetails({
           </h2>
           <p className="detail-card__note">
             {flaggedCount > 0
-              ? `${flaggedCount} ${flaggedCount === 1 ? "field needs" : "fields need"} a look. Correct anything that reads wrong.`
-              : "What was read from the document. Correct anything that reads wrong."}
+              ? `${flaggedCount} ${flaggedCount === 1 ? "field needs" : "fields need"} a look. Fix what is wrong.`
+              : "Read by AI. Fix what is wrong."}
           </p>
         </div>
         {!editing ? (
