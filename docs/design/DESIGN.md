@@ -210,6 +210,10 @@ Never paint fake status bars or phone chrome. Reserve the space, leave it empty.
       status panel (three-way backup badge, cream only when a backup has gone
       stale), labelled action rows with the control right-aligned, and a spec
       list of build facts; the one primary action is "Re-check"
+- [x] Upload screen — one centred zone and nothing else: a dashed well that is
+      the whole drop target on desktop, a capture card whose primary action is
+      the camera on mobile. The reassurance copy went to the tray, which was
+      already saying it
 - [ ] Mobile review flow — the full "finish it at a bus stop" task screen
 - [ ] Reports and document detail
 
