@@ -65,7 +65,7 @@ test("correct-field: editing a field persists it and marks it edited", async ({
     "Corrected Supplier Ltd",
   );
   await expect(
-    page.locator('label[for="supplierName"]').getByText("Edited"),
+    page.locator('label[for="supplierName"] .details-edited'),
   ).toBeVisible();
   await expect(page.getByText("Supplier changed")).toBeVisible();
 });
@@ -81,7 +81,15 @@ test("categorize-expense: assigning a category persists across reload", async ({
 
   await page.goto(`/documents/${seeded.id}`);
   await startEditing(page);
-  await page.selectOption("#categoryId", category!.id);
+  // Desktop draws its own menu over a hidden native select; a phone shows
+  // the native select itself.
+  const trigger = page.locator("#categoryId ~ .form-select__trigger");
+  if (await trigger.isVisible()) {
+    await trigger.click();
+    await page.getByRole("option", { name: category!.name }).click();
+  } else {
+    await page.selectOption("#categoryId", category!.id);
+  }
   await save(page);
 
   await page.reload();

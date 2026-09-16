@@ -217,7 +217,9 @@ Never paint fake status bars or phone chrome. Reserve the space, leave it empty.
 - [x] Document detail — a record page: back link, supplier, status badge and
       the total at metric size, then the one primary verb for the status
       (Mark reviewed / Read again / Restore); the original sticky beside a
-      grouped details form with review flags in cream and "Edited" tags; an
+      grouped details form with review flags in cream, a pencil beside a
+      hand-corrected label, and dropdowns that open the filter bar's own
+      menu on desktop (native pickers on a phone); an
       activity timeline with before → after; the debug drawer folded at the
       foot. On a phone the details are a read-first fact list that opens into
       the form with a sticky Cancel/Save bar above the tab bar. Timestamps

@@ -1180,6 +1180,7 @@ input:disabled {
   font-size: 0.75rem;
 }
 
+/* Compact verbs in one left-aligned row; the header carries the weight. */
 .record-actions {
   align-items: center;
   display: flex;
@@ -1187,8 +1188,10 @@ input:disabled {
   gap: 0.5rem;
 }
 
-.record-actions__archive {
-  margin-inline-start: auto;
+.record-actions .button {
+  font-size: 0.75rem;
+  min-height: 1.875rem;
+  padding: 0 0.7rem;
 }
 
 .button__spinner {
@@ -1421,22 +1424,18 @@ input:disabled {
   gap: 0.375rem;
 }
 
-/* Provenance is a tag, not a sentence in the label. */
-.details-tag {
-  background: var(--accent-soft);
-  border-radius: 0.25rem;
+/* Provenance is a pencil beside the label: corrected by hand. */
+.details-edited {
+  align-items: center;
   color: var(--accent);
-  font-size: 0.59375rem;
-  font-weight: 700;
-  letter-spacing: 0.05em;
-  line-height: 1;
-  padding: 0.2rem 0.3rem;
-  text-transform: uppercase;
+  display: inline-flex;
 }
 
+/* A group's name sits in its own band of air above the fields. */
 .details-group__label {
+  color: var(--ink-muted);
   display: block;
-  padding: 0.75rem 0.875rem 0.25rem;
+  padding: 1rem 0.875rem 0.375rem;
 }
 
 .details-read {
@@ -1485,7 +1484,9 @@ input:disabled {
   letter-spacing: -0.01em;
   min-width: 0;
   overflow-wrap: anywhere;
-  text-align: end;
+  /* Physical right, not "end": a Hebrew value sets its own direction, and
+     "end" would follow it to the left edge. */
+  text-align: right;
   unicode-bidi: plaintext;
   white-space: pre-line;
 }
@@ -1540,7 +1541,7 @@ input:disabled {
 
 .details-fieldset .details-group__label {
   grid-column: 1 / -1;
-  padding-inline: 0;
+  padding: 1.125rem 0 0;
 }
 
 .details-field {
@@ -1550,6 +1551,50 @@ input:disabled {
 .details-field .form-control {
   min-height: 2.5rem;
   width: 100%;
+}
+
+/*
+ * A dropdown in the filter bar's language: the well is the trigger, the menu
+ * is the chips' own hand-built panel. The native select is what the form
+ * submits and what a phone shows; the breakpoints below swap the two.
+ */
+.form-select {
+  position: relative;
+}
+
+.form-select__trigger {
+  align-items: center;
+  cursor: pointer;
+  display: none;
+  gap: 0.5rem;
+  justify-content: space-between;
+  text-align: start;
+}
+
+.form-select__trigger svg {
+  color: var(--ink-faint);
+  flex: 0 0 auto;
+}
+
+.form-select__trigger[aria-expanded="true"] {
+  background: var(--surface-muted);
+}
+
+.form-select__text {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.form-select__menu {
+  min-width: 0;
+  right: 0;
+}
+
+.filter-menu__item.is-selected {
+  color: var(--accent-strong);
+  font-weight: 600;
 }
 
 /* Cream only where a person must look. */
@@ -2029,17 +2074,9 @@ input:disabled {
 /* ── Phone ───────────────────────────────────────────────────────────── */
 
 @media (max-width: 47.999rem) {
-  /* The record's verbs get the 44px floor and the primary the whole width. */
+  /* A thumb needs a little more than a mouse, still one compact row. */
   .record-actions .button {
-    min-height: 2.75rem;
-  }
-
-  .record-actions .button--primary {
-    flex: 1 1 100%;
-  }
-
-  .record-actions__archive {
-    margin-inline-start: 0;
+    min-height: 2.5rem;
   }
 
   /* Read first, edit on request. */
@@ -2112,6 +2149,15 @@ input:disabled {
   .details-edit,
   .details-read {
     display: none;
+  }
+
+  /* Desktop draws its own menu; the native select only carries the value. */
+  .form-select__native {
+    display: none;
+  }
+
+  .form-select__trigger {
+    display: flex;
   }
 
   .details-fieldset {

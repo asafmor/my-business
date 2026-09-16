@@ -12,6 +12,7 @@ import {
   formatMoney,
   humanizeEnumValue,
 } from "../../lib/format";
+import { FormSelect } from "../ui/form-select";
 
 export type DocumentValues = {
   businessUsePercentage: string;
@@ -66,14 +67,6 @@ const groups: { fields: Field[]; label: string }[] = [
 
 const moneyFields: Field[] = ["subtotal", "vat", "total"];
 const currencyOptions = ["ILS", "USD", "EUR", "GBP"];
-const paymentOptions = [
-  "Credit card",
-  "Bank transfer",
-  "Cash",
-  "Cheque",
-  "Direct debit",
-  "PayPal",
-];
 
 const initialState: DocumentEditFormState = {
   error: null,
@@ -220,8 +213,9 @@ export function DocumentDetails({
       <span className="details-label">
         {fieldLabels[field]}
         {edited.includes(field) ? (
-          <span className="details-tag" title="Corrected by hand">
-            Edited
+          <span className="details-edited" title="Corrected by hand">
+            <Pencil aria-hidden size={11} strokeWidth={2} />
+            <span className="sr-only">Edited</span>
           </span>
         ) : null}
       </span>
@@ -259,35 +253,41 @@ export function DocumentDetails({
       id: field,
       name: field,
     };
+    const select = {
+      describedBy: shared["aria-describedby"],
+      flagged: Boolean(flagged[field]),
+      id: field,
+      invalid: Boolean(state.fieldErrors[field]),
+      labelId: `${field}-label`,
+      name: field,
+    };
     switch (field) {
       case "documentType":
         return (
-          <select
-            {...shared}
-            onChange={(event) => set(field, event.target.value)}
+          <FormSelect
+            {...select}
+            onChange={(value) => set(field, value)}
+            options={documentTypes.map((type) => ({
+              label: humanizeEnumValue(type),
+              value: type,
+            }))}
             value={draft.documentType}
-          >
-            {documentTypes.map((type) => (
-              <option key={type} value={type}>
-                {humanizeEnumValue(type)}
-              </option>
-            ))}
-          </select>
+          />
         );
       case "categoryId":
         return (
-          <select
-            {...shared}
-            onChange={(event) => set(field, event.target.value)}
+          <FormSelect
+            {...select}
+            onChange={(value) => set(field, value)}
+            options={[
+              { label: "Uncategorised", value: "" },
+              ...categories.map((category) => ({
+                label: category.name,
+                value: category.id,
+              })),
+            ]}
             value={draft.categoryId}
-          >
-            <option value="">Uncategorised</option>
-            {categories.map((category) => (
-              <option key={category.id} value={category.id}>
-                {category.name}
-              </option>
-            ))}
-          </select>
+          />
         );
       case "transactionDate":
         return (
@@ -298,26 +298,23 @@ export function DocumentDetails({
             value={draft.transactionDate}
           />
         );
-      case "currency":
+      case "currency": {
+        /* A code the document arrived with (say "NIS") stays choosable. */
+        const codes = currencyOptions.includes(draft.currency)
+          ? currencyOptions
+          : [draft.currency, ...currencyOptions];
         return (
-          <>
-            <input
-              {...shared}
-              autoCapitalize="characters"
-              className="form-control details-currency"
-              list="currency-options"
-              maxLength={3}
-              onChange={(event) => set(field, event.target.value)}
-              placeholder="ILS"
-              value={draft.currency}
-            />
-            <datalist id="currency-options">
-              {currencyOptions.map((code) => (
-                <option key={code} value={code} />
-              ))}
-            </datalist>
-          </>
+          <FormSelect
+            {...select}
+            onChange={(value) => set(field, value)}
+            options={codes.map((code) => ({
+              label: code === "" ? "Not set" : code,
+              value: code,
+            }))}
+            value={draft.currency}
+          />
         );
+      }
       case "subtotal":
       case "vat":
       case "total":
@@ -354,22 +351,6 @@ export function DocumentDetails({
               %
             </span>
           </span>
-        );
-      case "paymentMethod":
-        return (
-          <>
-            <input
-              {...shared}
-              list="payment-options"
-              onChange={(event) => set(field, event.target.value)}
-              value={draft.paymentMethod}
-            />
-            <datalist id="payment-options">
-              {paymentOptions.map((option) => (
-                <option key={option} value={option} />
-              ))}
-            </datalist>
-          </>
         );
       case "notes":
         return (
@@ -461,18 +442,30 @@ export function DocumentDetails({
 
       {/* Edit mode, and the whole story on desktop. */}
       <form action={formAction} className="details-form" noValidate>
+        {/* A div, not a fieldset: a legend inside a grid fieldset is drawn
+            into the box's top edge and clipped, and the visible label is
+            what a group needs. */}
         {groups.map((group) => (
-          <fieldset
+          <div
+            aria-labelledby={`group-${group.label}`}
             className="details-group details-fieldset"
             key={group.label}
+            role="group"
           >
-            <legend className="lbl details-group__label">{group.label}</legend>
+            <span
+              className="lbl details-group__label"
+              id={`group-${group.label}`}
+            >
+              {group.label}
+            </span>
             {group.fields.map((field) => (
               <div
                 className={`field details-field details-field--${field}`}
                 key={field}
               >
-                <label htmlFor={field}>{label(field)}</label>
+                <label htmlFor={field} id={`${field}-label`}>
+                  {label(field)}
+                </label>
                 {control(field)}
                 {note(field)}
               </div>
@@ -488,7 +481,7 @@ export function DocumentDetails({
                 {rate ? ` VAT is ${rate} of the subtotal.` : ""}
               </p>
             ) : null}
-          </fieldset>
+          </div>
         ))}
 
         <div className="details-bar">

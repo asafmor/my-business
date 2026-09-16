@@ -46,7 +46,7 @@ The document detail page (`/documents/{id}`) opens with the supplier, status
 and total at the top, the original beside the details on desktop, and the
 document's activity history underneath. A field the AI could not read with
 confidence is flagged in cream with a sentence saying why; a field you have
-corrected carries an **Edited** tag. On a phone the details are a list you
+corrected carries a small pencil beside its label. On a phone the details are a list you
 read first — tap any row or **Edit** to open the form, then **Save** from
 the bar at the bottom.
 
