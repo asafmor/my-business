@@ -10,6 +10,12 @@ describe("web app manifest", () => {
     const value = manifest();
 
     expect(value.name).toBeTruthy();
+    /*
+     * The mint fingerprint ignores share_target, so name is the lever that
+     * forces a new WebAPK. If it ever goes back to matching short_name, a
+     * share_target change silently stops reaching devices.
+     */
+    expect(value.name).not.toBe(value.short_name);
     expect(value.start_url).toBe("/");
     expect(value.display).toBe("standalone");
     expect(value.icons?.map((icon) => icon.sizes)).toEqual(

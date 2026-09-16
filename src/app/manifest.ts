@@ -25,7 +25,19 @@ export default function manifest(): MetadataRoute.Manifest {
       },
     ],
     id: "/",
-    name: "My Business",
+    /*
+     * "Documents" is not decoration. Google's WebAPK minting server keys the
+     * built APK on a manifest fingerprint that does not track share_target, so
+     * editing the share target alone returns the same cached APK forever —
+     * even across uninstall and reinstall. Changing a fingerprinted field is
+     * what forces a fresh mint and carries the share template below onto the
+     * device. short_name is untouched, so the home screen label still reads
+     * "My Business".
+     *
+     * Consequence: any future share_target change needs this string (or
+     * another fingerprinted member) nudged as well, or it will not ship.
+     */
+    name: "My Business Documents",
     scope: "/",
     /*
      * Deliberately wider than what ingestion accepts. Chrome resolves a shared
