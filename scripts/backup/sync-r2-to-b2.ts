@@ -317,9 +317,7 @@ async function main(): Promise<void> {
 
 if (process.argv[1] === fileURLToPath(import.meta.url)) {
   void main().catch((error: unknown) => {
-    console.error(
-      formatErrorWithCause(error),
-    );
+    console.error(formatErrorWithCause(error));
     process.exitCode = 1;
   });
 }
