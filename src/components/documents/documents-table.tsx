@@ -140,7 +140,8 @@ export function DocumentsTable({
         role="table"
       >
         <div className="doc-row doc-row--head" role="row">
-          <span className="doc-row__select">
+          {/* A label, not a span: the whole cell is the checkbox's hit area. */}
+          <label className="doc-row__select">
             <input
               aria-label="Select all documents on this page"
               checked={allSelected}
@@ -150,7 +151,7 @@ export function DocumentsTable({
               }
               type="checkbox"
             />
-          </span>
+          </label>
           <button
             aria-sort={
               active.column === "supplier"
@@ -213,7 +214,7 @@ export function DocumentsTable({
               key={row.id}
               role="row"
             >
-              <span className="doc-row__select">
+              <label className="doc-row__select">
                 <input
                   aria-label={`Select ${name}`}
                   checked={isSelected}
@@ -221,7 +222,7 @@ export function DocumentsTable({
                   onChange={() => toggle(row.id)}
                   type="checkbox"
                 />
-              </span>
+              </label>
 
               <span className="doc-row__doc">
                 <TypeTile mimeType={row.mimeType} />

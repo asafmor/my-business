@@ -3082,8 +3082,12 @@ input:disabled {
   display: none;
 }
 
+/* The cell is the hit area, not just the box inside it: it stretches to the
+   row's full height so any click down that column ticks the row. */
 .doc-row__select {
   align-items: center;
+  align-self: stretch;
+  cursor: pointer;
   display: flex;
   grid-area: select;
   justify-content: center;
