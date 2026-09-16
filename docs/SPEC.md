@@ -1543,6 +1543,8 @@ Last successful backup    Sep 12, 2026
 
 Backup details themselves should come from trustworthy backup metadata rather than assuming yesterday's scheduled workflow succeeded.
 
+Settings also shows free-tier headroom, because every provider under this app runs on a free plan and the failure mode is a filled quota rather than an outage. Only the caps measurable from inside the app get a meter — R2 and B2 stored bytes (summed from the file index) and the Neon database on disk. The rest (operation counts, egress, compute hours, Vercel allowances) are printed as reference next to a link to the provider's own dashboard: reading them live would mean giving the running app another provider credential, which the backup isolation rules forbid.
+
 ---
 
 # 53. GitHub Actions backup workflow
