@@ -346,44 +346,53 @@ export function DocumentsTable({
             {selected.length} selected
           </span>
           <span aria-hidden="true" className="selection-bar__divider" />
-          <button
-            className="selection-bar__action"
-            onClick={() => {
-              setCategoryDraft(categories[0]?.id ?? "");
-              setDialog("categorize");
-            }}
-            type="button"
-          >
-            <Tags aria-hidden size={14} strokeWidth={1.9} />
-            Categorise selected
-          </button>
-          <button
-            className="selection-bar__action"
-            onClick={() => run(() => markDocumentsReviewedAction(selected))}
-            type="button"
-          >
-            <CircleCheck aria-hidden size={14} strokeWidth={1.9} />
-            Mark reviewed
-          </button>
-          {restorable ? (
+          <div className="selection-bar__actions">
             <button
               className="selection-bar__action"
-              onClick={() => run(() => unarchiveDocumentsAction(selected))}
+              onClick={() => {
+                setCategoryDraft(categories[0]?.id ?? "");
+                setDialog("categorize");
+              }}
               type="button"
             >
-              <ArchiveRestore aria-hidden size={14} strokeWidth={1.9} />
-              Restore selected
+              <Tags aria-hidden size={14} strokeWidth={1.9} />
+              <span>
+                Categorise
+                <span className="selection-bar__scope"> selected</span>
+              </span>
             </button>
-          ) : (
             <button
-              className="selection-bar__action selection-bar__action--danger"
-              onClick={() => setDialog("archive")}
+              className="selection-bar__action"
+              onClick={() => run(() => markDocumentsReviewedAction(selected))}
               type="button"
             >
-              <Archive aria-hidden size={14} strokeWidth={1.9} />
-              Archive selected
+              <CircleCheck aria-hidden size={14} strokeWidth={1.9} />
+              <span>Mark reviewed</span>
             </button>
-          )}
+            {restorable ? (
+              <button
+                className="selection-bar__action"
+                onClick={() => run(() => unarchiveDocumentsAction(selected))}
+                type="button"
+              >
+                <ArchiveRestore aria-hidden size={14} strokeWidth={1.9} />
+                <span>
+                  Restore<span className="selection-bar__scope"> selected</span>
+                </span>
+              </button>
+            ) : (
+              <button
+                className="selection-bar__action selection-bar__action--danger"
+                onClick={() => setDialog("archive")}
+                type="button"
+              >
+                <Archive aria-hidden size={14} strokeWidth={1.9} />
+                <span>
+                  Archive<span className="selection-bar__scope"> selected</span>
+                </span>
+              </button>
+            )}
+          </div>
           <button
             aria-label="Clear selection"
             className="selection-bar__dismiss"

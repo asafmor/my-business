@@ -403,32 +403,43 @@ export function CategoriesTable({
             {selected.length} selected
           </span>
           <span aria-hidden="true" className="selection-bar__divider" />
-          <button
-            className="selection-bar__action"
-            onClick={() => run(() => setCategoriesActiveAction(selected, true))}
-            type="button"
-          >
-            <CircleCheck aria-hidden size={14} strokeWidth={1.9} />
-            Activate selected
-          </button>
-          <button
-            className="selection-bar__action"
-            onClick={() =>
-              run(() => setCategoriesActiveAction(selected, false))
-            }
-            type="button"
-          >
-            <CircleSlash2 aria-hidden size={14} strokeWidth={1.9} />
-            Deactivate selected
-          </button>
-          <button
-            className="selection-bar__action selection-bar__action--danger"
-            onClick={() => setPendingDelete(selected)}
-            type="button"
-          >
-            <Trash2 aria-hidden size={14} strokeWidth={1.9} />
-            Delete selected
-          </button>
+          <div className="selection-bar__actions">
+            <button
+              className="selection-bar__action"
+              onClick={() =>
+                run(() => setCategoriesActiveAction(selected, true))
+              }
+              type="button"
+            >
+              <CircleCheck aria-hidden size={14} strokeWidth={1.9} />
+              <span>
+                Activate<span className="selection-bar__scope"> selected</span>
+              </span>
+            </button>
+            <button
+              className="selection-bar__action"
+              onClick={() =>
+                run(() => setCategoriesActiveAction(selected, false))
+              }
+              type="button"
+            >
+              <CircleSlash2 aria-hidden size={14} strokeWidth={1.9} />
+              <span>
+                Deactivate
+                <span className="selection-bar__scope"> selected</span>
+              </span>
+            </button>
+            <button
+              className="selection-bar__action selection-bar__action--danger"
+              onClick={() => setPendingDelete(selected)}
+              type="button"
+            >
+              <Trash2 aria-hidden size={14} strokeWidth={1.9} />
+              <span>
+                Delete<span className="selection-bar__scope"> selected</span>
+              </span>
+            </button>
+          </div>
           <button
             aria-label="Clear selection"
             className="selection-bar__dismiss"
