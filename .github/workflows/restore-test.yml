@@ -79,14 +79,14 @@ jobs:
       # restoring into it - mirrors SPEC.md #35 step 2 (infra/config) coming
       # before step 3 (restore) in a real disaster-recovery restore.
       #
-      # Runs scripts/db/migrate.ts directly rather than via `npm run
-      # db:migrate`, which hardcodes `--env-file=.env.local` - a file that
-      # doesn't exist in CI.
+      # Uses scripts/db/migrate-raw.ts, not scripts/db/migrate.ts: the
+      # latter's Neon/production safety assertions require a "-pooler"
+      # Neon hostname, which this disposable non-Neon service-container
+      # target can never have - see migrate-raw.ts's own comment.
       - name: Migrate throwaway target
         env:
-          APP_ENV: development
           DATABASE_URL: ${{ env.RESTORE_TARGET_DATABASE_URL }}
-        run: node --import tsx scripts/db/migrate.ts
+        run: node --import tsx scripts/db/migrate-raw.ts
 
       # NEON_BACKUP_DATABASE_URL is scoped to only this step, not the whole
       # job: it's the real backup-tracking database, used only to record
