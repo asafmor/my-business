@@ -163,7 +163,12 @@ export async function verifyDumpSha256(
 // 20.2: same libpq PG*-env-var credential-passing style as runPgDump in
 // dump-database.ts - never put the connection string or password on argv.
 // --clean --if-exists so restoring into a freshly (re)provisioned database
-// or re-running the restore is idempotent.
+// or re-running the restore is idempotent. --no-owner --no-privileges
+// because the dump's ALTER ... OWNER TO / GRANT ... TO statements reference
+// the source Neon project's roles (neondb_owner, neon_superuser, ...),
+// which won't exist on any other target (a different Neon project or a
+// throwaway container) - objects end up owned by, and privileges left to,
+// whichever role runs the restore instead.
 export function runPgRestore(
   connectionUrl: string,
   dumpFile: string,
@@ -182,6 +187,8 @@ export function runPgRestore(
     "--no-password",
     "--clean",
     "--if-exists",
+    "--no-owner",
+    "--no-privileges",
     dumpFile,
   ];
   const env = {
@@ -283,9 +290,7 @@ async function main(): Promise<void> {
 
 if (process.argv[1] === fileURLToPath(import.meta.url)) {
   void main().catch((error: unknown) => {
-    console.error(
-      formatErrorWithCause(error),
-    );
+    console.error(formatErrorWithCause(error));
     process.exitCode = 1;
   });
 }
