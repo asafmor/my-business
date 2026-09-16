@@ -2,6 +2,7 @@
 
 import {
   Archive,
+  ArchiveRestore,
   ChevronDown,
   ChevronUp,
   CircleCheck,
@@ -19,6 +20,7 @@ import {
   archiveDocumentsAction,
   markDocumentsReviewedAction,
   setDocumentsCategoryAction,
+  unarchiveDocumentsAction,
   type DocumentActionResult,
 } from "../../app/(protected)/documents/actions";
 import type {
@@ -94,6 +96,14 @@ export function DocumentsTable({
   const [categoryDraft, setCategoryDraft] = useState("");
   const [isPending, startTransition] = useTransition();
   const dialogRef = useRef<HTMLDialogElement>(null);
+
+  /* Archived rows only appear under the archived status filter, so a selection
+     is either entirely archived or not archived at all. */
+  const restorable =
+    selected.length > 0 &&
+    selected.every(
+      (id) => rows.find((row) => row.id === id)?.status === "ARCHIVED",
+    );
 
   /* A page of results is the selection's whole world: turn it, lose it. */
   useEffect(() => {
@@ -294,19 +304,36 @@ export function DocumentsTable({
                 >
                   <CircleCheck aria-hidden size={13} strokeWidth={1.9} />
                 </button>
-                <button
-                  aria-label={`Archive ${name}`}
-                  className="doc-row__action doc-row__action--danger"
-                  disabled={isPending}
-                  onClick={() => {
-                    setSelected([row.id]);
-                    setDialog("archive");
-                  }}
-                  title="Archive"
-                  type="button"
-                >
-                  <Archive aria-hidden size={13} strokeWidth={1.9} />
-                </button>
+                {row.status === "ARCHIVED" ? (
+                  /* Restoring is itself reversible, so it skips the dialog
+                     that archiving needs. */
+                  <button
+                    aria-label={`Restore ${name}`}
+                    className="doc-row__action"
+                    disabled={isPending}
+                    onClick={() =>
+                      run(() => unarchiveDocumentsAction([row.id]))
+                    }
+                    title="Restore"
+                    type="button"
+                  >
+                    <ArchiveRestore aria-hidden size={13} strokeWidth={1.9} />
+                  </button>
+                ) : (
+                  <button
+                    aria-label={`Archive ${name}`}
+                    className="doc-row__action doc-row__action--danger"
+                    disabled={isPending}
+                    onClick={() => {
+                      setSelected([row.id]);
+                      setDialog("archive");
+                    }}
+                    title="Archive"
+                    type="button"
+                  >
+                    <Archive aria-hidden size={13} strokeWidth={1.9} />
+                  </button>
+                )}
               </span>
             </div>
           );
@@ -338,14 +365,25 @@ export function DocumentsTable({
             <CircleCheck aria-hidden size={14} strokeWidth={1.9} />
             Mark reviewed
           </button>
-          <button
-            className="selection-bar__action selection-bar__action--danger"
-            onClick={() => setDialog("archive")}
-            type="button"
-          >
-            <Archive aria-hidden size={14} strokeWidth={1.9} />
-            Archive selected
-          </button>
+          {restorable ? (
+            <button
+              className="selection-bar__action"
+              onClick={() => run(() => unarchiveDocumentsAction(selected))}
+              type="button"
+            >
+              <ArchiveRestore aria-hidden size={14} strokeWidth={1.9} />
+              Restore selected
+            </button>
+          ) : (
+            <button
+              className="selection-bar__action selection-bar__action--danger"
+              onClick={() => setDialog("archive")}
+              type="button"
+            >
+              <Archive aria-hidden size={14} strokeWidth={1.9} />
+              Archive selected
+            </button>
+          )}
           <button
             aria-label="Clear selection"
             className="selection-bar__dismiss"
@@ -372,7 +410,8 @@ export function DocumentsTable({
             </h2>
             <p>
               Archived documents leave this list and stop counting towards
-              reports. The originals and their backups are kept.
+              reports. The originals and their backups are kept, and the
+              Archived status filter can restore them.
             </p>
             <div className="confirm-dialog__actions">
               <button

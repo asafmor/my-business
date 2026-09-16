@@ -91,3 +91,15 @@ export async function archiveDocumentAction(documentId: string): Promise<void> {
   revalidatePath("/documents");
   redirect("/documents");
 }
+
+/* Restoring keeps the reader on the document, since the point of undoing an
+   archive is usually to carry on working with it. */
+export async function unarchiveDocumentAction(
+  documentId: string,
+): Promise<void> {
+  await requireSession();
+  await repository.unarchive(documentId);
+  revalidatePath("/documents");
+  revalidatePath(`/documents/${documentId}`);
+  revalidatePath("/");
+}

@@ -48,7 +48,7 @@ then:
 - **Mark reviewed** — accept the document as reviewed.
 - **Reprocess** — re-run AI extraction (same as the tray's Retry processing).
 - **Archive** — move the document out of the active list (see "Archive"
-  below).
+  below). On an already-archived document this becomes **Restore**.
 
 Any field you edit by hand is preserved — AI never overwrites your
 correction on a later reprocess.
@@ -82,5 +82,11 @@ From a document's detail page, select **Archive**. This is a status change
 intact (original documents are never deleted by normal application use —
 see docs/SPEC.md §2.1). Archiving removes it from the upload tray and
 redirects you to Documents; to find it again, go to **Documents** and set
-the **Status** filter to **Archived**. There is currently no in-app
-"unarchive" action.
+the **Status** filter to **Archived**.
+
+Archiving is reversible. On an archived document, the detail page offers
+**Restore** in place of **Archive**, and under the **Archived** status filter
+the Documents list offers **Restore** on a row and **Restore selected** for a
+whole selection. A restored document returns to the status it held before it
+was archived; documents archived before that status was recorded come back as
+`NEEDS_REVIEW`.
