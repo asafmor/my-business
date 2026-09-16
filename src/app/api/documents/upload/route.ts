@@ -5,26 +5,7 @@ import {
   assertPostFromSameOrigin,
   requireRequestSession,
 } from "../../../../server/auth/guards";
-import {
-  FileValidationError,
-  maximumUploadBytes,
-} from "../../../../server/storage/file-validation";
-import { getDocumentUploadService } from "../../../../server/documents/upload";
-import type { DocumentUploadResult } from "../../../../server/documents/upload-service";
-import { dispatchDueDocumentProcessing } from "../../../../server/documents/processing-dispatcher";
-import { logError } from "../../../../server/observability/logger";
-
-type UploadResponseResult =
-  | ({ fileName: string } & DocumentUploadResult)
-  | { fileName: string; message: string; status: "failed" | "rejected" };
-
-function isFile(value: FormDataEntryValue): value is File {
-  return (
-    typeof value === "object" &&
-    value !== null &&
-    typeof (value as File).arrayBuffer === "function"
-  );
-}
+import { uploadDocumentFiles } from "../../../../server/documents/upload";
 
 function responseError(status: number): NextResponse {
   return NextResponse.json(
@@ -51,55 +32,15 @@ export async function POST(request: Request): Promise<NextResponse> {
     return responseError(400);
   }
 
-  const files = formData.getAll("files").filter(isFile);
-  if (files.length === 0) {
+  const results = await uploadDocumentFiles(formData.getAll("files"), {
+    allowDuplicate: formData.get("allowDuplicate") === "true",
+  });
+  if (results.length === 0) {
     return NextResponse.json(
       { message: "Choose at least one supported file." },
       { status: 400 },
     );
   }
 
-  const allowDuplicate = formData.get("allowDuplicate") === "true";
-  const service = getDocumentUploadService();
-  const results: UploadResponseResult[] = [];
-  let processingQueued = false;
-
-  for (const file of files) {
-    try {
-      if (file.size > maximumUploadBytes) {
-        throw new FileValidationError("File exceeds the maximum upload size.");
-      }
-
-      const result = await service.upload({
-        allowDuplicate,
-        bytes: new Uint8Array(await file.arrayBuffer()),
-        fileName: file.name,
-        mimeType: file.type,
-      });
-      if (result.status === "uploaded") processingQueued = true;
-      results.push({
-        ...result,
-        fileName: file.name,
-      });
-    } catch (error) {
-      if (error instanceof FileValidationError) {
-        results.push({
-          fileName: file.name,
-          message: error.message,
-          status: "rejected",
-        });
-        continue;
-      }
-
-      logError("upload.failed", error, { fileName: file.name });
-      results.push({
-        fileName: file.name,
-        message: "The file could not be uploaded. Please try again.",
-        status: "failed",
-      });
-    }
-  }
-
-  if (processingQueued) dispatchDueDocumentProcessing();
   return NextResponse.json({ results });
 }

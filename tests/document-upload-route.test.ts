@@ -13,26 +13,18 @@ const guards = vi.hoisted(() => {
     requireRequestSession: vi.fn(),
   };
 });
-const upload = vi.hoisted(() => ({
-  getDocumentUploadService: vi.fn(),
-}));
-const dispatcher = vi.hoisted(() => ({
-  dispatchDueDocumentProcessing: vi.fn(),
-}));
+const upload = vi.hoisted(() => ({ uploadDocumentFiles: vi.fn() }));
 
 vi.mock("server-only", () => ({}));
 vi.mock("../src/server/auth/guards", () => guards);
 vi.mock("../src/server/documents/upload", () => upload);
-vi.mock("../src/server/documents/processing-dispatcher", () => dispatcher);
 
 import { POST } from "../src/app/api/documents/upload/route";
-import { FileValidationError } from "../src/server/storage/file-validation";
 
 afterEach(() => {
   guards.assertPostFromSameOrigin.mockReset();
   guards.requireRequestSession.mockReset();
-  upload.getDocumentUploadService.mockReset();
-  dispatcher.dispatchDueDocumentProcessing.mockReset();
+  upload.uploadDocumentFiles.mockReset();
 });
 
 function uploadRequest(formData: FormData): Request {
@@ -41,6 +33,19 @@ function uploadRequest(formData: FormData): Request {
     headers: { origin: "https://app.example" },
     method: "POST",
   });
+}
+
+function formWith(...names: string[]): FormData {
+  const formData = new FormData();
+  for (const name of names) {
+    formData.append(
+      "files",
+      new File([new Uint8Array([0xff, 0xd8, 0xff, 0xe0])], name, {
+        type: "image/jpeg",
+      }),
+    );
+  }
+  return formData;
 }
 
 describe("document upload route", () => {
@@ -57,79 +62,34 @@ describe("document upload route", () => {
 
     expect(response.status).toBe(403);
     expect(guards.requireRequestSession).not.toHaveBeenCalled();
+    expect(upload.uploadDocumentFiles).not.toHaveBeenCalled();
   });
 
-  it("accepts multiple files and returns a result for every file", async () => {
-    const service = {
-      upload: vi
-        .fn()
-        .mockResolvedValueOnce({
-          documentId: "de305d54-75b4-431b-adb2-eb6b9e546013",
-          mimeType: "image/jpeg",
-          sha256: "a".repeat(64),
-          sizeBytes: 4,
-          status: "uploaded",
-        })
-        .mockResolvedValueOnce({
-          existingDocumentId: "de305d54-75b4-431b-adb2-eb6b9e546013",
-          sha256: "b".repeat(64),
-          status: "duplicate",
-        }),
-    };
-    upload.getDocumentUploadService.mockReturnValue(service);
-    const formData = new FormData();
-    formData.append(
-      "files",
-      new File([new Uint8Array([0xff, 0xd8, 0xff, 0xe0])], "receipt.jpg", {
-        type: "image/jpeg",
-      }),
-    );
-    formData.append(
-      "files",
-      new File([new TextEncoder().encode("%PDF-1.7")], "invoice.pdf", {
-        type: "application/pdf",
-      }),
-    );
+  it("hands every file to the shared ingestion path and returns its results", async () => {
+    const results = [
+      { fileName: "receipt.jpg", status: "uploaded" },
+      { fileName: "invoice.pdf", status: "duplicate" },
+    ];
+    upload.uploadDocumentFiles.mockResolvedValue(results);
+    const formData = formWith("receipt.jpg", "invoice.pdf");
+    formData.append("allowDuplicate", "true");
 
     const response = await POST(uploadRequest(formData));
 
     expect(guards.assertPostFromSameOrigin).toHaveBeenCalledOnce();
     expect(guards.requireRequestSession).toHaveBeenCalledOnce();
-    expect(service.upload).toHaveBeenCalledTimes(2);
-    expect(dispatcher.dispatchDueDocumentProcessing).toHaveBeenCalledOnce();
-    await expect(response.json()).resolves.toMatchObject({
-      results: [
-        { fileName: "receipt.jpg", status: "uploaded" },
-        { fileName: "invoice.pdf", status: "duplicate" },
-      ],
-    });
+    expect(upload.uploadDocumentFiles).toHaveBeenCalledWith(
+      expect.arrayContaining([expect.any(File)]),
+      { allowDuplicate: true },
+    );
+    await expect(response.json()).resolves.toEqual({ results });
   });
 
-  it("returns an individual rejection without turning a bad file into a success", async () => {
-    upload.getDocumentUploadService.mockReturnValue({
-      upload: vi
-        .fn()
-        .mockRejectedValue(new FileValidationError("Unsupported file.")),
-    });
-    const formData = new FormData();
-    formData.append(
-      "files",
-      new File([new TextEncoder().encode("not a file")], "notes.txt", {
-        type: "text/plain",
-      }),
-    );
+  it("answers 400 when nothing usable was submitted", async () => {
+    upload.uploadDocumentFiles.mockResolvedValue([]);
 
-    const response = await POST(uploadRequest(formData));
+    const response = await POST(uploadRequest(new FormData()));
 
-    await expect(response.json()).resolves.toEqual({
-      results: [
-        {
-          fileName: "notes.txt",
-          message: "Unsupported file.",
-          status: "rejected",
-        },
-      ],
-    });
-    expect(dispatcher.dispatchDueDocumentProcessing).not.toHaveBeenCalled();
+    expect(response.status).toBe(400);
   });
 });

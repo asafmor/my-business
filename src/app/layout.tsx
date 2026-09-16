@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Archivo, IBM_Plex_Mono } from "next/font/google";
 import type { ReactNode } from "react";
 
@@ -21,6 +21,11 @@ const plexMono = IBM_Plex_Mono({
 export const metadata: Metadata = {
   title: "My Business",
   description: "Private document and expense management.",
+  manifest: "/manifest.webmanifest",
+};
+
+export const viewport: Viewport = {
+  themeColor: "#4a3a80",
 };
 
 export default function RootLayout({

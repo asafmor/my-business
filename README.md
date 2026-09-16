@@ -121,6 +121,29 @@ while nobody opens the app. Task leases recover after a function interruption,
 while document state and transactional extraction persistence remain
 authoritative. V1 has no dedicated worker fleet or real-time push updates.
 
+## Install on Android and share into the app
+
+`src/app/manifest.ts` makes the deployed application installable: Chromium's
+current criteria need a manifest with a name, 192px and 512px icons, a start
+URL inside the scope, and a non-browser display mode, all over HTTPS. No
+service worker is involved — Chrome dropped that requirement, and this
+application has nothing useful to offer offline.
+
+Installing is what registers the application as an Android share target. Open
+the Production URL in Chrome for Android and choose _Add to Home screen_ /
+_Install app_. After that, sharing a JPEG, PNG, WebP, or PDF from the camera,
+Gallery, Files, Drive, or Gmail offers **My Business** in the system share
+sheet.
+
+A share is a `POST multipart/form-data` navigation to `/share-target`. That
+route is a thin adapter: it requires the same session cookie every other
+request does, hands the files to the shared ingestion path in
+`src/server/documents/upload.ts`, and answers `303 See Other` so a refresh of
+the landing page cannot re-run the upload. One accepted file lands on its
+document, several land on the documents list, and anything refused is reported
+on `/upload`. A share with no valid session lands on `/login`; the files are
+not kept, because there is no authenticated owner to keep them for.
+
 ## Project structure
 
 ```text

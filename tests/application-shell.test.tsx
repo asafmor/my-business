@@ -138,10 +138,11 @@ import { UploadTrayProvider } from "../src/components/uploads/upload-tray-provid
 
 describe("protected application shell", () => {
   it("enforces a shared server session in the layout and every shell route", async () => {
-    const pages = [DashboardPage, SettingsPage, UploadPage];
+    const pages = [DashboardPage, SettingsPage];
 
     renderToStaticMarkup(await ProtectedLayout({ children: <p>Content</p> }));
     await Promise.all(pages.map((Page) => Page()));
+    await UploadPage({ searchParams: Promise.resolve({}) });
     await DocumentsPage({ searchParams: Promise.resolve({}) });
     await CategoriesPage();
     await ReportsPage({ searchParams: Promise.resolve({}) });
@@ -245,7 +246,9 @@ describe("application UI states", () => {
 
   it("renders a dropzone with camera and multi-file pickers", async () => {
     const markup = renderToStaticMarkup(
-      <UploadTrayProvider>{await UploadPage()}</UploadTrayProvider>,
+      <UploadTrayProvider>
+        {await UploadPage({ searchParams: Promise.resolve({}) })}
+      </UploadTrayProvider>,
     );
 
     expect(markup).toContain("Add originals securely");
@@ -254,6 +257,20 @@ describe("application UI states", () => {
     );
     expect(markup).toContain("Choose files");
     expect(markup).toContain("Take photo");
+  });
+
+  it("explains a share that arrived with files the uploader refused", async () => {
+    const markup = renderToStaticMarkup(
+      <UploadTrayProvider>
+        {await UploadPage({
+          searchParams: Promise.resolve({ added: "1", failed: "2" }),
+        })}
+      </UploadTrayProvider>,
+    );
+
+    expect(markup).toContain("Some files were added");
+    expect(markup).toContain("1 of 3 shared files were added");
+    expect(markup).toContain('role="alert"');
   });
 });
 

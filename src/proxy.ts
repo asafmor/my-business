@@ -22,5 +22,15 @@ export async function proxy(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ["/((?!_next/static|_next/image|favicon.ico).*)"],
+  /*
+   * The manifest and its icons must answer without a session: Chromium
+   * fetches the manifest without credentials, and an install check that gets
+   * a redirect to /login sees no manifest at all. `/share-target` is left out
+   * for a different reason — it guards itself like the API routes do, so the
+   * share POST reaches a handler that can answer with a 303 instead of the
+   * method-preserving redirect this proxy would issue.
+   */
+  matcher: [
+    "/((?!_next/static|_next/image|favicon.ico|icons/|manifest.webmanifest|share-target).*)",
+  ],
 };
