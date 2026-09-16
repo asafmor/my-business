@@ -50,7 +50,7 @@ export function redactConnectionString(message: string): string {
 // .cause chain so logs show what actually failed.
 export function formatErrorWithCause(error: unknown): string {
   const messages: string[] = [];
-  for (let current: unknown = error; current instanceof Error; ) {
+  for (let current: unknown = error; current instanceof Error;) {
     messages.push(current.message);
     current = current.cause;
   }
