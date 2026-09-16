@@ -4,6 +4,7 @@ import {
   FileValidationError,
   maximumUploadBytes,
 } from "../storage/file-validation";
+import { documentOriginalObjectKey } from "../storage/object-keys";
 import { getR2ObjectStorage } from "../storage/object-storage";
 import { logError } from "../observability/logger";
 
@@ -81,4 +82,36 @@ export async function uploadDocumentFiles(
 
   if (processingQueued) dispatchDueDocumentProcessing();
   return results;
+}
+
+/**
+ * "Upload anyway" for a share the server ingested: the browser never held
+ * those bytes, so the second copy is made from the existing document's stored
+ * original. Identical bytes by definition - they matched on SHA-256.
+ */
+export async function uploadDocumentCopy(
+  documentId: string,
+  fileName: string,
+): Promise<UploadedFileResult> {
+  try {
+    // Rejects anything that is not a document ID, so an arbitrary form value
+    // can never reach into another storage namespace.
+    const key = documentOriginalObjectKey(documentId);
+    const original = await getR2ObjectStorage().getStoredDocumentContent(key);
+    const result = await getDocumentUploadService().upload({
+      allowDuplicate: true,
+      bytes: original.body,
+      fileName,
+      mimeType: original.contentType,
+    });
+    if (result.status === "uploaded") dispatchDueDocumentProcessing();
+    return { ...result, fileName };
+  } catch (error) {
+    logError("upload.copy_failed", error, { documentId });
+    return {
+      fileName,
+      message: "The file could not be copied. Please try again.",
+      status: "failed",
+    };
+  }
 }

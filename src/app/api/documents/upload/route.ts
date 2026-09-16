@@ -5,7 +5,10 @@ import {
   assertPostFromSameOrigin,
   requireRequestSession,
 } from "../../../../server/auth/guards";
-import { uploadDocumentFiles } from "../../../../server/documents/upload";
+import {
+  uploadDocumentCopy,
+  uploadDocumentFiles,
+} from "../../../../server/documents/upload";
 
 function responseError(status: number): NextResponse {
   return NextResponse.json(
@@ -30,6 +33,18 @@ export async function POST(request: Request): Promise<NextResponse> {
     formData = await request.formData();
   } catch {
     return responseError(400);
+  }
+
+  // A shared upload's bytes never reached the browser, so "Upload anyway" asks
+  // for a copy of what is already stored instead of re-sending a file.
+  const copyOf = formData.get("copyOf");
+  if (typeof copyOf === "string") {
+    const fileName = formData.get("fileName");
+    const result = await uploadDocumentCopy(
+      copyOf,
+      typeof fileName === "string" && fileName ? fileName : "Shared document",
+    );
+    return NextResponse.json({ results: [result] });
   }
 
   const results = await uploadDocumentFiles(formData.getAll("files"), {

@@ -208,7 +208,9 @@ function trayItemFields(result: UploadApiResult): Partial<TrayItem> {
   const status: TrayStatus =
     result.status === "uploaded" ? "processing" : result.status;
   return {
-    documentId: result.documentId,
+    // Only ever set, never cleared: a failed "upload anyway" must keep the
+    // document it was copying from so the button still works on the retry.
+    ...(result.documentId ? { documentId: result.documentId } : {}),
     message:
       result.message ?? (status === "duplicate" ? duplicateNotice : undefined),
     progress: status === "processing" ? 100 : 0,
@@ -243,15 +245,23 @@ export function shareToTrayItems(
   );
 }
 
+/** A file this page holds, or the stored original of an already-shared one. */
+type UploadSource = File | { copyOf: string; name: string };
+
 function uploadFile(
-  file: File,
+  source: UploadSource,
   allowDuplicate: boolean,
   onProgress: (progress: number) => void,
 ): Promise<UploadApiResult> {
   return new Promise((resolve) => {
     const request = new XMLHttpRequest();
     const formData = new FormData();
-    formData.append("files", file);
+    if (source instanceof File) {
+      formData.append("files", source);
+    } else {
+      formData.append("copyOf", source.copyOf);
+      formData.append("fileName", source.name);
+    }
     if (allowDuplicate) {
       formData.append("allowDuplicate", "true");
     }
@@ -491,13 +501,13 @@ export function UploadTrayProvider({ children }: { children: ReactNode }) {
   }, [lastOpenView]);
 
   const submit = useCallback(
-    async (id: string, file: File, allowDuplicate = false) => {
+    async (id: string, source: UploadSource, allowDuplicate = false) => {
       updateSessionItem(id, {
         message: undefined,
         progress: 0,
         status: "uploading",
       });
-      const result = await uploadFile(file, allowDuplicate, (progress) =>
+      const result = await uploadFile(source, allowDuplicate, (progress) =>
         updateSessionItem(id, { progress }),
       );
       const fields = trayItemFields(result);
@@ -565,9 +575,15 @@ export function UploadTrayProvider({ children }: { children: ReactNode }) {
 
   const allowDuplicateUpload = useCallback(
     (item: TrayItem) => {
-      const file = filesRef.current.get(item.id);
-      if (!file) return;
-      void submit(item.id, file, true);
+      // A shared duplicate has no file here - the share target ingested it
+      // server-side - but it does carry the existing document to copy from.
+      const source =
+        filesRef.current.get(item.id) ??
+        (item.documentId
+          ? { copyOf: item.documentId, name: item.name }
+          : undefined);
+      if (!source) return;
+      void submit(item.id, source, true);
     },
     [submit],
   );

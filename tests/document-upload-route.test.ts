@@ -13,7 +13,10 @@ const guards = vi.hoisted(() => {
     requireRequestSession: vi.fn(),
   };
 });
-const upload = vi.hoisted(() => ({ uploadDocumentFiles: vi.fn() }));
+const upload = vi.hoisted(() => ({
+  uploadDocumentCopy: vi.fn(),
+  uploadDocumentFiles: vi.fn(),
+}));
 
 vi.mock("server-only", () => ({}));
 vi.mock("../src/server/auth/guards", () => guards);
@@ -24,6 +27,7 @@ import { POST } from "../src/app/api/documents/upload/route";
 afterEach(() => {
   guards.assertPostFromSameOrigin.mockReset();
   guards.requireRequestSession.mockReset();
+  upload.uploadDocumentCopy.mockReset();
   upload.uploadDocumentFiles.mockReset();
 });
 
@@ -83,6 +87,27 @@ describe("document upload route", () => {
       { allowDuplicate: true },
     );
     await expect(response.json()).resolves.toEqual({ results });
+  });
+
+  it("copies the stored original when a share has no file to re-send", async () => {
+    const result = {
+      documentId: "copy",
+      fileName: "shared.pdf",
+      status: "uploaded",
+    };
+    upload.uploadDocumentCopy.mockResolvedValue(result);
+    const formData = new FormData();
+    formData.append("copyOf", "11111111-1111-4111-8111-111111111111");
+    formData.append("fileName", "shared.pdf");
+
+    const response = await POST(uploadRequest(formData));
+
+    expect(upload.uploadDocumentCopy).toHaveBeenCalledWith(
+      "11111111-1111-4111-8111-111111111111",
+      "shared.pdf",
+    );
+    expect(upload.uploadDocumentFiles).not.toHaveBeenCalled();
+    await expect(response.json()).resolves.toEqual({ results: [result] });
   });
 
   it("answers 400 when nothing usable was submitted", async () => {
