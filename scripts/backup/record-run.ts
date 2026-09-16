@@ -43,6 +43,21 @@ export function redactConnectionString(message: string): string {
   );
 }
 
+// Drizzle wraps driver errors in a DrizzleQueryError whose own .message is
+// just "Failed query: ...\nparams: ..." - the actual root cause (e.g. a
+// missing table/enum, a permission error) lives on .cause and was being
+// silently dropped by every backup script's top-level catch. Walk the
+// .cause chain so logs show what actually failed.
+export function formatErrorWithCause(error: unknown): string {
+  const messages: string[] = [];
+  for (let current: unknown = error; current instanceof Error; ) {
+    messages.push(current.message);
+    current = current.cause;
+  }
+  if (messages.length === 0) messages.push(String(error));
+  return redactConnectionString(messages.join(" | caused by: "));
+}
+
 // Opens a short-lived Pool against NEON_BACKUP_DATABASE_URL, runs `fn`, and
 // always closes the pool - errors are redacted before they propagate.
 export async function withBackupRunRecorder<T>(

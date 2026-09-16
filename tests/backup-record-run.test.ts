@@ -5,6 +5,7 @@ vi.mock("../src/server/db/schema", () => ({
 }));
 
 import {
+  formatErrorWithCause,
   recordBackupRun,
   redactConnectionString,
 } from "../scripts/backup/record-run";
@@ -44,6 +45,32 @@ describe("redactConnectionString", () => {
   it("leaves messages with no credentials untouched", () => {
     expect(redactConnectionString("getaddrinfo ENOTFOUND host")).toBe(
       "getaddrinfo ENOTFOUND host",
+    );
+  });
+});
+
+describe("formatErrorWithCause", () => {
+  it("walks the .cause chain so the root error isn't hidden behind a wrapper's shallow message", () => {
+    const root = new Error('relation "backup_runs" does not exist');
+    const wrapped = new Error("Failed query: insert into ...", { cause: root });
+
+    expect(formatErrorWithCause(wrapped)).toBe(
+      'Failed query: insert into ... | caused by: relation "backup_runs" does not exist',
+    );
+  });
+
+  it("redacts credentials found anywhere in the chain", () => {
+    const root = new Error("postgres://user:pass@host/db unreachable");
+    const wrapped = new Error("connection failed", { cause: root });
+
+    expect(formatErrorWithCause(wrapped)).toBe(
+      "connection failed | caused by: postgres://[redacted]@host/db unreachable",
+    );
+  });
+
+  it("falls back to String() for a non-Error throw", () => {
+    expect(formatErrorWithCause("plain string failure")).toBe(
+      "plain string failure",
     );
   });
 });

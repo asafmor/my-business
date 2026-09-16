@@ -22,7 +22,7 @@ import {
 import { fileURLToPath } from "node:url";
 
 import { sourceKeyForObjectBackupKey } from "./layout";
-import { redactConnectionString } from "./record-run";
+import { formatErrorWithCause } from "./record-run";
 
 function required(name: string): string {
   const value = process.env[name];
@@ -219,9 +219,7 @@ async function main(): Promise<void> {
 if (process.argv[1] === fileURLToPath(import.meta.url)) {
   void main().catch((error: unknown) => {
     console.error(
-      redactConnectionString(
-        error instanceof Error ? error.message : "Object restore failed.",
-      ),
+      formatErrorWithCause(error),
     );
     process.exitCode = 1;
   });

@@ -29,7 +29,7 @@ import { fileURLToPath } from "node:url";
 import { Pool } from "pg";
 
 import { type BackupKey } from "./layout";
-import { redactConnectionString } from "./record-run";
+import { formatErrorWithCause } from "./record-run";
 
 function required(name: string): string {
   const value = process.env[name];
@@ -284,9 +284,7 @@ async function main(): Promise<void> {
 if (process.argv[1] === fileURLToPath(import.meta.url)) {
   void main().catch((error: unknown) => {
     console.error(
-      redactConnectionString(
-        error instanceof Error ? error.message : "Restore failed.",
-      ),
+      formatErrorWithCause(error),
     );
     process.exitCode = 1;
   });

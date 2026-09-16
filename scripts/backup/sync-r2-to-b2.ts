@@ -30,7 +30,7 @@ import {
 } from "./layout";
 import {
   recordBackupRun,
-  redactConnectionString,
+  formatErrorWithCause,
   withBackupRunRecorder,
 } from "./record-run";
 
@@ -318,9 +318,7 @@ async function main(): Promise<void> {
 if (process.argv[1] === fileURLToPath(import.meta.url)) {
   void main().catch((error: unknown) => {
     console.error(
-      redactConnectionString(
-        error instanceof Error ? error.message : "Object backup sync failed.",
-      ),
+      formatErrorWithCause(error),
     );
     process.exitCode = 1;
   });

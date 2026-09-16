@@ -28,7 +28,7 @@ import { Pool } from "pg";
 
 import {
   recordBackupRun,
-  redactConnectionString,
+  formatErrorWithCause,
   withBackupRunRecorder,
 } from "./record-run";
 import {
@@ -211,9 +211,7 @@ async function main(): Promise<void> {
 if (process.argv[1] === fileURLToPath(import.meta.url)) {
   void main().catch((error: unknown) => {
     console.error(
-      redactConnectionString(
-        error instanceof Error ? error.message : "Restore test failed.",
-      ),
+      formatErrorWithCause(error),
     );
     process.exitCode = 1;
   });
