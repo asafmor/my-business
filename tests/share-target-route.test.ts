@@ -18,6 +18,10 @@ vi.mock("../src/server/documents/upload", () => upload);
 vi.mock("../src/server/observability/logger", () => logger);
 
 import { POST } from "../src/app/share-target/route";
+import {
+  decodeSharedUploads,
+  type SharedUploadResult,
+} from "../src/domain/documents/shared-upload";
 
 afterEach(() => {
   guards.requireRequestSession.mockReset();
@@ -51,6 +55,12 @@ function location(response: Response): string {
   return `${url.pathname}${url.search}`;
 }
 
+/* What the upload page will hand the tray, decoded back out of the redirect. */
+function adopted(response: Response): SharedUploadResult[] {
+  const url = new URL(response.headers.get("location") ?? "");
+  return decodeSharedUploads(url.searchParams.getAll("shared"));
+}
+
 const uploaded = (documentId: string) => ({
   documentId,
   fileName: "receipt.jpg",
@@ -73,7 +83,7 @@ describe("share target route", () => {
     expect(upload.uploadDocumentFiles).not.toHaveBeenCalled();
   });
 
-  it("takes a single shared file to its document for review", async () => {
+  it("hands a shared file to the upload page for the tray to adopt", async () => {
     upload.uploadDocumentFiles.mockResolvedValue([
       uploaded("de305d54-75b4-431b-adb2-eb6b9e546013"),
     ]);
@@ -81,16 +91,23 @@ describe("share target route", () => {
     const response = await POST(shareRequest());
 
     expect(response.status).toBe(303);
-    expect(location(response)).toBe(
-      "/documents/de305d54-75b4-431b-adb2-eb6b9e546013",
+    expect(new URL(response.headers.get("location") ?? "").pathname).toBe(
+      "/upload",
     );
+    expect(adopted(response)).toEqual([
+      {
+        documentId: "de305d54-75b4-431b-adb2-eb6b9e546013",
+        fileName: "receipt.jpg",
+        status: "uploaded",
+      },
+    ]);
     expect(upload.uploadDocumentFiles).toHaveBeenCalledWith(
       [expect.any(File)],
       { allowDuplicate: false },
     );
   });
 
-  it("takes a duplicate share to the document it already has", async () => {
+  it("points a duplicate share at the document it already has", async () => {
     upload.uploadDocumentFiles.mockResolvedValue([
       {
         existingDocumentId: "de305d54-75b4-431b-adb2-eb6b9e546013",
@@ -100,25 +117,36 @@ describe("share target route", () => {
       },
     ]);
 
-    const response = await POST(shareRequest());
-
-    expect(location(response)).toBe(
-      "/documents/de305d54-75b4-431b-adb2-eb6b9e546013",
-    );
+    expect(adopted(await POST(shareRequest()))).toEqual([
+      {
+        documentId: "de305d54-75b4-431b-adb2-eb6b9e546013",
+        fileName: "receipt.jpg",
+        status: "duplicate",
+      },
+    ]);
   });
 
-  it("takes a clean multi-file share to the documents list", async () => {
+  it("carries every file of a multi-file share", async () => {
     upload.uploadDocumentFiles.mockResolvedValue([
-      uploaded("de305d54-75b4-431b-adb2-eb6b9e546013"),
-      uploaded("3f333df6-90a4-4fda-8dd3-9485d27cee36"),
+      {
+        ...uploaded("de305d54-75b4-431b-adb2-eb6b9e546013"),
+        fileName: "a.jpg",
+      },
+      {
+        ...uploaded("3f333df6-90a4-4fda-8dd3-9485d27cee36"),
+        fileName: "b.jpg",
+      },
     ]);
 
     const response = await POST(shareRequest(["a.jpg", "b.jpg"]));
 
-    expect(location(response)).toBe("/documents");
+    expect(adopted(response).map((result) => result.fileName)).toEqual([
+      "a.jpg",
+      "b.jpg",
+    ]);
   });
 
-  it("reports refused files instead of dropping them silently", async () => {
+  it("carries a refused file and its reason instead of dropping it", async () => {
     upload.uploadDocumentFiles.mockResolvedValue([
       uploaded("de305d54-75b4-431b-adb2-eb6b9e546013"),
       { fileName: "notes.txt", message: "nope", status: "rejected" },
@@ -126,7 +154,11 @@ describe("share target route", () => {
 
     const response = await POST(shareRequest(["a.jpg", "notes.txt"]));
 
-    expect(location(response)).toBe("/upload?added=1&failed=1");
+    expect(adopted(response)).toContainEqual({
+      fileName: "notes.txt",
+      message: "nope",
+      status: "rejected",
+    });
   });
 
   it("ingests a file Android put under an unexpected field name", async () => {
@@ -136,9 +168,7 @@ describe("share target route", () => {
 
     const response = await POST(shareRequest(["receipt.jpg"], "file"));
 
-    expect(location(response)).toBe(
-      "/documents/de305d54-75b4-431b-adb2-eb6b9e546013",
-    );
+    expect(adopted(response)).toHaveLength(1);
     expect(upload.uploadDocumentFiles).toHaveBeenCalledWith(
       [expect.any(File)],
       { allowDuplicate: false },

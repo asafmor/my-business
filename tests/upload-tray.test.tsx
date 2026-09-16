@@ -5,6 +5,7 @@ import {
   backlogToTrayItems,
   matchesFilter,
   mergeItems,
+  shareToTrayItems,
   sortItems,
   viewAfterOpen,
   viewAfterToggleOpen,
@@ -167,5 +168,63 @@ describe("view transitions", () => {
     expect(viewAfterToggleOpen("dismissed", "minimized")).toBe("minimized");
     expect(viewAfterToggleOpen("expanded", "minimized")).toBe("dismissed");
     expect(viewAfterToggleOpen("minimized", "expanded")).toBe("dismissed");
+  });
+});
+
+describe("shareToTrayItems", () => {
+  const documentId = "de305d54-75b4-431b-adb2-eb6b9e546013";
+
+  it("turns an ingested share into the rows a browser upload produces", () => {
+    expect(
+      shareToTrayItems(
+        [
+          { documentId, fileName: "receipt.pdf", status: "uploaded" },
+          {
+            fileName: "notes.txt",
+            message: "Not accepted.",
+            status: "rejected",
+          },
+        ],
+        [],
+      ).map((entry) => ({ ...entry, id: undefined })),
+    ).toEqual([
+      {
+        documentId,
+        id: undefined,
+        kind: "upload",
+        message: undefined,
+        name: "receipt.pdf",
+        progress: 100,
+        status: "processing",
+      },
+      {
+        documentId: undefined,
+        id: undefined,
+        kind: "upload",
+        message: "Not accepted.",
+        name: "notes.txt",
+        progress: 0,
+        status: "rejected",
+      },
+    ]);
+  });
+
+  it("explains a duplicate the same way the upload path does", () => {
+    const [only] = shareToTrayItems(
+      [{ documentId, fileName: "receipt.pdf", status: "duplicate" }],
+      [],
+    );
+
+    expect(only?.status).toBe("duplicate");
+    expect(only?.message).toMatch(/already in your document archive/);
+  });
+
+  it("does not list a document again when the landing page is refreshed", () => {
+    expect(
+      shareToTrayItems(
+        [{ documentId, fileName: "receipt.pdf", status: "uploaded" }],
+        [item({ documentId, status: "processing" })],
+      ),
+    ).toEqual([]);
   });
 });

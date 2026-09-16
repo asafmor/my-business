@@ -1,7 +1,5 @@
 import type { MetadataRoute } from "next";
 
-import { allowedFileMimeTypes } from "../server/storage/file-validation";
-
 /*
  * Installing the app on Android is what registers it as a share target, so the
  * manifest has to satisfy Chromium's install criteria: name, 192px and 512px

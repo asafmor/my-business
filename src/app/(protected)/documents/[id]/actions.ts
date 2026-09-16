@@ -58,6 +58,9 @@ export async function saveDocumentEditAction(
   }
 
   await repository.saveEdit(parsed.data);
+  // The list shows supplier, date, total and category, so an edit changes a row
+  // there too - archiving already revalidates it and saving must as well.
+  revalidatePath("/documents");
   revalidatePath(`/documents/${documentId}`);
   revalidatePath("/");
   return { error: null, fieldErrors: {} };
@@ -66,6 +69,7 @@ export async function saveDocumentEditAction(
 export async function markReviewedAction(documentId: string): Promise<void> {
   await requireSession();
   await repository.markReviewed(documentId);
+  revalidatePath("/documents");
   revalidatePath(`/documents/${documentId}`);
   revalidatePath("/");
 }
@@ -76,6 +80,7 @@ export async function reprocessDocumentAction(
   await requireSession();
   const queued = await getBackgroundProcessingService().retry(documentId);
   if (queued) dispatchDueDocumentProcessing();
+  revalidatePath("/documents");
   revalidatePath(`/documents/${documentId}`);
   revalidatePath("/");
 }

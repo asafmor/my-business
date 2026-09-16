@@ -1,3 +1,4 @@
+import { Children, isValidElement, type ReactElement } from "react";
 import { renderToStaticMarkup } from "react-dom/server";
 import { describe, expect, it, vi } from "vitest";
 
@@ -135,6 +136,7 @@ import {
   pageHeaderFor,
 } from "../src/components/layout/app-shell";
 import { ContentState } from "../src/components/ui/content-state";
+import { SharedUploads } from "../src/components/uploads/shared-uploads";
 import { UploadTrayProvider } from "../src/components/uploads/upload-tray-provider";
 
 describe("protected application shell", () => {
@@ -260,18 +262,32 @@ describe("application UI states", () => {
     expect(markup).toContain("Take photo");
   });
 
-  it("explains a share that arrived with files the uploader refused", async () => {
-    const markup = renderToStaticMarkup(
-      <UploadTrayProvider>
-        {await UploadPage({
-          searchParams: Promise.resolve({ added: "1", failed: "2" }),
-        })}
-      </UploadTrayProvider>,
+  it("hands what a share ingested to the upload tray, refusals included", async () => {
+    const page = await UploadPage({
+      searchParams: Promise.resolve({
+        shared: [
+          "uploaded|de305d54-75b4-431b-adb2-eb6b9e546013||receipt.pdf",
+          "rejected||Not accepted.|notes.txt",
+        ],
+      }),
+    });
+    const adopter = Children.toArray(page.props.children).find(
+      (child): child is ReactElement<{ results: unknown }> =>
+        isValidElement(child) && child.type === SharedUploads,
     );
 
-    expect(markup).toContain("Some files were added");
-    expect(markup).toContain("1 of 3 shared files were added");
-    expect(markup).toContain('role="alert"');
+    expect(adopter?.props.results).toEqual([
+      {
+        documentId: "de305d54-75b4-431b-adb2-eb6b9e546013",
+        fileName: "receipt.pdf",
+        status: "uploaded",
+      },
+      { fileName: "notes.txt", message: "Not accepted.", status: "rejected" },
+    ]);
+    // The tray owns every outcome now, so the page keeps no notice of its own.
+    expect(
+      renderToStaticMarkup(<UploadTrayProvider>{page}</UploadTrayProvider>),
+    ).not.toContain('role="alert"');
   });
 
   it("tells apart a share that carried nothing from one it could not read", async () => {

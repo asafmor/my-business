@@ -1,5 +1,7 @@
 import { UploadForm } from "../../../components/documents/upload-form";
+import { SharedUploads } from "../../../components/uploads/shared-uploads";
 import { ContentState } from "../../../components/ui/content-state";
+import { decodeSharedUploads } from "../../../domain/documents/shared-upload";
 import { requireSession } from "../../../server/auth/service";
 
 type Params = Record<string, string | string[] | undefined>;
@@ -8,12 +10,14 @@ function first(value: string | string[] | undefined): string | undefined {
   return Array.isArray(value) ? value[0] : value;
 }
 
-function count(value: string | string[] | undefined): number {
-  const parsed = Number(first(value));
-  return Number.isSafeInteger(parsed) && parsed >= 0 ? parsed : 0;
+function all(value: string | string[] | undefined): string[] {
+  return Array.isArray(value) ? value : value ? [value] : [];
 }
 
-/* A share that lands here did not go cleanly, so it owes the user a reason. */
+/*
+ * Only a share that carried nothing needs a notice of its own. Anything that
+ * did arrive is in the upload tray, refusals included.
+ */
 function shareNotice(params: Params) {
   const reason = first(params.share);
 
@@ -33,16 +37,7 @@ function shareNotice(params: Params) {
     };
   }
 
-  const added = count(params.added);
-  const failed = count(params.failed);
-  return {
-    description:
-      added === 0
-        ? `${failed} shared ${failed === 1 ? "file was" : "files were"} refused. Only JPEG, PNG, WebP, and PDF up to 10 MB are accepted.`
-        : `${added} of ${added + failed} shared files were added. The rest were refused; only JPEG, PNG, WebP, and PDF up to 10 MB are accepted.`,
-    title:
-      added === 0 ? "Shared files were not added" : "Some files were added",
-  };
+  return null;
 }
 
 export default async function UploadPage({
@@ -53,12 +48,12 @@ export default async function UploadPage({
   await requireSession();
 
   const params = await searchParams;
-  const isShare = "share" in params || "added" in params || "failed" in params;
-  const notice = isShare ? shareNotice(params) : null;
+  const notice = shareNotice(params);
 
   return (
     <>
       {notice ? <ContentState tone="error" {...notice} /> : null}
+      <SharedUploads results={decodeSharedUploads(all(params.shared))} />
       <UploadForm />
     </>
   );

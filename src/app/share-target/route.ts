@@ -4,6 +4,10 @@ import {
   RequestGuardError,
   requireRequestSession,
 } from "../../server/auth/guards";
+import {
+  encodeSharedUploads,
+  type SharedUploadResult,
+} from "../../domain/documents/shared-upload";
 import { uploadDocumentFiles } from "../../server/documents/upload";
 import type { UploadedFileResult } from "../../server/documents/upload";
 import { logError, logWarning } from "../../server/observability/logger";
@@ -25,23 +29,37 @@ function seeOther(request: Request, path: string): NextResponse {
   return NextResponse.redirect(new URL(path, request.url), 303);
 }
 
+function shared(result: UploadedFileResult): SharedUploadResult {
+  if (result.status === "uploaded") {
+    return {
+      documentId: result.documentId,
+      fileName: result.fileName,
+      status: "uploaded",
+    };
+  }
+  if (result.status === "duplicate") {
+    return {
+      documentId: result.existingDocumentId,
+      fileName: result.fileName,
+      status: "duplicate",
+    };
+  }
+  return {
+    fileName: result.fileName,
+    message: result.message,
+    status: result.status,
+  };
+}
+
+/*
+ * Every share lands on the upload page, which hands the results to the upload
+ * tray: the same rows, statuses, retries and links a file chosen on that page
+ * gets. Landing on a document detail page instead skipped the tray, and a
+ * just-uploaded document has no transaction date yet, so it sorts last in the
+ * document list — ingested, but nowhere the user would look.
+ */
 function destination(results: UploadedFileResult[]): string {
-  const stored = results.filter(
-    (result) => result.status === "uploaded" || result.status === "duplicate",
-  );
-
-  if (stored.length !== results.length) {
-    // Something was refused. Say so on the upload page rather than dropping
-    // the rejected files without a word.
-    return `/upload?added=${stored.length}&failed=${results.length - stored.length}`;
-  }
-
-  if (stored.length === 1) {
-    const only = stored[0]!;
-    return `/documents/${only.status === "uploaded" ? only.documentId : only.existingDocumentId}`;
-  }
-
-  return "/documents";
+  return `/upload?${encodeSharedUploads(results.map(shared))}`;
 }
 
 /*

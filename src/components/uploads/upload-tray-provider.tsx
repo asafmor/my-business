@@ -16,6 +16,7 @@ import type {
   InboxBacklogResponse,
   InboxBacklogRow,
 } from "../../app/api/documents/inbox/route";
+import type { SharedUploadResult } from "../../domain/documents/shared-upload";
 import type { DocumentStatus } from "../../domain/documents/types";
 import { formatDate, formatMoney } from "../../lib/format";
 
@@ -193,11 +194,54 @@ export function backlogToTrayItems(backlog: InboxBacklogResponse): TrayItem[] {
   );
 }
 
-type UploadApiResult = {
-  documentId?: string;
-  message?: string;
-  status: "duplicate" | "failed" | "rejected" | "uploaded";
-};
+type UploadApiResult = Omit<SharedUploadResult, "fileName">;
+
+const duplicateNotice =
+  "An identical original is already in your document archive.";
+
+/*
+ * One result, one tray row, whichever door the file came through: the browser
+ * upload that just finished, or a share the server ingested before the page
+ * loaded. Keeping the mapping in one place is what makes the two look alike.
+ */
+function trayItemFields(result: UploadApiResult): Partial<TrayItem> {
+  const status: TrayStatus =
+    result.status === "uploaded" ? "processing" : result.status;
+  return {
+    documentId: result.documentId,
+    message:
+      result.message ?? (status === "duplicate" ? duplicateNotice : undefined),
+    progress: status === "processing" ? 100 : 0,
+    status,
+  };
+}
+
+/*
+ * Share results become session items rather than being left to the server
+ * backlog poll, which drops anything already complete and knows supplier names
+ * rather than file names. Re-landing on the same URL — a refresh — must not
+ * list the same document twice.
+ */
+export function shareToTrayItems(
+  results: readonly SharedUploadResult[],
+  existing: readonly TrayItem[],
+): TrayItem[] {
+  const known = new Set(
+    existing.flatMap((item) => (item.documentId ? [item.documentId] : [])),
+  );
+  return results.flatMap((result) =>
+    result.documentId && known.has(result.documentId)
+      ? []
+      : [
+          {
+            id: crypto.randomUUID(),
+            kind: "upload" as const,
+            name: result.fileName,
+            ...trayItemFields(result),
+          } as TrayItem,
+        ],
+  );
+}
 
 function uploadFile(
   file: File,
@@ -286,6 +330,7 @@ async function fetchDocumentStatuses(
 
 type UploadTrayContextValue = {
   addFiles: (files: FileList | File[]) => void;
+  adoptSharedUploads: (results: readonly SharedUploadResult[]) => void;
   allowDuplicateUpload: (item: TrayItem) => void;
   counts: { all: number; failed: number; processing: number; review: number };
   dismiss: () => void;
@@ -455,19 +500,9 @@ export function UploadTrayProvider({ children }: { children: ReactNode }) {
       const result = await uploadFile(file, allowDuplicate, (progress) =>
         updateSessionItem(id, { progress }),
       );
-      const status: TrayStatus =
-        result.status === "uploaded" ? "processing" : result.status;
-      updateSessionItem(id, {
-        documentId: result.documentId,
-        message:
-          result.message ??
-          (status === "duplicate"
-            ? "An identical original is already in your document archive."
-            : undefined),
-        progress: status === "processing" ? 100 : 0,
-        status,
-      });
-      if (status === "processing") focusProcessing();
+      const fields = trayItemFields(result);
+      updateSessionItem(id, fields);
+      if (fields.status === "processing") focusProcessing();
       void refetchBacklog();
     },
     [focusProcessing, refetchBacklog],
@@ -500,6 +535,23 @@ export function UploadTrayProvider({ children }: { children: ReactNode }) {
       }
     },
     [lastOpenView, submit],
+  );
+
+  const adoptSharedUploads = useCallback(
+    (results: readonly SharedUploadResult[]) => {
+      setSessionItems((current) => {
+        const added = shareToTrayItems(results, current);
+        return added.length === 0 ? current : [...current, ...added];
+      });
+      setView((current) =>
+        current === "dismissed" ? viewAfterOpen(lastOpenView) : current,
+      );
+      if (results.some((result) => result.status === "uploaded")) {
+        focusProcessing();
+      }
+      void refetchBacklog();
+    },
+    [focusProcessing, lastOpenView, refetchBacklog],
   );
 
   const retryUpload = useCallback(
@@ -604,6 +656,7 @@ export function UploadTrayProvider({ children }: { children: ReactNode }) {
 
   const value: UploadTrayContextValue = {
     addFiles,
+    adoptSharedUploads,
     allowDuplicateUpload,
     counts,
     dismiss,
