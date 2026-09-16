@@ -84,26 +84,24 @@ describe("checkDatabaseStatus", () => {
 });
 
 describe("backupBadgeTone", () => {
-  const run = { detail: "ok", ranAt: new Date("2026-09-15T02:05:00Z") };
+  const run = {
+    detail: "ok",
+    ranAt: new Date("2026-09-15T02:05:00Z"),
+    stale: false,
+  };
 
   it("is neutral when no backup has ever been recorded", () => {
-    expect(
-      backupBadgeTone({ database: null, objects: null, stale: true }),
-    ).toBe("neutral");
+    expect(backupBadgeTone(null)).toBe("neutral");
   });
 
   // Stale is the one thing on Settings that asks for a person, so it is the
   // one thing that gets cream and the "!" glyph rather than a green tick.
   it("warns rather than fails when a recorded backup has gone stale", () => {
-    expect(backupBadgeTone({ database: run, objects: null, stale: true })).toBe(
-      "warning",
-    );
+    expect(backupBadgeTone({ ...run, stale: true })).toBe("warning");
   });
 
   it("is success when a recorded backup is recent", () => {
-    expect(backupBadgeTone({ database: run, objects: run, stale: false })).toBe(
-      "success",
-    );
+    expect(backupBadgeTone(run)).toBe("success");
   });
 });
 
@@ -136,12 +134,14 @@ describe("checkLastBackupStatus", () => {
 
     const result = await checkLastBackupStatus(now);
 
-    expect(result.stale).toBe(false);
-    expect(result.database?.detail).toBe("db ok");
-    expect(result.objects?.detail).toBe("objects ok");
+    expect(result.database).toMatchObject({ detail: "db ok", stale: false });
+    expect(result.objects).toMatchObject({
+      detail: "objects ok",
+      stale: false,
+    });
   });
 
-  it("is stale when the most recent row is more than 36 hours old", async () => {
+  it("is stale when the last row of that kind is more than 36 hours old", async () => {
     vi.mocked(getDatabase).mockImplementation(
       fakeDatabaseReturning([
         [{ detail: "db old", ranAt: new Date("2026-09-13T02:05:00Z") }],
@@ -151,17 +151,33 @@ describe("checkLastBackupStatus", () => {
 
     const result = await checkLastBackupStatus(now);
 
-    expect(result.stale).toBe(true);
+    expect(result.database?.stale).toBe(true);
+    expect(result.objects).toBeNull();
   });
 
-  it("is stale when no row has ever been recorded", async () => {
+  // The reason each kind is timed on its own: nightly dumps kept running
+  // while the object mirror stopped, and one shared flag hid it.
+  it("does not let a fresh dump cover for a stalled object mirror", async () => {
+    vi.mocked(getDatabase).mockImplementation(
+      fakeDatabaseReturning([
+        [{ detail: "db ok", ranAt: new Date("2026-09-15T02:05:00Z") }],
+        [{ detail: "objects old", ranAt: new Date("2026-09-12T02:10:00Z") }],
+      ]) as never,
+    );
+
+    const result = await checkLastBackupStatus(now);
+
+    expect(result.database?.stale).toBe(false);
+    expect(result.objects?.stale).toBe(true);
+  });
+
+  it("records nothing when no row has ever been written", async () => {
     vi.mocked(getDatabase).mockImplementation(
       fakeDatabaseReturning([[], []]) as never,
     );
 
     const result = await checkLastBackupStatus(now);
 
-    expect(result.stale).toBe(true);
     expect(result.database).toBeNull();
     expect(result.objects).toBeNull();
   });

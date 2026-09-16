@@ -79,30 +79,30 @@ export async function checkFreeTierUsage(): Promise<FreeTierUsage> {
       detail: "Measured when this page loaded.",
       meters: [
         {
-          caveat:
-            "Summed from the file index, not a bucket listing - anything in the bucket the database does not know about is uncounted.",
+          caveat: "Document files stored by this app.",
           id: "r2",
           limitBytes: r2FreeStorageBytes,
-          measure: "Stored objects",
-          provider: "Cloudflare R2 · Free",
+          measure: "Object storage",
+          provider: "Cloudflare R2",
           usedBytes: objectBytes,
         },
         {
-          caveat:
-            "B2 mirrors every R2 object one for one, so the mirror is at least this big. Nightly database dumps live in the same bucket and are not counted here.",
+          // The nightly dump is compressed, so the mirror is smaller than the
+          // sum of its sources. Estimating high is the safe direction for a
+          // number whose whole job is to warn before a cap arrives.
+          caveat: "Estimated: every document file plus the database dump.",
           id: "b2",
           limitBytes: b2FreeStorageBytes,
-          measure: "Mirrored objects",
-          provider: "Backblaze B2 · Free",
-          usedBytes: objectBytes,
+          measure: "Backup mirror",
+          provider: "Backblaze B2",
+          usedBytes: objectBytes + databaseBytes,
         },
         {
-          caveat:
-            "The whole Postgres database on disk: rows, indexes and bloat. Document bytes are not in here - they live in R2.",
+          caveat: "Records and indexes. Document files are held in R2.",
           id: "neon",
           limitBytes: neonFreeStorageBytes,
-          measure: "Database on disk",
-          provider: "Neon · Free",
+          measure: "Database",
+          provider: "Neon",
           usedBytes: databaseBytes,
         },
       ],
@@ -148,43 +148,43 @@ export type ProviderAllowance = {
 /*
  * The caps that would need another provider's API credentials in the app to
  * measure - which is exactly what this app does not do (B2 credentials never
- * reach the runtime at all). Printed as reference, with the dashboard that
- * has the live number one click away. Checked 2026-09-16.
+ * reach the runtime at all). Listed as reference, with the dashboard that
+ * holds the live number one click away. Checked 2026-09-16.
  */
 export const freeTierAllowances: ProviderAllowance[] = [
   {
     href: "https://developers.cloudflare.com/r2/pricing/",
     items: [
-      "1,000,000 Class A operations a month (writes, lists)",
-      "10,000,000 Class B operations a month (reads)",
-      "Egress is free and unmetered",
+      "1,000,000 writes and listings a month",
+      "10,000,000 reads a month",
+      "Unlimited downloads",
     ],
     provider: "Cloudflare R2",
   },
   {
     href: "https://www.backblaze.com/cloud-storage/pricing",
     items: [
-      "Egress free up to 3× the average monthly stored bytes",
-      "Class A, B and C API calls are free",
-      "First 2,500 Class D calls a day are free",
+      "Downloads free up to 3× the average stored size",
+      "Unlimited uploads, listings and downloads",
+      "2,500 bucket management calls a day",
     ],
     provider: "Backblaze B2",
   },
   {
     href: "https://neon.com/docs/introduction/plans",
     items: [
-      "100 CU-hours of compute a month",
-      "5 GB of public network transfer a month",
-      "10 branches; compute suspends after 5 idle minutes",
+      "100 compute hours a month",
+      "5 GB of data transfer a month",
+      "10 branches, with idle compute paused automatically",
     ],
     provider: "Neon",
   },
   {
     href: "https://vercel.com/docs/limits/fair-use-guidelines",
     items: [
-      "100 GB fast data transfer a month",
-      "1,000,000 function invocations a month",
-      "4 hours active CPU and 360 GB-hrs provisioned memory a month",
+      "100 GB of data transfer a month",
+      "1,000,000 function calls a month",
+      "4 hours of active CPU a month",
       "100 deployments a day",
     ],
     provider: "Vercel Hobby",

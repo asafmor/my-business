@@ -53,7 +53,7 @@ describe("formatBytes", () => {
 });
 
 describe("checkFreeTierUsage", () => {
-  it("meters R2 and B2 off the same object bytes, and Neon off the database", async () => {
+  it("meters R2 off object bytes, B2 off both, and Neon off the database", async () => {
     vi.mocked(getDatabase).mockImplementation(
       fakeDatabaseReturning([
         {
@@ -69,8 +69,10 @@ describe("checkFreeTierUsage", () => {
 
     expect(usage.ok).toBe(true);
     expect(usage.objectCount).toBe(42);
+    // B2 holds the object mirror and the database dump, so its meter is the
+    // sum of the other two rather than a copy of the first.
     expect(usage.meters.map((meter) => meter.usedBytes)).toEqual([
-      2_500_000_000, 2_500_000_000, 50_000_000,
+      2_500_000_000, 2_550_000_000, 50_000_000,
     ]);
     expect(usage.meters[2].limitBytes).toBe(neonFreeStorageBytes);
   });

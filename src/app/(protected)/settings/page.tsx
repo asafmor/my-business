@@ -2,6 +2,7 @@ import {
   Archive,
   Cloud,
   Database,
+  DatabaseBackup,
   LogOut,
   type LucideIcon,
 } from "lucide-react";
@@ -9,14 +10,14 @@ import Link from "next/link";
 import { type ReactNode } from "react";
 
 import packageJson from "../../../../package.json";
-import { formatBytes, formatDateTime } from "../../../lib/format";
+import { formatBytes } from "../../../lib/format";
 import {
   backupBadgeTone,
   checkDatabaseStatus,
   checkLastBackupStatus,
   checkStorageConfiguration,
   statusBadgeTone,
-  type BackupStatus,
+  type BackupRun,
 } from "../../../server/settings/status";
 import {
   checkFreeTierUsage,
@@ -25,6 +26,7 @@ import {
   meterTone,
   type UsageMeter,
 } from "../../../server/settings/usage";
+import { LocalDateTime } from "../../../components/ui/local-date-time";
 import { requireSession } from "../../../server/auth/service";
 import { logoutAction } from "../actions";
 import { RecheckButton } from "./recheck-button";
@@ -63,31 +65,34 @@ export default async function SettingsPage() {
           <HealthTile
             icon={Database}
             label="Database"
-            state={database.ok ? "Reachable" : "Unreachable"}
+            state={database.ok ? "Connected" : "Unreachable"}
             tone={statusBadgeTone(database.ok)}
           >
-            <p>{database.detail}</p>
+            <p>{database.ok ? "Neon Postgres" : database.detail}</p>
           </HealthTile>
           <HealthTile
             icon={Cloud}
-            label="Primary storage"
+            label="File storage"
             state={storage.ok ? "Configured" : "Not configured"}
             tone={statusBadgeTone(storage.ok)}
           >
-            <p>
-              {storage.ok
-                ? "R2 credentials and bucket are present. This checks configuration, not a live round trip."
-                : storage.detail}
-            </p>
+            <p>{storage.ok ? "Cloudflare R2" : storage.detail}</p>
+          </HealthTile>
+          <HealthTile
+            icon={DatabaseBackup}
+            label="Database backup"
+            state={backupWord(backup.database)}
+            tone={backupBadgeTone(backup.database)}
+          >
+            <BackupTime run={backup.database} />
           </HealthTile>
           <HealthTile
             icon={Archive}
-            label="Verified backup"
-            state={backupStatusWord(backup)}
-            tone={backupBadgeTone(backup)}
+            label="File backup"
+            state={backupWord(backup.objects)}
+            tone={backupBadgeTone(backup.objects)}
           >
-            <BackupLine label="Database dump" run={backup.database} />
-            <BackupLine label="Object storage" run={backup.objects} />
+            <BackupTime run={backup.objects} />
           </HealthTile>
         </ul>
       </section>
@@ -95,15 +100,14 @@ export default async function SettingsPage() {
       <section className="settings-card">
         <div className="settings-card__header">
           <div>
-            <h2 className="settings-card__title">Free tier headroom</h2>
+            <h2 className="settings-card__title">Storage limits</h2>
             <p className="settings-card__note">
-              Every provider under this app is on its free plan. These three
-              caps can be measured from in here
+              Storage used against each provider&rsquo;s free plan
               {usage.ok ? (
                 <>
-                  {" — across "}
+                  {", across "}
                   <span className="num">{usage.objectCount}</span>
-                  {" stored files."}
+                  {" files."}
                 </>
               ) : (
                 "."
@@ -119,12 +123,11 @@ export default async function SettingsPage() {
           <p className="settings-status__detail">{usage.detail}</p>
         )}
         <details className="settings-details">
-          <summary>Caps this page does not measure</summary>
+          <summary>Other free plan limits</summary>
           <div className="settings-details__body">
             <p className="settings-card__note">
-              Reading these live would mean handing the app another provider
-              credential, which is the one thing the backup design refuses. The
-              allowances are listed instead; the dashboards hold the counters.
+              Current figures for these live in each provider&rsquo;s own
+              dashboard.
             </p>
             {freeTierAllowances.map((allowance) => (
               <div className="allowance" key={allowance.provider}>
@@ -218,9 +221,9 @@ export default async function SettingsPage() {
   );
 }
 
-function backupStatusWord(backup: BackupStatus): string {
-  if (!backup.database && !backup.objects) return "Never run";
-  return backup.stale ? "Stale" : "Verified";
+function backupWord(run: BackupRun | null): string {
+  if (!run) return "Never run";
+  return run.stale ? "Overdue" : "Verified";
 }
 
 /*
@@ -280,27 +283,19 @@ function UsageMeterRow({ meter }: { meter: UsageMeter }) {
       <p className="usage-meter__note">
         <span className="usage-meter__measure">{meter.measure}</span>
         {" · "}
-        <span className="num">{percent}%</span> used. {meter.caveat}
+        <span className="num">{percent}%</span> used · {meter.caveat}
       </p>
     </div>
   );
 }
 
-function BackupLine({
-  label,
-  run,
-}: {
-  label: string;
-  run: { ranAt: Date } | null;
-}) {
+/* The date is the whole detail line here, so it gets the reader's own time
+ * zone rather than a sentence about itself. */
+function BackupTime({ run }: { run: BackupRun | null }) {
+  if (!run) return <p className="settings-empty">No run recorded</p>;
   return (
     <p>
-      {label}{" "}
-      {run ? (
-        <span className="num">{formatDateTime(run.ranAt)}</span>
-      ) : (
-        <span className="settings-empty">—</span>
-      )}
+      <LocalDateTime value={run.ranAt} />
     </p>
   );
 }

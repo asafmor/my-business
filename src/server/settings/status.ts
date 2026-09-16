@@ -12,10 +12,16 @@ import { backupRuns } from "../db/schema";
 // nightly 02:00 cron, to catch a workflow that silently stopped running.
 const staleAfterMs = 36 * 60 * 60 * 1000;
 
-export type BackupStatus = {
-  database: { ranAt: Date; detail: string } | null;
-  objects: { ranAt: Date; detail: string } | null;
+export type BackupRun = {
+  ranAt: Date;
+  detail: string;
+  /** True once this kind of backup has gone longer than staleAfterMs. */
   stale: boolean;
+};
+
+export type BackupStatus = {
+  database: BackupRun | null;
+  objects: BackupRun | null;
 };
 
 export type StatusCheck = {
@@ -68,23 +74,29 @@ export function statusBadgeTone(ok: boolean): "error" | "success" {
  * A backup that has never run and a backup that stopped running are different
  * problems: the first is setup, the second wants someone to look today. Cream
  * carries the second one, which is the only thing on Settings that asks for a
- * person's judgment.
+ * person's judgment. Each kind is toned on its own last run, so a fresh
+ * database dump cannot make a stalled object mirror look healthy.
  */
-export function backupBadgeTone(backup: BackupStatus): BadgeTone {
-  if (!backup.database && !backup.objects) return "neutral";
-  return backup.stale ? "warning" : "success";
+export function backupBadgeTone(run: BackupRun | null): BadgeTone {
+  if (!run) return "neutral";
+  return run.stale ? "warning" : "success";
 }
 
 async function latestBackupRun(
   kind: "database" | "objects",
-): Promise<{ ranAt: Date; detail: string } | null> {
+  now: Date,
+): Promise<BackupRun | null> {
   const [row] = await getDatabase()
     .select({ detail: backupRuns.detail, ranAt: backupRuns.ranAt })
     .from(backupRuns)
     .where(eq(backupRuns.kind, kind))
     .orderBy(desc(backupRuns.ranAt))
     .limit(1);
-  return row ?? null;
+  if (!row) return null;
+  return {
+    ...row,
+    stale: now.getTime() - row.ranAt.getTime() > staleAfterMs,
+  };
 }
 
 // 19.1/19.3: reads only verified-success rows the backup scripts wrote
@@ -94,16 +106,9 @@ export async function checkLastBackupStatus(
   now: Date = new Date(),
 ): Promise<BackupStatus> {
   const [database, objects] = await Promise.all([
-    latestBackupRun("database"),
-    latestBackupRun("objects"),
+    latestBackupRun("database", now),
+    latestBackupRun("objects", now),
   ]);
 
-  const mostRecent = [database?.ranAt, objects?.ranAt]
-    .filter((d): d is Date => d !== undefined && d !== null)
-    .sort((a, b) => b.getTime() - a.getTime())[0];
-
-  const stale =
-    !mostRecent || now.getTime() - mostRecent.getTime() > staleAfterMs;
-
-  return { database, objects, stale };
+  return { database, objects };
 }

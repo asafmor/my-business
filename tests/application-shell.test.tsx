@@ -110,7 +110,7 @@ vi.mock("../src/server/settings/status", () => ({
   checkDatabaseStatus: vi.fn().mockResolvedValue({ detail: "ok", ok: true }),
   checkLastBackupStatus: vi
     .fn()
-    .mockResolvedValue({ database: null, objects: null, stale: true }),
+    .mockResolvedValue({ database: null, objects: null }),
   checkStorageConfiguration: vi.fn(() => ({ detail: "ok", ok: true })),
   statusBadgeTone: (ok: boolean) => (ok ? "success" : "error"),
 }));
