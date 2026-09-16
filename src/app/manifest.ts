@@ -27,27 +27,20 @@ export default function manifest(): MetadataRoute.Manifest {
     id: "/",
     name: "My Business",
     scope: "/",
-    // The share sheet offers us only what the ingestion pipeline already
-    // accepts. Both MIME types and extensions are listed because Android
-    // apps differ in which one they advertise for a shared file.
+    /*
+     * MIME types only. Android hands Chrome a content URI whose type it
+     * resolves through the content resolver, and Chrome matches that type
+     * against this list to decide which form field a shared file belongs in;
+     * a file it cannot place is dropped from the POST body without a word.
+     * Extensions cost nothing in the Android intent filter (which is
+     * MIME-based) and only add entries that matching can trip over.
+     */
     share_target: {
       action: "/share-target",
       enctype: "multipart/form-data",
       method: "POST",
       params: {
-        files: [
-          {
-            name: "files",
-            accept: [
-              ...allowedFileMimeTypes,
-              ".jpg",
-              ".jpeg",
-              ".png",
-              ".webp",
-              ".pdf",
-            ],
-          },
-        ],
+        files: [{ name: "files", accept: [...allowedFileMimeTypes] }],
       },
     },
     short_name: "My Business",
