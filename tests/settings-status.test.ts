@@ -2,6 +2,7 @@ import { describe, expect, it, vi } from "vitest";
 
 vi.mock("server-only", () => ({}));
 vi.mock("../src/server/db/client", () => ({ getDatabase: vi.fn() }));
+vi.mock("../src/server/observability/logger", () => ({ logError: vi.fn() }));
 vi.mock("../src/server/db/schema", () => ({
   backupRuns: {
     detail: "backup_runs.detail",
@@ -11,8 +12,11 @@ vi.mock("../src/server/db/schema", () => ({
 }));
 
 import { getDatabase } from "../src/server/db/client";
+import { logError } from "../src/server/observability/logger";
 import { developmentR2Bucket } from "../src/server/config/cloud-environment";
 import {
+  backupBadgeTone,
+  checkDatabaseStatus,
   checkLastBackupStatus,
   checkStorageConfiguration,
   statusBadgeTone,
@@ -51,6 +55,55 @@ describe("statusBadgeTone", () => {
   it("maps ok to success and not-ok to error", () => {
     expect(statusBadgeTone(true)).toBe("success");
     expect(statusBadgeTone(false)).toBe("error");
+  });
+});
+
+describe("checkDatabaseStatus", () => {
+  it("keeps the driver's error text out of the page and puts it in the log", async () => {
+    // A real connect failure names the pooler host, and often the user and
+    // database with it. Settings renders into HTML a browser can read.
+    const failure = new Error(
+      "getaddrinfo ENOTFOUND ep-still-sun-1234-pooler.eu-central-1.aws.neon.tech",
+    );
+    vi.mocked(getDatabase).mockImplementation((() => ({
+      execute: () => Promise.reject(failure),
+    })) as never);
+
+    const result = await checkDatabaseStatus();
+
+    expect(result.ok).toBe(false);
+    expect(result.detail).not.toContain("neon.tech");
+    expect(result.detail).toBe(
+      "The application database did not answer. Check the server logs.",
+    );
+    expect(logError).toHaveBeenCalledWith(
+      "settings.database_check_failed",
+      failure,
+    );
+  });
+});
+
+describe("backupBadgeTone", () => {
+  const run = { detail: "ok", ranAt: new Date("2026-09-15T02:05:00Z") };
+
+  it("is neutral when no backup has ever been recorded", () => {
+    expect(
+      backupBadgeTone({ database: null, objects: null, stale: true }),
+    ).toBe("neutral");
+  });
+
+  // Stale is the one thing on Settings that asks for a person, so it is the
+  // one thing that gets cream and the "!" glyph rather than a green tick.
+  it("warns rather than fails when a recorded backup has gone stale", () => {
+    expect(backupBadgeTone({ database: run, objects: null, stale: true })).toBe(
+      "warning",
+    );
+  });
+
+  it("is success when a recorded backup is recent", () => {
+    expect(backupBadgeTone({ database: run, objects: run, stale: false })).toBe(
+      "success",
+    );
   });
 });
 

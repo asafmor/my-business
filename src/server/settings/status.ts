@@ -4,6 +4,7 @@ import { desc, eq, sql } from "drizzle-orm";
 
 import { assertR2Environment } from "../config/cloud-environment";
 import { getDatabase } from "../db/client";
+import { logError } from "../observability/logger";
 import { backupRuns } from "../db/schema";
 
 // 19.3: how stale the most recent verified backup row may be before the
@@ -27,9 +28,12 @@ export async function checkDatabaseStatus(): Promise<StatusCheck> {
     await getDatabase().execute(sql`select 1`);
     return { detail: "Connected to the application database.", ok: true };
   } catch (error) {
+    // A driver connect failure names the pooler host, and often the user and
+    // database too. The operator gets that in the log; the browser gets a
+    // sentence - this page renders into HTML a browser can read.
+    logError("settings.database_check_failed", error);
     return {
-      detail:
-        error instanceof Error ? error.message : "Database is unreachable.",
+      detail: "The application database did not answer. Check the server logs.",
       ok: false,
     };
   }
@@ -54,8 +58,21 @@ export function checkStorageConfiguration(
   }
 }
 
+export type BadgeTone = "error" | "neutral" | "success" | "warning";
+
 export function statusBadgeTone(ok: boolean): "error" | "success" {
   return ok ? "success" : "error";
+}
+
+/*
+ * A backup that has never run and a backup that stopped running are different
+ * problems: the first is setup, the second wants someone to look today. Cream
+ * carries the second one, which is the only thing on Settings that asks for a
+ * person's judgment.
+ */
+export function backupBadgeTone(backup: BackupStatus): BadgeTone {
+  if (!backup.database && !backup.objects) return "neutral";
+  return backup.stale ? "warning" : "success";
 }
 
 async function latestBackupRun(
