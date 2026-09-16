@@ -35,14 +35,25 @@ describe("web app manifest", () => {
     expect(files).toHaveLength(1);
     expect(files[0]?.name).toBe("files");
     /*
-     * Wider than ingestion accepts, on purpose: Chrome drops a shared file it
-     * cannot match to a form field, and Android apps routinely hand out a PDF
-     * as application/octet-stream. Magic-byte validation is what keeps the
-     * wider net safe, so the real types must all still be offered.
+     * Chromium builds the MimeTypeFilter it matches shared files against by
+     * splitting each accept entry on "/". A bare extension like ".pdf" has no
+     * "/" and can poison the filter so no file matches at all — the app still
+     * shows in the share sheet (that comes from the Android intent filter) but
+     * every shared file is silently dropped. Proven on device: text params
+     * arrived while files did not, and files are the only ones filtered.
      */
     const accept = [files[0]?.accept ?? []].flat();
-    expect(accept).toEqual(expect.arrayContaining([...allowedFileMimeTypes]));
-    expect(accept).toContain("application/octet-stream");
+    expect(accept.some((entry) => entry.startsWith("."))).toBe(false);
+    expect(accept.every((entry) => entry.includes("/"))).toBe(true);
+
+    // Every type ingestion accepts must still be reachable, exactly or by wildcard.
+    const covered = (type: string) =>
+      accept.some(
+        (entry) =>
+          entry === type ||
+          (entry.endsWith("/*") && type.startsWith(entry.slice(0, -1))),
+      );
+    expect(allowedFileMimeTypes.filter((type) => !covered(type))).toEqual([]);
 
     // A link-only share must reach the server too, so it can explain itself.
     expect(share?.params.text).toBe("text");

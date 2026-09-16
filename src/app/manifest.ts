@@ -37,44 +37,32 @@ export default function manifest(): MetadataRoute.Manifest {
      * Consequence: any future share_target change needs this string (or
      * another fingerprinted member) nudged as well, or it will not ship.
      */
-    name: "My Business Documents",
+    name: "My Business Files",
     scope: "/",
     /*
-     * Deliberately wider than what ingestion accepts. Chrome resolves a shared
-     * file's type through the content resolver and matches it against this
-     * list to choose a form field; a file it cannot place is dropped from the
-     * POST body silently, which is a share that arrives with zero parts and no
-     * way to tell why. Plenty of Android apps hand out a PDF as
-     * application/octet-stream, so the four real types are not enough on their
-     * own, and the extensions cover resolvers that report no type at all.
+     * Mirrors the shape of Google's Scrapbook demo, the reference share target
+     * that is known to work: wildcards, real MIME types, and no bare file
+     * extensions. Chromium parses each accept entry by splitting on "/" to
+     * build the MimeTypeFilter it matches shared files against, so an entry
+     * like ".pdf" is not merely useless, it can poison the filter so nothing
+     * matches at all. That fits the symptom exactly: the app still appears in
+     * the share sheet, because the Android intent filter is built separately
+     * from the MIME types, yet every shared file is dropped before the POST
+     * body is assembled.
      *
-     * Widening costs nothing in safety: uploadDocumentFiles sniffs magic bytes
-     * and refuses anything whose content is not actually a JPEG, PNG, WebP or
-     * PDF, so a file that should not be here is refused with a message instead
-     * of vanishing.
+     * image/* is wider than ingestion accepts, which is fine: uploadDocumentFiles
+     * sniffs magic bytes, so a shared GIF or HEIC is refused with a message
+     * rather than stored.
      *
-     * title/text/url are declared so a share that carries a link rather than a
-     * file still reaches the server, where it can say so.
+     * title/text/url are declared so a link-only share still reaches the server
+     * and can say what it was.
      */
     share_target: {
       action: "/share-target",
       enctype: "multipart/form-data",
       method: "POST",
       params: {
-        files: [
-          {
-            name: "files",
-            accept: [
-              ...allowedFileMimeTypes,
-              "application/octet-stream",
-              ".jpg",
-              ".jpeg",
-              ".png",
-              ".webp",
-              ".pdf",
-            ],
-          },
-        ],
+        files: [{ name: "files", accept: ["image/*", "application/pdf"] }],
         text: "text",
         title: "title",
         url: "url",
