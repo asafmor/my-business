@@ -26,7 +26,7 @@ describe("formatAuditChange", () => {
         newValue: "2024-02-01",
         oldValue: "2024-01-15",
       }),
-    ).toBe("2024-01-15 → 2024-02-01");
+    ).toBe("15 Jan 2024 → 1 Feb 2024");
   });
 
   it("appends a percent sign for the business-use percentage field", () => {

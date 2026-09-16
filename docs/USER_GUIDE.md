@@ -42,16 +42,28 @@ whatever you're uploading this session.
 - For a document under **Failed**, select **Retry processing** to try AI
   extraction again, or open it and correct fields by hand.
 
-On the document detail page (`/documents/{id}`), edit any field in the form,
-then:
+The document detail page (`/documents/{id}`) opens with the supplier, status
+and total at the top, the original beside the details on desktop, and the
+document's activity history underneath. A field the AI could not read with
+confidence is flagged in cream with a sentence saying why; a field you have
+corrected carries an **Edited** tag. On a phone the details are a list you
+read first — tap any row or **Edit** to open the form, then **Save** from
+the bar at the bottom.
 
-- **Mark reviewed** — accept the document as reviewed.
-- **Reprocess** — re-run AI extraction (same as the tray's Retry processing).
+The actions at the top:
+
+- **Mark reviewed** — accept the document as reviewed. This is the primary
+  button while the document needs review.
+- **Read again** — re-run AI extraction (same as the tray's Retry
+  processing). This is the primary button after a failed read.
 - **Archive** — move the document out of the active list (see "Archive"
-  below). On an already-archived document this becomes **Restore**.
+  below), after a confirmation. On an already-archived document the only
+  action is **Restore**.
 
 Any field you edit by hand is preserved — AI never overwrites your
-correction on a later reprocess.
+correction on a later read. The **Technical details** drawer at the foot
+holds the extraction runs, the raw AI output and the file records, for the
+day something reads wrong.
 
 ## Search
 

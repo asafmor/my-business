@@ -214,8 +214,16 @@ Never paint fake status bars or phone chrome. Reserve the space, leave it empty.
       the whole drop target on desktop, a capture card whose primary action is
       the camera on mobile. The reassurance copy went to the tray, which was
       already saying it
+- [x] Document detail — a record page: back link, supplier, status badge and
+      the total at metric size, then the one primary verb for the status
+      (Mark reviewed / Read again / Restore); the original sticky beside a
+      grouped details form with review flags in cream and "Edited" tags; an
+      activity timeline with before → after; the debug drawer folded at the
+      foot. On a phone the details are a read-first fact list that opens into
+      the form with a sticky Cancel/Save bar above the tab bar. Timestamps
+      render in the reader's own zone via `LocalDateTime`.
 - [ ] Mobile review flow — the full "finish it at a bus stop" task screen
-- [ ] Reports and document detail
+- [ ] Reports
 
 The one deliberate exception to rule 1: `.upload-dropzone` keeps a **dashed**
 border. Dashes read as "drop something here" — an affordance, not a separator.
