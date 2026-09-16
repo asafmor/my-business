@@ -28,10 +28,12 @@ describe("web app manifest", () => {
     const files = [share?.params.files ?? []].flat();
     expect(files).toHaveLength(1);
     expect(files[0]?.name).toBe("files");
-    // The share sheet must not advertise a type the uploader would refuse.
-    const accept = [files[0]?.accept ?? []].flat();
-    expect(accept.filter((type) => !type.startsWith("."))).toEqual([
-      ...allowedFileMimeTypes,
-    ]);
+    /*
+     * MIME types, and exactly the ones ingestion accepts. Chrome matches a
+     * shared file's resolved type against this list to pick a form field and
+     * drops files it cannot place, so a stray extension entry here is a share
+     * that silently arrives empty.
+     */
+    expect([files[0]?.accept ?? []].flat()).toEqual([...allowedFileMimeTypes]);
   });
 });

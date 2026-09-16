@@ -2,14 +2,30 @@ import { UploadForm } from "../../../components/documents/upload-form";
 import { ContentState } from "../../../components/ui/content-state";
 import { requireSession } from "../../../server/auth/service";
 
+type Params = Record<string, string | string[] | undefined>;
+
+function first(value: string | string[] | undefined): string | undefined {
+  return Array.isArray(value) ? value[0] : value;
+}
+
 function count(value: string | string[] | undefined): number {
-  const parsed = Number(Array.isArray(value) ? value[0] : value);
+  const parsed = Number(first(value));
   return Number.isSafeInteger(parsed) && parsed >= 0 ? parsed : 0;
 }
 
 /* A share that lands here did not go cleanly, so it owes the user a reason. */
-function shareNotice(added: number, failed: number) {
-  if (added + failed === 0) {
+function shareNotice(params: Params) {
+  const reason = first(params.share);
+
+  if (reason === "unreadable") {
+    return {
+      description:
+        "Android sent a share this app could not read. Add the file below instead.",
+      title: "The share could not be read",
+    };
+  }
+
+  if (reason === "empty") {
     return {
       description:
         "Nothing supported arrived. Share a JPEG, PNG, WebP, or PDF, or add the file below.",
@@ -17,6 +33,8 @@ function shareNotice(added: number, failed: number) {
     };
   }
 
+  const added = count(params.added);
+  const failed = count(params.failed);
   return {
     description:
       added === 0
@@ -30,15 +48,13 @@ function shareNotice(added: number, failed: number) {
 export default async function UploadPage({
   searchParams,
 }: {
-  searchParams: Promise<Record<string, string | string[] | undefined>>;
+  searchParams: Promise<Params>;
 }) {
   await requireSession();
 
   const params = await searchParams;
-  const isShare = "added" in params || "failed" in params;
-  const notice = isShare
-    ? shareNotice(count(params.added), count(params.failed))
-    : null;
+  const isShare = "share" in params || "added" in params || "failed" in params;
+  const notice = isShare ? shareNotice(params) : null;
 
   return (
     <>

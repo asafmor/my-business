@@ -2,9 +2,10 @@
 
 import { LoaderCircle } from "lucide-react";
 import { usePathname, useSearchParams } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 const startEvent = "my-business:navigation-start";
+const cancelEvent = "my-business:navigation-cancel";
 
 /**
  * Raises the indicator for a navigation that did not come from a link —
@@ -13,6 +14,16 @@ const startEvent = "my-business:navigation-start";
  */
 export function signalNavigationStart(): void {
   window.dispatchEvent(new Event(startEvent));
+}
+
+/**
+ * Lowers it again for a link click that turns out not to be a navigation. The
+ * click listener below has to run in the capture phase to beat Next's own
+ * handler, which is before any `preventDefault()` the app makes, so a link the
+ * app cancels has to say so itself.
+ */
+export function signalNavigationCancel(): void {
+  window.dispatchEvent(new Event(cancelEvent));
 }
 
 /**
@@ -27,9 +38,11 @@ export function NavigationProgress() {
   const pathname = usePathname();
   const searchParams = useSearchParams();
   const [isNavigating, setIsNavigating] = useState(false);
+  const arrivedAt = useRef("");
 
   /* Arriving is what ends the wait, and a new URL is how arriving looks. */
   useEffect(() => {
+    arrivedAt.current = window.location.pathname + window.location.search;
     setIsNavigating(false);
   }, [pathname, searchParams]);
 
@@ -58,13 +71,32 @@ export function NavigationProgress() {
       setIsNavigating(true);
     }
 
+    function handleCancel(): void {
+      setIsNavigating(false);
+    }
+
+    function handlePopState(): void {
+      // Back and forward put the URL in place before this listener runs, and a
+      // cached route is restored before it too — by then the arrival that would
+      // lower the indicator has already been and gone. Only a URL the router
+      // has yet to reach is still a wait.
+      if (
+        window.location.pathname + window.location.search ===
+        arrivedAt.current
+      )
+        return;
+      setIsNavigating(true);
+    }
+
     document.addEventListener("click", handleClick, { capture: true });
-    window.addEventListener("popstate", handleStart);
+    window.addEventListener("popstate", handlePopState);
     window.addEventListener(startEvent, handleStart);
+    window.addEventListener(cancelEvent, handleCancel);
     return () => {
       document.removeEventListener("click", handleClick, { capture: true });
-      window.removeEventListener("popstate", handleStart);
+      window.removeEventListener("popstate", handlePopState);
       window.removeEventListener(startEvent, handleStart);
+      window.removeEventListener(cancelEvent, handleCancel);
     };
   }, []);
 

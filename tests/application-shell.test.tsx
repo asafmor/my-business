@@ -273,6 +273,18 @@ describe("application UI states", () => {
     expect(markup).toContain("1 of 3 shared files were added");
     expect(markup).toContain('role="alert"');
   });
+
+  it("tells apart a share that carried nothing from one it could not read", async () => {
+    const render = async (share: string) =>
+      renderToStaticMarkup(
+        <UploadTrayProvider>
+          {await UploadPage({ searchParams: Promise.resolve({ share }) })}
+        </UploadTrayProvider>,
+      );
+
+    expect(await render("empty")).toContain("No files were shared");
+    expect(await render("unreadable")).toContain("The share could not be read");
+  });
 });
 
 describe("logout action", () => {

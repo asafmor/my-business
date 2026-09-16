@@ -34,6 +34,7 @@ import {
   humanizeEnumValue,
 } from "../../lib/format";
 import type { DocumentListRow } from "../../server/documents/documents-query-repository";
+import { signalNavigationCancel } from "../layout/navigation-progress";
 import { useDocumentParams } from "./use-document-params";
 
 const columns: {
@@ -237,6 +238,7 @@ export function DocumentsTable({
                     onClick={(event) => {
                       if (selected.length === 0) return;
                       event.preventDefault();
+                      signalNavigationCancel();
                       toggle(row.id);
                     }}
                   >

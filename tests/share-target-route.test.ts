@@ -10,23 +10,30 @@ const guards = vi.hoisted(() => {
   return { RequestGuardError, requireRequestSession: vi.fn() };
 });
 const upload = vi.hoisted(() => ({ uploadDocumentFiles: vi.fn() }));
+const logger = vi.hoisted(() => ({ logError: vi.fn(), logWarning: vi.fn() }));
 
 vi.mock("server-only", () => ({}));
 vi.mock("../src/server/auth/guards", () => guards);
 vi.mock("../src/server/documents/upload", () => upload);
+vi.mock("../src/server/observability/logger", () => logger);
 
 import { POST } from "../src/app/share-target/route";
 
 afterEach(() => {
   guards.requireRequestSession.mockReset();
   upload.uploadDocumentFiles.mockReset();
+  logger.logError.mockReset();
+  logger.logWarning.mockReset();
 });
 
-function shareRequest(fileNames: string[] = ["receipt.jpg"]): Request {
+function shareRequest(
+  fileNames: string[] = ["receipt.jpg"],
+  field = "files",
+): Request {
   const formData = new FormData();
   for (const name of fileNames) {
     formData.append(
-      "files",
+      field,
       new File([new Uint8Array([0xff, 0xd8, 0xff, 0xe0])], name, {
         type: "image/jpeg",
       }),
@@ -122,11 +129,58 @@ describe("share target route", () => {
     expect(location(response)).toBe("/upload?added=1&failed=1");
   });
 
-  it("reports a share that carried nothing usable", async () => {
+  it("ingests a file Android put under an unexpected field name", async () => {
+    upload.uploadDocumentFiles.mockResolvedValue([
+      uploaded("de305d54-75b4-431b-adb2-eb6b9e546013"),
+    ]);
+
+    const response = await POST(shareRequest(["receipt.jpg"], "file"));
+
+    expect(location(response)).toBe(
+      "/documents/de305d54-75b4-431b-adb2-eb6b9e546013",
+    );
+    expect(upload.uploadDocumentFiles).toHaveBeenCalledWith(
+      [expect.any(File)],
+      { allowDuplicate: false },
+    );
+  });
+
+  it("records what a share carried when it carried no files", async () => {
     upload.uploadDocumentFiles.mockResolvedValue([]);
 
-    const response = await POST(shareRequest([]));
+    const formData = new FormData();
+    formData.append("title", "Receipt");
+    const response = await POST(
+      new Request("https://app.example/share-target", {
+        body: formData,
+        method: "POST",
+      }),
+    );
 
-    expect(location(response)).toBe("/upload?added=0&failed=0");
+    expect(location(response)).toBe("/upload?share=empty");
+    expect(logger.logWarning).toHaveBeenCalledWith(
+      "share_target.no_files",
+      expect.objectContaining({ fields: "title:text(7)" }),
+    );
+  });
+
+  it("records a share body it could not parse at all", async () => {
+    const response = await POST(
+      new Request("https://app.example/share-target", {
+        body: "not multipart",
+        headers: { "content-type": "multipart/form-data; boundary=missing" },
+        method: "POST",
+      }),
+    );
+
+    expect(location(response)).toBe("/upload?share=unreadable");
+    expect(logger.logError).toHaveBeenCalledWith(
+      "share_target.unreadable",
+      expect.anything(),
+      expect.objectContaining({
+        contentType: "multipart/form-data; boundary=missing",
+      }),
+    );
+    expect(upload.uploadDocumentFiles).not.toHaveBeenCalled();
   });
 });
