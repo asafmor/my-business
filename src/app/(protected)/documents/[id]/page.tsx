@@ -2,7 +2,6 @@ import {
   Archive,
   ArrowLeft,
   CircleAlert,
-  CircleCheck,
   LoaderCircle,
   TriangleAlert,
 } from "lucide-react";
@@ -147,37 +146,32 @@ export default async function DocumentDetailPage({
         </Link>
         <div className="record-header__row">
           <div className="record-header__identity">
-            <div className="record-header__title-row">
-              <h2
-                className={`record-header__title${values.supplierName ? "" : " is-empty"}`}
-              >
-                {name}
-              </h2>
+            <h2
+              className={`record-header__title${values.supplierName ? "" : " is-empty"}`}
+            >
+              {name}
+            </h2>
+            {/* One badge. A person's review outranks "Ready", so a reviewed
+                ready document wears the review and its time instead. Any
+                other status is news the review does not cover. */}
+            {status === "READY" && detail.document.reviewedAt ? (
+              <span className="status-badge status-badge--success record-header__badge">
+                Reviewed <LocalDateTime value={detail.document.reviewedAt} />
+              </span>
+            ) : (
               <span
-                className={`status-badge status-badge--${statusTone(status)}`}
+                className={`status-badge status-badge--${statusTone(status)} record-header__badge`}
               >
                 {humanizeEnumValue(status)}
               </span>
-            </div>
+            )}
             <p className="record-header__meta">
               {meta.map((item, index) => (
                 <span className="record-header__meta-item" key={index}>
                   {item}
                 </span>
               ))}
-              {detail.document.reviewedAt ? (
-                <span className="record-header__meta-item record-header__meta-item--reviewed">
-                  Reviewed <LocalDateTime value={detail.document.reviewedAt} />
-                </span>
-              ) : null}
             </p>
-            {/* A phone wraps the meta line; the review gets its own chip there. */}
-            {detail.document.reviewedAt ? (
-              <span className="record-header__reviewed">
-                <CircleCheck aria-hidden size={12} strokeWidth={2.2} />
-                Reviewed <LocalDateTime value={detail.document.reviewedAt} />
-              </span>
-            ) : null}
           </div>
           <div className="record-header__amount">
             <span className="lbl">Total</span>

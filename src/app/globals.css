@@ -357,6 +357,13 @@ input:disabled {
   transition: box-shadow 160ms ease-out;
 }
 
+/* Inputs and buttons inherit the page font globally; a select or textarea
+   does not unless told to, and a textarea would fall back to monospace. */
+select.form-control,
+textarea.form-control {
+  font: inherit;
+}
+
 .global-search input::placeholder,
 .form-control::placeholder {
   color: var(--ink-faint);
@@ -1115,16 +1122,19 @@ input:disabled {
   justify-content: space-between;
 }
 
+/* Title, badge and meta line on a small grid: desktop seats the badge beside
+   the title, a phone (below) sends it under the meta line instead. */
 .record-header__identity {
+  align-items: center;
+  column-gap: 0.625rem;
+  display: grid;
   flex: 1 1 16rem;
+  grid-template-columns: auto minmax(0, 1fr);
   min-width: 0;
 }
 
-.record-header__title-row {
-  align-items: center;
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.625rem;
+.record-header__badge {
+  justify-self: start;
 }
 
 .record-header__title {
@@ -1148,6 +1158,7 @@ input:disabled {
   display: flex;
   flex-wrap: wrap;
   font-size: 0.8125rem;
+  grid-column: 1 / -1;
   margin: 0.25rem 0 0;
 }
 
@@ -1155,22 +1166,6 @@ input:disabled {
   color: var(--ink-faint);
   content: "·";
   padding-inline: 0.45rem;
-}
-
-/* The phone's version of "Reviewed …": a chip under the meta line, where a
-   wrapped meta line would otherwise bury it. Desktop keeps it inline. */
-.record-header__reviewed {
-  align-items: center;
-  background: var(--success-soft);
-  border-radius: 999px;
-  color: var(--success);
-  display: none;
-  font-size: 0.71875rem;
-  font-weight: 600;
-  gap: 0.3rem;
-  margin-top: 0.5rem;
-  padding: 0.25rem 0.625rem 0.25rem 0.5rem;
-  width: fit-content;
 }
 
 /* The one number the reader came for, at metric size. */
@@ -1575,6 +1570,11 @@ input:disabled {
 .details-field .form-control {
   min-height: 2.5rem;
   width: 100%;
+}
+
+/* Notes grow downwards on demand, never sideways out of the column. */
+.details-field textarea.form-control {
+  resize: vertical;
 }
 
 /*
@@ -2104,17 +2104,35 @@ input:disabled {
     min-height: 2.5rem;
   }
 
-  .record-header__meta-item--reviewed {
-    display: none;
+  /* One column: title, meta line, then the badge on its own row. */
+  .record-header__identity {
+    grid-template-columns: minmax(0, 1fr);
   }
 
-  .record-header__reviewed {
-    display: inline-flex;
+  .record-header__badge {
+    margin-top: 0.5rem;
+    order: 3;
   }
 
-  /* Air between the chip and the total. */
+  /* Air between the badge and the total. */
   .record-header__amount {
     margin-top: 0.375rem;
+  }
+
+  /* The phone's date field draws no picker button of its own, so it gets the
+     desktop's calendar; the OS picker still opens from the whole well. */
+  .details-field input[type="date"] {
+    appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='%2355555f' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Crect width='18' height='18' x='3' y='4' rx='2'/%3E%3Cpath d='M8 2v4'/%3E%3Cpath d='M16 2v4'/%3E%3Cpath d='M3 10h18'/%3E%3C/svg%3E");
+    background-position: right 0.75rem center;
+    background-repeat: no-repeat;
+    background-size: 0.9375rem;
+    display: flex;
+    padding-inline-end: 2.5rem;
+  }
+
+  .details-field input[type="date"]::-webkit-calendar-picker-indicator {
+    opacity: 0;
   }
 
   /* The native picker is the right control here; only its arrow is ours. */
