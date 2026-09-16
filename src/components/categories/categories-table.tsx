@@ -44,17 +44,35 @@ function sameOrder(
   );
 }
 
+/* Deactivating hides a category; deleting loses it. Both ask first. */
+type Pending = {
+  ids: readonly string[];
+  verb: "deactivate" | "delete";
+};
+
+const copy = {
+  deactivate: {
+    body: "It disappears from category pickers. Documents already filed under it keep it.",
+    label: "Deactivate",
+  },
+  delete: {
+    body: "This cannot be undone. Categories in use stay; deactivate those instead.",
+    label: "Delete",
+  },
+} as const;
+
 /* Naming the one category beats "1 item"; a batch gets a count. */
-function deleteTitle(
-  ids: readonly string[] | null,
+export function confirmTitle(
+  pending: Pending | null,
   items: readonly ExpenseCategory[],
 ): string {
-  if (ids === null) return "";
+  if (pending === null) return "";
+  const { ids, verb } = pending;
   if (ids.length === 1) {
     const only = items.find((item) => item.id === ids[0]);
-    return `Delete “${only?.name ?? "this category"}”?`;
+    return `${copy[verb].label} “${only?.name ?? "this category"}”?`;
   }
-  return `Delete ${ids.length} categories?`;
+  return `${copy[verb].label} ${ids.length} categories?`;
 }
 
 export function CategoriesTable({
@@ -68,19 +86,16 @@ export function CategoriesTable({
   const [error, setError] = useState<string | null>(null);
   const [draggingId, setDraggingId] = useState<string | null>(null);
   const [draft, setDraft] = useState({ description: "", name: "" });
-  const [pendingDelete, setPendingDelete] = useState<readonly string[] | null>(
-    null,
-  );
+  const [pending, setPending] = useState<Pending | null>(null);
   const [isPending, startTransition] = useTransition();
   const listRef = useRef<HTMLDivElement>(null);
   const newNameRef = useRef<HTMLInputElement>(null);
   const confirmRef = useRef<HTMLDialogElement>(null);
 
-  /* Deleting is destructive and the row has no undo: ask first. */
   useEffect(() => {
-    if (pendingDelete === null) confirmRef.current?.close();
+    if (pending === null) confirmRef.current?.close();
     else confirmRef.current?.showModal();
-  }, [pendingDelete]);
+  }, [pending]);
 
   // The server stays the source of truth; local state only holds the
   // in-flight edit, drag position, and selection.
@@ -311,12 +326,11 @@ export function CategoriesTable({
                   }
                   className="row-action"
                   onClick={() =>
-                    run(() =>
-                      setCategoriesActiveAction(
-                        [category.id],
-                        !category.active,
-                      ),
-                    )
+                    category.active
+                      ? setPending({ ids: [category.id], verb: "deactivate" })
+                      : run(() =>
+                          setCategoriesActiveAction([category.id], true),
+                        )
                   }
                   title={category.active ? "Deactivate" : "Activate"}
                   type="button"
@@ -330,7 +344,9 @@ export function CategoriesTable({
                 <button
                   aria-label={`Delete ${category.name}`}
                   className="row-action row-action--danger"
-                  onClick={() => setPendingDelete([category.id])}
+                  onClick={() =>
+                    setPending({ ids: [category.id], verb: "delete" })
+                  }
                   title="Delete"
                   type="button"
                 >
@@ -418,9 +434,7 @@ export function CategoriesTable({
             </button>
             <button
               className="selection-bar__action"
-              onClick={() =>
-                run(() => setCategoriesActiveAction(selected, false))
-              }
+              onClick={() => setPending({ ids: selected, verb: "deactivate" })}
               type="button"
             >
               <CircleSlash2 aria-hidden size={14} strokeWidth={1.9} />
@@ -431,7 +445,7 @@ export function CategoriesTable({
             </button>
             <button
               className="selection-bar__action selection-bar__action--danger"
-              onClick={() => setPendingDelete(selected)}
+              onClick={() => setPending({ ids: selected, verb: "delete" })}
               type="button"
             >
               <Trash2 aria-hidden size={14} strokeWidth={1.9} />
@@ -452,23 +466,18 @@ export function CategoriesTable({
       ) : null}
 
       <dialog
-        aria-labelledby="delete-categories-title"
+        aria-labelledby="categories-dialog-title"
         className="confirm-dialog"
-        onCancel={() => setPendingDelete(null)}
-        onClose={() => setPendingDelete(null)}
+        onCancel={() => setPending(null)}
+        onClose={() => setPending(null)}
         ref={confirmRef}
       >
-        <h2 id="delete-categories-title">
-          {deleteTitle(pendingDelete, items)}
-        </h2>
-        <p>
-          Deleting cannot be undone. Categories already used by expenses stay
-          put — deactivate those instead.
-        </p>
+        <h2 id="categories-dialog-title">{confirmTitle(pending, items)}</h2>
+        <p>{pending ? copy[pending.verb].body : null}</p>
         <div className="confirm-dialog__actions">
           <button
             className="button button--secondary"
-            onClick={() => setPendingDelete(null)}
+            onClick={() => setPending(null)}
             type="button"
           >
             Cancel
@@ -476,15 +485,24 @@ export function CategoriesTable({
           <button
             className="button button--danger"
             onClick={() => {
-              const ids = pendingDelete ?? [];
-              setPendingDelete(null);
+              if (pending === null) return;
+              const { ids, verb } = pending;
+              setPending(null);
               setSelected([]);
-              run(() => deleteCategoriesAction(ids));
+              run(() =>
+                verb === "delete"
+                  ? deleteCategoriesAction(ids)
+                  : setCategoriesActiveAction(ids, false),
+              );
             }}
             type="button"
           >
-            <Trash2 aria-hidden size={14} strokeWidth={2} />
-            Delete
+            {pending?.verb === "deactivate" ? (
+              <CircleSlash2 aria-hidden size={14} strokeWidth={2} />
+            ) : (
+              <Trash2 aria-hidden size={14} strokeWidth={2} />
+            )}
+            {pending ? copy[pending.verb].label : "Delete"}
           </button>
         </div>
       </dialog>
