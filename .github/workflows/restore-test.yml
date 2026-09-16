@@ -45,10 +45,6 @@ jobs:
       B2_ACCESS_KEY_ID: ${{ secrets.B2_ACCESS_KEY_ID }}
       B2_SECRET_ACCESS_KEY: ${{ secrets.B2_SECRET_ACCESS_KEY }}
       B2_BUCKET: ${{ secrets.B2_BUCKET }}
-      # The real backup-tracking database - only used to record the
-      # "restore test succeeded" timestamp after the throwaway container
-      # above has been restored into and checked. Never the restore target.
-      NEON_BACKUP_DATABASE_URL: ${{ secrets.NEON_BACKUP_DATABASE_URL }}
       RESTORE_TARGET_DATABASE_URL: postgresql://restore_test:restore_test@localhost:5432/restore_test
 
     steps:
@@ -92,5 +88,16 @@ jobs:
           DATABASE_URL: ${{ env.RESTORE_TARGET_DATABASE_URL }}
         run: node --import tsx scripts/db/migrate.ts
 
+      # NEON_BACKUP_DATABASE_URL is scoped to only this step, not the whole
+      # job: it's the real backup-tracking database, used only to record
+      # the "restore test succeeded" timestamp after the throwaway
+      # container above has been restored into and checked - never the
+      # restore target. Setting it at job level leaked it into the earlier
+      # "Migrate throwaway target" step too, where
+      # assertDatabaseEnvironment(development) rejects any direct database
+      # credential in the runtime - which is exactly what broke every
+      # restore-test.yml run before this fix.
       - name: Run restore test
+        env:
+          NEON_BACKUP_DATABASE_URL: ${{ secrets.NEON_BACKUP_DATABASE_URL }}
         run: npm run backup:run-restore-test
