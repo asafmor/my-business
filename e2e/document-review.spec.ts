@@ -1,4 +1,5 @@
 import { expect, test } from "@playwright/test";
+import type { Page } from "@playwright/test";
 
 import { signIn } from "./support/auth";
 import {
@@ -19,31 +20,54 @@ test.afterEach(async () => {
   await deleteSeededDocument(seeded.id);
 });
 
+/* A phone reads the details first and edits on request; desktop shows the
+   form outright. Either way, the fields are open once this returns. */
+async function startEditing(page: Page): Promise<void> {
+  const edit = page.getByRole("button", { exact: true, name: "Edit" });
+  if (await edit.isVisible()) await edit.click();
+  await expect(page.locator("#supplierName")).toBeVisible();
+}
+
+async function save(page: Page): Promise<void> {
+  await page.getByRole("button", { name: "Save" }).click();
+  // "Saving…" while the server action is pending; the status line settles on
+  // "Saved" once the write is through, so a reload cannot race it.
+  await expect(
+    page.getByRole("status").filter({ hasText: "Saved" }),
+  ).toBeVisible();
+}
+
 test("review-document: a NEEDS_REVIEW document shows its review banner and can be marked reviewed", async ({
   page,
 }) => {
   await page.goto(`/documents/${seeded.id}`);
-  await expect(page.getByText("Needs review", { exact: false })).toBeVisible();
+  await expect(page.getByText("Needs your review")).toBeVisible();
 
   await page.getByRole("button", { name: "Mark reviewed" }).click();
-  await expect(
-    page.getByText("Needs review", { exact: false }),
-  ).not.toBeVisible();
+  await expect(page.getByText("Needs your review")).not.toBeVisible();
+  await expect(page.getByText("Marked reviewed")).toBeVisible();
 });
 
-test("correct-field: editing a field persists it and marks it manually corrected", async ({
+test("correct-field: editing a field persists it and marks it edited", async ({
   page,
 }) => {
   await page.goto(`/documents/${seeded.id}`);
+  await startEditing(page);
   await page.fill("#supplierName", "Corrected Supplier Ltd");
-  await page.getByRole("button", { name: "Save" }).click();
-  // The form shows "Saving..." while the server action is pending; wait for
-  // it to settle back to "Save" so a reload doesn't race the write.
-  await expect(page.getByRole("button", { name: "Save" })).toBeVisible();
+  await save(page);
 
-  await expect(page.getByLabel("Supplier (manually corrected)")).toHaveValue(
+  await page.reload();
+  await expect(
+    page.getByRole("heading", { name: "Corrected Supplier Ltd" }),
+  ).toBeVisible();
+  await startEditing(page);
+  await expect(page.locator("#supplierName")).toHaveValue(
     "Corrected Supplier Ltd",
   );
+  await expect(
+    page.locator('label[for="supplierName"]').getByText("Edited"),
+  ).toBeVisible();
+  await expect(page.getByText("Supplier changed")).toBeVisible();
 });
 
 test("categorize-expense: assigning a category persists across reload", async ({
@@ -56,15 +80,12 @@ test("categorize-expense: assigning a category persists across reload", async ({
   );
 
   await page.goto(`/documents/${seeded.id}`);
+  await startEditing(page);
   await page.selectOption("#categoryId", category!.id);
-  await page.getByRole("button", { name: "Save" }).click();
-  // The form shows "Saving..." while the server action is pending; wait for
-  // it to settle back to "Save" so a reload doesn't race the write.
-  await expect(page.getByRole("button", { name: "Save" })).toBeVisible();
+  await save(page);
 
   await page.reload();
+  await expect(page.getByText(category!.name).first()).toBeVisible();
+  await startEditing(page);
   await expect(page.locator("#categoryId")).toHaveValue(category!.id);
-  await expect(
-    page.getByText(`Category: ${category!.name}`, { exact: false }),
-  ).toBeVisible();
 });

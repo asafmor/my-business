@@ -68,3 +68,56 @@ export function formatDateTime(value: Date | null): string {
   if (!value) return "—";
   return value.toLocaleString("en-CA");
 }
+
+// Spelled out here rather than asked of the locale: ICU builds disagree on
+// "Sep" versus "Sept", and a date should read the same on every machine.
+const shortMonths = [
+  "Jan",
+  "Feb",
+  "Mar",
+  "Apr",
+  "May",
+  "Jun",
+  "Jul",
+  "Aug",
+  "Sep",
+  "Oct",
+  "Nov",
+  "Dec",
+];
+
+function dateParts(value: Date, timeZone?: string) {
+  const parts = new Intl.DateTimeFormat("en-GB", {
+    day: "numeric",
+    hour: "2-digit",
+    hourCycle: "h23",
+    minute: "2-digit",
+    month: "numeric",
+    timeZone,
+    year: "numeric",
+  }).formatToParts(value);
+  const part = (type: Intl.DateTimeFormatPartTypes) =>
+    parts.find((item) => item.type === type)?.value ?? "";
+  return {
+    date: `${Number(part("day"))} ${shortMonths[Number(part("month")) - 1]} ${part("year")}`,
+    time: `${part("hour")}:${part("minute")}`,
+  };
+}
+
+/** A calendar date the way a person writes it: "5 Apr 2024". */
+export function formatDateLong(value: string | null): string {
+  if (!value) return "—";
+  const date = new Date(`${value}T00:00:00Z`);
+  if (Number.isNaN(date.getTime())) return "—";
+  return dateParts(date, "UTC").date;
+}
+
+/**
+ * A moment with its clock time: "5 Apr 2024, 14:32". A server render has no
+ * idea where the reader is, so it passes "UTC" and lets LocalDateTime redo it
+ * in the browser's own zone.
+ */
+export function formatDateTimeLong(value: Date, timeZone?: string): string {
+  const { date, time } = dateParts(value, timeZone);
+  return `${date}, ${time}`;
+}

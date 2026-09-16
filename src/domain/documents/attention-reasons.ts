@@ -43,13 +43,42 @@ export function attentionReasons(input: AttentionInput): string[] {
   const reasons: string[] = [];
   if (input.isDuplicate) reasons.push("Possible duplicate detected.");
   for (const reason of input.reviewReasons) {
-    reasons.push(reviewReasonText[reason] ?? `${humanizeEnumValue(reason)}.`);
+    reasons.push(reviewReasonSentence(reason));
   }
   if (input.lastErrorCode) {
-    reasons.push(
-      failureReasonText[input.lastErrorCode] ??
-        `${humanizeEnumValue(input.lastErrorCode)}.`,
-    );
+    reasons.push(failureReasonSentence(input.lastErrorCode));
   }
   return reasons;
+}
+
+export function reviewReasonSentence(reason: string): string {
+  return reviewReasonText[reason] ?? `${humanizeEnumValue(reason)}.`;
+}
+
+export function failureReasonSentence(errorCode: string): string {
+  return failureReasonText[errorCode] ?? `${humanizeEnumValue(errorCode)}.`;
+}
+
+// Which edit-form field a review reason is really about, so the detail page
+// can flag it in place instead of only listing reasons in a banner. Reasons
+// missing here (LOW_CONFIDENCE, ANOMALY_DETECTED, …) are about the document as
+// a whole and stay in the banner.
+const reviewReasonFields: Partial<Record<string, string>> = {
+  INVALID_CATEGORY: "categoryId",
+  INVALID_CURRENCY: "currency",
+  INVALID_DOCUMENT_TYPE: "documentType",
+  INVALID_TRANSACTION_DATE: "transactionDate",
+  MISSING_CURRENCY: "currency",
+  MISSING_DOCUMENT_TYPE: "documentType",
+  MISSING_SUBTOTAL: "subtotal",
+  MISSING_SUPPLIER: "supplierName",
+  MISSING_TOTAL: "total",
+  MISSING_TRANSACTION_DATE: "transactionDate",
+  MISSING_VAT: "vat",
+  SUSPICIOUS_VAT: "vat",
+  TOTALS_DO_NOT_RECONCILE: "total",
+};
+
+export function reviewReasonField(reason: string): string | null {
+  return reviewReasonFields[reason] ?? null;
 }
