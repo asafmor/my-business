@@ -45,7 +45,11 @@ jobs:
       B2_ACCESS_KEY_ID: ${{ secrets.B2_ACCESS_KEY_ID }}
       B2_SECRET_ACCESS_KEY: ${{ secrets.B2_SECRET_ACCESS_KEY }}
       B2_BUCKET: ${{ secrets.B2_BUCKET }}
-      RESTORE_TARGET_DATABASE_URL: postgresql://restore_test:restore_test@localhost:5432/restore_test
+      # sslmode=disable: the throwaway service-container Postgres has no SSL
+      # configured. runPgRestore in restore-database.ts defaults PGSSLMODE
+      # to "require" when a connection string omits sslmode (correct for
+      # real Neon restores), which fails against this plain container.
+      RESTORE_TARGET_DATABASE_URL: postgresql://restore_test:restore_test@localhost:5432/restore_test?sslmode=disable
 
     steps:
       - name: Check out repository
