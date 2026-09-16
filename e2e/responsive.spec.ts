@@ -51,3 +51,22 @@ test("the upload tray opens on mobile without causing horizontal overflow", asyn
   );
   expect(scrollWidth).toBeLessThanOrEqual((viewport?.width ?? 0) + 1);
 });
+
+// The select cell claims the gutter either side of its checkbox (the row's
+// padding and the column gap). Geometry no unit test can see: the row link is
+// stretched over the whole row, so a few dead pixels here open the document
+// instead of ticking the row.
+test("a click in the row's left gutter ticks the row instead of opening it", async ({
+  page,
+}) => {
+  await page.goto("/documents");
+  const row = page.locator(".doc-row:not(.doc-row--head)").first();
+  if ((await row.count()) === 0) test.skip(true, "no documents to select");
+  await row.waitFor();
+
+  const box = (await row.boundingBox())!;
+  await page.mouse.click(box.x + 1, box.y + box.height / 2);
+
+  await expect(page.getByRole("group", { name: "Bulk actions" })).toBeVisible();
+  expect(new URL(page.url()).pathname).toBe("/documents");
+});

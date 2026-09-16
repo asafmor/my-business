@@ -2292,6 +2292,8 @@ input:disabled {
   box-shadow:
     inset 0 0 0 1px var(--line-strong),
     var(--lip);
+  /* The box is 14px of default arrow in a row of pointers: it reads dead. */
+  cursor: pointer;
   flex: 0 0 auto;
   height: 0.875rem;
   margin: 0;
@@ -3082,8 +3084,8 @@ input:disabled {
   display: none;
 }
 
-/* The cell is the hit area, not just the box inside it: it stretches to the
-   row's full height so any click down that column ticks the row. */
+/* The cell is the hit area, not just the 14px box inside it: it stretches to
+   the row's full height so any click down that column ticks the row. */
 .doc-row__select {
   align-items: center;
   align-self: stretch;
@@ -3094,6 +3096,16 @@ input:disabled {
   /* Above the stretched link so a tick never opens the document. */
   position: relative;
   z-index: 1;
+}
+
+/* The same trick the row link plays, in the opposite direction: the gutter
+   either side of the cell — the row's padding and the column gap — is dead
+   space that used to belong to the link, so a click a few pixels wide of the
+   box opened the document. The label claims it back, up to the type tile. */
+.doc-row__select::after {
+  content: "";
+  inset: -0.625rem -0.5rem -0.625rem -0.75rem;
+  position: absolute;
 }
 
 .doc-row__doc {
@@ -3481,6 +3493,10 @@ input:disabled {
   .doc-row__status,
   .doc-row__total {
     grid-area: auto;
+  }
+
+  .doc-row__select::after {
+    inset: 0 -0.5rem 0 -0.625rem;
   }
 
   /* Money columns align under their own right-aligned header label. */
