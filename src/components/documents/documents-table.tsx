@@ -418,9 +418,8 @@ export function DocumentsTable({
               {selected.length === 1 ? "" : "s"}?
             </h2>
             <p>
-              Archived documents leave this list and stop counting towards
-              reports. The originals and their backups are kept, and the
-              Archived status filter can restore them.
+              They leave the list and reports. Files are kept and can be
+              restored from the Archived filter.
             </p>
             <div className="confirm-dialog__actions">
               <button

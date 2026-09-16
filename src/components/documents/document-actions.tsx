@@ -148,8 +148,7 @@ export function DocumentActions({
       >
         <h2 id="archive-dialog-title">Archive “{name}”?</h2>
         <p>
-          It leaves the documents list and stops counting towards reports. The
-          original file and its backups are kept, and you can restore it later.
+          It leaves the list and reports. The file is kept and can be restored.
         </p>
         <div className="confirm-dialog__actions">
           <button
