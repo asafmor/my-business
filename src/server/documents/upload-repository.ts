@@ -1,6 +1,6 @@
 import "server-only";
 
-import { eq } from "drizzle-orm";
+import { and, eq, ne } from "drizzle-orm";
 
 import { getDatabase } from "../db/client";
 import {
@@ -41,7 +41,11 @@ export class DrizzleDocumentUploadRepository implements DocumentUploadRepository
     const [document] = await this.database()
       .select({ id: documents.id })
       .from(documents)
-      .where(eq(documents.sha256, sha256))
+      // Archived is this app's delete (SPEC.md #49), so an archived document
+      // must not warn the user about a duplicate — same rule as isDuplicateExpr.
+      .where(
+        and(eq(documents.sha256, sha256), ne(documents.status, "ARCHIVED")),
+      )
       .limit(1);
 
     return document?.id ?? null;
