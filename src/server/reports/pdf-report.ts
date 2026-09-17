@@ -6,7 +6,7 @@ import path from "node:path";
 import fontkit from "@pdf-lib/fontkit";
 import { PDFDocument, rgb } from "pdf-lib";
 
-import { formatDateTime, formatMoney } from "../../lib/format";
+import { formatDateTime, formatMoney, formatMonth } from "../../lib/format";
 
 import type {
   CategoryBreakdownRow,
@@ -17,8 +17,8 @@ import type {
 const fontsDirectory = path.join(process.cwd(), "src/server/reports/fonts");
 
 // DejaVu Sans covers Hebrew (and most of Latin/Cyrillic), unlike pdf-lib's
-// built-in WinAnsi-only standard fonts — supplier/category names from real
-// documents are often Hebrew and WinAnsi can't encode them at all.
+// built-in WinAnsi-only standard fonts — the report's own labels are Hebrew,
+// and so are most supplier/category names from real documents.
 async function loadFonts(pdf: PDFDocument) {
   pdf.registerFontkit(fontkit);
   const [regularBytes, boldBytes] = await Promise.all([
@@ -31,15 +31,28 @@ async function loadFonts(pdf: PDFDocument) {
   };
 }
 
-// ponytail: reverses contiguous Hebrew runs so simple right-to-left text
-// (most supplier/category names) reads correctly with pdf-lib's left-to-right
-// drawText. This is not the full Unicode Bidi Algorithm — numbers or Latin
-// text embedded inside a Hebrew run can still come out in the wrong order.
-// Swap in a bidi library (e.g. bidi-js) if that shows up in real reports.
-function toVisualOrder(text: string): string {
-  return text.replace(/[\u0590-\u05FF\uFB1D-\uFB4F]+/g, (run) =>
-    [...run].reverse().join(""),
-  );
+// ponytail: a right-to-left line for pdf-lib's left-to-right drawText. Strong
+// left-to-right runs - digits, Latin, and the punctuation and spaces between
+// them - keep their order; everything else (Hebrew and the neutrals around it)
+// is reversed character by character, and the runs are laid out right to
+// left. This is not the full Unicode Bidi Algorithm: nested directions and
+// paired brackets can still come out wrong. Swap in bidi-js if that shows up.
+const ltrRun = /[A-Za-z0-9](?:[A-Za-z0-9 .,:;%$€£₪/-]*[A-Za-z0-9%])?/g;
+
+function reverse(text: string): string {
+  return [...text].reverse().join("");
+}
+
+export function toVisualOrder(text: string): string {
+  const parts: string[] = [];
+  let last = 0;
+  for (const match of text.matchAll(ltrRun)) {
+    if (match.index > last) parts.push(reverse(text.slice(last, match.index)));
+    parts.push(match[0]);
+    last = match.index + match[0].length;
+  }
+  if (last < text.length) parts.push(reverse(text.slice(last)));
+  return parts.reverse().join("");
 }
 
 export type MonthlyReportPdfInput = {
@@ -52,7 +65,7 @@ export type MonthlyReportPdfInput = {
 
 const pageWidth = 595.28; // A4 points
 const pageHeight = 841.89;
-const leftMargin = 50;
+const margin = 50;
 const lineGap = 16;
 
 /**
@@ -68,59 +81,59 @@ export async function buildMonthlyReportPdf(
   const page = pdf.addPage([pageWidth, pageHeight]);
 
   let y = pageHeight - 60;
+  /* Right-aligned: each line ends at the right margin, as Hebrew reads. */
   const write = (
     text: string,
     options?: { bold?: boolean; size?: number; gap?: number },
   ) => {
-    page.drawText(toVisualOrder(text), {
+    const face = options?.bold ? bold : font;
+    const size = options?.size ?? 11;
+    const visual = toVisualOrder(text);
+    page.drawText(visual, {
       color: rgb(0.1, 0.1, 0.1),
-      font: options?.bold ? bold : font,
-      size: options?.size ?? 11,
-      x: leftMargin,
+      font: face,
+      size,
+      x: pageWidth - margin - face.widthOfTextAtSize(visual, size),
       y,
     });
     y -= options?.gap ?? lineGap;
   };
 
-  write(`Monthly expense report — ${input.month}`, {
+  write(`דוח הוצאות חודשי — ${formatMonth(input.month)}`, {
     bold: true,
     size: 18,
     gap: 26,
   });
-  write(`Generated ${formatDateTime(input.generatedAt)}`, { size: 9, gap: 24 });
+  write(`נוצר ב־${formatDateTime(input.generatedAt)}`, { size: 9, gap: 24 });
 
-  write("Summary", { bold: true, size: 13, gap: 20 });
-  write(`Documents: ${input.summary.documentCount}`);
-  write(
-    `Total expenses (gross): ${formatMoney(input.summary.grossTotal, null)}`,
-  );
-  write(
-    `Expenses before VAT (net): ${formatMoney(input.summary.netTotal, null)}`,
-  );
-  write(`VAT: ${formatMoney(input.summary.vatTotal, null)}`);
-  write(`Documents needing review: ${input.summary.reviewProblemCount}`, {
+  write("סיכום", { bold: true, size: 13, gap: 20 });
+  write(`מסמכים: ${input.summary.documentCount}`);
+  write(`סך ההוצאות (ברוטו): ${formatMoney(input.summary.grossTotal, null)}`);
+  write(`הוצאות לפני מע"מ (נטו): ${formatMoney(input.summary.netTotal, null)}`);
+  write(`מע"מ: ${formatMoney(input.summary.vatTotal, null)}`);
+  write(`מסמכים שדורשים בדיקה: ${input.summary.reviewProblemCount}`, {
     gap: 24,
   });
 
-  write("By category", { bold: true, size: 13, gap: 20 });
+  write("לפי קטגוריה", { bold: true, size: 13, gap: 20 });
   if (input.categoryBreakdown.length === 0) {
-    write("No expenses recorded.", { gap: 24 });
+    write("לא נרשמו הוצאות.", { gap: 24 });
   } else {
     for (const row of input.categoryBreakdown) {
       write(
-        `${row.categoryName ?? "Uncategorized"}: ${formatMoney(row.total, null)}`,
+        `${row.categoryName ?? "ללא קטגוריה"}: ${formatMoney(row.total, null)}`,
       );
     }
     y -= 8;
   }
 
-  write("By supplier", { bold: true, size: 13, gap: 20 });
+  write("לפי ספק", { bold: true, size: 13, gap: 20 });
   if (input.supplierBreakdown.length === 0) {
-    write("No expenses recorded.");
+    write("לא נרשמו הוצאות.");
   } else {
     for (const row of input.supplierBreakdown) {
       write(
-        `${row.supplierName ?? "Unknown supplier"}: ${formatMoney(row.total, null)}`,
+        `${row.supplierName ?? "ספק לא ידוע"}: ${formatMoney(row.total, null)}`,
       );
     }
   }

@@ -2,7 +2,10 @@ import { describe, expect, it, vi } from "vitest";
 
 vi.mock("server-only", () => ({}));
 
-import { buildMonthlyReportPdf } from "../src/server/reports/pdf-report";
+import {
+  buildMonthlyReportPdf,
+  toVisualOrder,
+} from "../src/server/reports/pdf-report";
 
 // Regression test: pdf-lib's standard WinAnsi-only fonts throw on any
 // character outside Latin-1 (e.g. Hebrew), which crashed report generation
@@ -26,5 +29,17 @@ describe("buildMonthlyReportPdf", () => {
     expect(bytes.length).toBeGreaterThan(0);
     // %PDF header confirms a real PDF document was produced.
     expect(Buffer.from(bytes.slice(0, 5)).toString("ascii")).toBe("%PDF-");
+  });
+});
+
+describe("toVisualOrder", () => {
+  it("reverses Hebrew runs and lays runs out right to left", () => {
+    // Logical "אב: 12" reads, right to left, as "12 :בא" for a LTR drawer.
+    expect(toVisualOrder("אב: 12")).toBe("12 :בא");
+  });
+
+  it("keeps digits and Latin in their own order", () => {
+    expect(toVisualOrder("Acme 1,200.00")).toBe("Acme 1,200.00");
+    expect(toVisualOrder("סך: ₪ 1,200.00")).toBe("1,200.00 ₪ :ךס");
   });
 });

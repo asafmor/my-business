@@ -74,7 +74,7 @@ describe("checkDatabaseStatus", () => {
     expect(result.ok).toBe(false);
     expect(result.detail).not.toContain("neon.tech");
     expect(result.detail).toBe(
-      "The application database did not answer. Check the server logs.",
+      "מסד הנתונים של היישום לא ענה. יש לבדוק את יומני השרת.",
     );
     expect(logError).toHaveBeenCalledWith(
       "settings.database_check_failed",
@@ -108,7 +108,7 @@ describe("backupBadgeTone", () => {
 describe("checkStorageConfiguration", () => {
   it("reports ok when required R2 variables are present and valid", () => {
     expect(checkStorageConfiguration(configuredEnvironment)).toEqual({
-      detail: "R2 storage is configured.",
+      detail: "אחסון R2 מוגדר.",
       ok: true,
     });
   });

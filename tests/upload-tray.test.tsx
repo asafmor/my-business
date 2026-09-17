@@ -216,7 +216,7 @@ describe("shareToTrayItems", () => {
     );
 
     expect(only?.status).toBe("duplicate");
-    expect(only?.message).toMatch(/already in your document archive/);
+    expect(only?.message).toMatch(/כבר נמצא בארכיון המסמכים/);
   });
 
   it("does not list a document again when the landing page is refreshed", () => {

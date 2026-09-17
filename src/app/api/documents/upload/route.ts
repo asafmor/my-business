@@ -11,10 +11,7 @@ import {
 } from "../../../../server/documents/upload";
 
 function responseError(status: number): NextResponse {
-  return NextResponse.json(
-    { message: "Upload request was rejected." },
-    { status },
-  );
+  return NextResponse.json({ message: "בקשת ההעלאה נדחתה." }, { status });
 }
 
 export async function POST(request: Request): Promise<NextResponse> {
@@ -42,7 +39,7 @@ export async function POST(request: Request): Promise<NextResponse> {
     const fileName = formData.get("fileName");
     const result = await uploadDocumentCopy(
       copyOf,
-      typeof fileName === "string" && fileName ? fileName : "Shared document",
+      typeof fileName === "string" && fileName ? fileName : "מסמך משותף",
     );
     return NextResponse.json({ results: [result] });
   }
@@ -52,7 +49,7 @@ export async function POST(request: Request): Promise<NextResponse> {
   });
   if (results.length === 0) {
     return NextResponse.json(
-      { message: "Choose at least one supported file." },
+      { message: "יש לבחור לפחות קובץ נתמך אחד." },
       { status: 400 },
     );
   }

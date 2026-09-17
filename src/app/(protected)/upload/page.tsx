@@ -24,16 +24,16 @@ function shareNotice(params: Params) {
   if (reason === "unreadable") {
     return {
       description:
-        "Android sent a share this app could not read. Add the file below instead.",
-      title: "The share could not be read",
+        "אנדרואיד שלח שיתוף שהיישום לא הצליח לקרוא. במקום זאת אפשר להוסיף את הקובץ למטה.",
+      title: "לא ניתן היה לקרוא את השיתוף",
     };
   }
 
   if (reason === "empty") {
     return {
       description:
-        "The share reached the app but carried no file. Some apps share a link instead of the file itself — try sharing from Files, or add the file below.",
-      title: "No files were shared",
+        "השיתוף הגיע ליישום אך לא כלל קובץ. יש אפליקציות שמשתפות קישור במקום את הקובץ עצמו — נסו לשתף מתוך 'קבצים', או הוסיפו את הקובץ למטה.",
+      title: "לא שותפו קבצים",
     };
   }
 

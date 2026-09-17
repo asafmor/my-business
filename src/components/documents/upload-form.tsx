@@ -45,7 +45,7 @@ export function UploadForm() {
   return (
     <div className="upload-stage">
       <div
-        aria-label="Add documents"
+        aria-label="הוספת מסמכים"
         className={
           isDragging ? "upload-dropzone is-dragging" : "upload-dropzone"
         }
@@ -65,9 +65,9 @@ export function UploadForm() {
         <span aria-hidden="true" className="upload-dropzone__mark">
           <Upload size={22} strokeWidth={1.9} />
         </span>
-        <p className="upload-dropzone__lead">Drop files here</p>
+        <p className="upload-dropzone__lead">גררו קבצים לכאן</p>
         <p className="upload-dropzone__lead upload-dropzone__lead--touch">
-          Add a document
+          הוספת מסמך
         </p>
         <div className="upload-dropzone__actions">
           <button
@@ -76,7 +76,7 @@ export function UploadForm() {
             type="button"
           >
             <Camera aria-hidden size={16} strokeWidth={1.9} />
-            <span>Take photo</span>
+            <span>צילום</span>
           </button>
           <button
             className="button button--secondary"
@@ -84,11 +84,11 @@ export function UploadForm() {
             type="button"
           >
             <FolderOpen aria-hidden size={16} strokeWidth={1.9} />
-            <span>Choose files</span>
+            <span>בחירת קבצים</span>
           </button>
         </div>
         <p className="upload-dropzone__formats">
-          JPEG · PNG · WebP · PDF · max 10 MB
+          JPEG · PNG · WebP · PDF · עד <bdi>10 MB</bdi>
         </p>
         {/* input.click() dispatches a bubbling click; without this it would
             reach the zone and open a second picker — or loop. */}

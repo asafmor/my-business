@@ -24,7 +24,7 @@ test("monthly-report: a READY document's total is reflected in the month's summa
 }) => {
   await page.goto(`/reports?month=${currentMonth}`);
   await expect(
-    page.getByRole("heading", { name: "Reports", exact: true }),
+    page.getByRole("heading", { name: "דוחות", exact: true }),
   ).toBeVisible();
   await expect(page.locator(".dashboard-stat__value").first()).not.toHaveText(
     "0",
@@ -36,7 +36,7 @@ test("export-report: CSV export responds with a CSV file for the month", async (
   context,
 }) => {
   await page.goto(`/reports?month=${currentMonth}`);
-  const csvLink = page.getByRole("link", { name: "Export CSV" });
+  const csvLink = page.getByRole("link", { name: "ייצוא CSV" });
   const href = await csvLink.getAttribute("href");
 
   // context.request shares the browser context's cookie jar (the session
@@ -50,13 +50,11 @@ test("export-report: generating a PDF report adds it to the month's report list"
   page,
 }) => {
   await page.goto(`/reports?month=${currentMonth}`);
-  await page.getByRole("button", { name: "Generate PDF" }).click();
+  await page.getByRole("button", { name: "יצירת PDF" }).click();
 
   // The archive is folded away by default; open it to see what was generated.
-  await page.locator("summary", { hasText: "Generated PDFs" }).click();
-  await expect(
-    page.getByRole("link", { name: "Download" }).first(),
-  ).toBeVisible({
+  await page.locator("summary", { hasText: "קובצי PDF שנוצרו" }).click();
+  await expect(page.getByRole("link", { name: "הורדה" }).first()).toBeVisible({
     timeout: 15_000,
   });
 });

@@ -4,14 +4,14 @@
  * for anyone who has built a downstream import around it.
  */
 export const reportCsvColumns = [
-  "Document ID",
-  "Supplier",
-  "Date",
-  "Category",
-  "Subtotal",
-  "VAT",
-  "Total",
-  "Status",
+  "מזהה מסמך",
+  "ספק",
+  "תאריך",
+  "קטגוריה",
+  "לפני מע״מ",
+  "מע״מ",
+  "סה״כ",
+  "סטטוס",
 ] as const;
 
 export type ReportCsvRow = {

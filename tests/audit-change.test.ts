@@ -16,7 +16,7 @@ describe("formatAuditChange", () => {
         newValue: "123.45",
         oldValue: "100.00",
       }),
-    ).toBe("100.00 → 123.45");
+    ).toBe("100.00 ← 123.45");
   });
 
   it("formats date fields as dates", () => {
@@ -26,7 +26,7 @@ describe("formatAuditChange", () => {
         newValue: "2024-02-01",
         oldValue: "2024-01-15",
       }),
-    ).toBe("15 Jan 2024 → 1 Feb 2024");
+    ).toBe("15 בינואר 2024 ← 1 בפברואר 2024");
   });
 
   it("appends a percent sign for the business-use percentage field", () => {
@@ -36,17 +36,17 @@ describe("formatAuditChange", () => {
         newValue: "50",
         oldValue: "100",
       }),
-    ).toBe("100% → 50%");
+    ).toBe("100% ← 50%");
   });
 
-  it("humanizes enum-like document type values", () => {
+  it("labels document type values in Hebrew, humanizing unknown ones", () => {
     expect(
       formatAuditChange({
         field: "type",
         newValue: "RECEIPT",
         oldValue: "INVOICE",
       }),
-    ).toBe("Invoice → Receipt");
+    ).toBe("Invoice ← קבלה");
   });
 
   it("resolves category ids to names when available", () => {
@@ -55,7 +55,7 @@ describe("formatAuditChange", () => {
         { field: "category", newValue: "cat-2", oldValue: "cat-1" },
         { "cat-1": "Travel", "cat-2": "Meals" },
       ),
-    ).toBe("Travel → Meals");
+    ).toBe("Travel ← Meals");
   });
 
   it("falls back to the raw id when no category name is available", () => {
@@ -65,7 +65,7 @@ describe("formatAuditChange", () => {
         newValue: "cat-2",
         oldValue: null,
       }),
-    ).toBe("— → cat-2");
+    ).toBe("— ← cat-2");
   });
 
   it("shows plain strings without JSON quoting", () => {
@@ -75,7 +75,7 @@ describe("formatAuditChange", () => {
         newValue: "Acme Inc",
         oldValue: null,
       }),
-    ).toBe("— → Acme Inc");
+    ).toBe("— ← Acme Inc");
   });
 
   it("falls back to JSON for object values with no known field", () => {
@@ -85,6 +85,6 @@ describe("formatAuditChange", () => {
         newValue: { status: "READY" },
         oldValue: null,
       }),
-    ).toBe('— → {"status":"READY"}');
+    ).toBe('— ← {"status":"READY"}');
   });
 });

@@ -32,11 +32,10 @@ export async function createCategoryAction(
 ): Promise<CategoryActionResult> {
   await requireSession();
   const parsed = parse(name, description);
-  if (!parsed.success)
-    return { error: "Please provide a valid category name." };
+  if (!parsed.success) return { error: "יש להזין שם קטגוריה תקין." };
 
   const result = await repository.create(parsed.data);
-  if (!result.ok) return { error: "A category with that name already exists." };
+  if (!result.ok) return { error: "כבר קיימת קטגוריה בשם הזה." };
 
   return done();
 }
@@ -48,16 +47,15 @@ export async function updateCategoryAction(
 ): Promise<CategoryActionResult> {
   await requireSession();
   const parsed = parse(name, description);
-  if (!parsed.success)
-    return { error: "Please provide a valid category name." };
+  if (!parsed.success) return { error: "יש להזין שם קטגוריה תקין." };
 
   const result = await repository.update(id, parsed.data);
   if (!result.ok)
     return {
       error:
         result.reason === "DUPLICATE_NAME"
-          ? "A category with that name already exists."
-          : "That category no longer exists.",
+          ? "כבר קיימת קטגוריה בשם הזה."
+          : "הקטגוריה הזו כבר לא קיימת.",
     };
 
   return done();
@@ -90,7 +88,7 @@ export async function deleteCategoriesAction(
   if (result === "IN_USE") {
     return {
       error:
-        "Categories already used by expenses can't be deleted. Deactivate them instead.",
+        "קטגוריות שכבר משויכות להוצאות לא ניתנות למחיקה. במקום זאת אפשר להשבית אותן.",
     };
   }
 

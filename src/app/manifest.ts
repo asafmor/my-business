@@ -10,7 +10,8 @@ import type { MetadataRoute } from "next";
 export default function manifest(): MetadataRoute.Manifest {
   return {
     background_color: "#f0f0f3",
-    description: "Private document and expense management.",
+    description: "ניהול מסמכים והוצאות פרטי.",
+    dir: "rtl",
     display: "standalone",
     icons: [
       { src: "/icons/icon-192.png", sizes: "192x192", type: "image/png" },
@@ -23,6 +24,7 @@ export default function manifest(): MetadataRoute.Manifest {
       },
     ],
     id: "/",
+    lang: "he",
     /*
      * "Documents" is not decoration. Google's WebAPK minting server keys the
      * built APK on a manifest fingerprint that does not track share_target, so
@@ -35,7 +37,7 @@ export default function manifest(): MetadataRoute.Manifest {
      * Consequence: any future share_target change needs this string (or
      * another fingerprinted member) nudged as well, or it will not ship.
      */
-    name: "My Business Share",
+    name: "העסק שלי – שיתוף",
     scope: "/",
     /*
      * Mirrors the shape of Google's Scrapbook demo, the reference share target
@@ -73,7 +75,7 @@ export default function manifest(): MetadataRoute.Manifest {
         url: "url",
       },
     },
-    short_name: "My Business",
+    short_name: "העסק שלי",
     start_url: "/",
     theme_color: "#4a3a80",
   };

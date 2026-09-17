@@ -39,12 +39,14 @@
   line-height: 1.5;
 }
 
-/* Money is monospaced: always tabular, always right-aligned. */
+/* Money is monospaced: always tabular, always end-aligned. Isolated, so a
+   figure with a Latin unit ("13.4 MB") keeps its order inside a Hebrew line. */
 .num,
 [data-numeric] {
   font-family: var(--font-mono, ui-monospace), Menlo, monospace;
   font-variant-numeric: tabular-nums;
   font-feature-settings: "tnum";
+  unicode-bidi: isolate;
 }
 
 * {
@@ -110,7 +112,7 @@ input:disabled {
 .skip-link {
   background: var(--ink);
   color: #fff;
-  left: 1rem;
+  inset-inline-start: 1rem;
   padding: 0.65rem 0.85rem;
   position: fixed;
   top: -4rem;
@@ -546,10 +548,10 @@ textarea.form-control {
   box-shadow:
     0 -1px 0 var(--line),
     0 -8px 24px -12px rgb(21 21 28 / 18%);
-  left: 0;
+  inset-inline-start: 0;
   padding-bottom: env(safe-area-inset-bottom);
   position: fixed;
-  right: 0;
+  inset-inline-end: 0;
   z-index: 9;
 }
 
@@ -995,7 +997,7 @@ textarea.form-control {
 
 .disclosure__summary::after {
   border-bottom: 1.5px solid var(--ink-faint);
-  border-right: 1.5px solid var(--ink-faint);
+  border-inline-end: 1.5px solid var(--ink-faint);
   content: "";
   height: 0.4rem;
   margin-inline-start: auto;
@@ -1037,21 +1039,21 @@ textarea.form-control {
   background: linear-gradient(180deg, var(--warning-soft), #fdf8ec);
   box-shadow:
     inset 0 -1px 0 var(--line),
-    inset 3px 0 0 var(--warning);
+    inset -3px 0 0 var(--warning);
 }
 
 .data-list__item.is-failed {
   background: var(--danger-soft);
   box-shadow:
     inset 0 -1px 0 var(--line),
-    inset 3px 0 0 var(--danger);
+    inset -3px 0 0 var(--danger);
 }
 
 .data-list__item.is-processing {
   background: var(--info-soft);
   box-shadow:
     inset 0 -1px 0 var(--line),
-    inset 3px 0 0 var(--info);
+    inset -3px 0 0 var(--info);
 }
 
 .data-list__item-link {
@@ -1246,25 +1248,25 @@ textarea.form-control {
 
 .record-banner--warning {
   background: linear-gradient(180deg, var(--warning-soft), #fdf8ec);
-  box-shadow: inset 3px 0 0 var(--warning);
+  box-shadow: inset -3px 0 0 var(--warning);
   color: var(--warning);
 }
 
 .record-banner--danger {
   background: var(--danger-soft);
-  box-shadow: inset 3px 0 0 var(--danger);
+  box-shadow: inset -3px 0 0 var(--danger);
   color: var(--danger);
 }
 
 .record-banner--info {
   background: var(--info-soft);
-  box-shadow: inset 3px 0 0 var(--info);
+  box-shadow: inset -3px 0 0 var(--info);
   color: var(--info);
 }
 
 .record-banner--neutral {
   background: var(--surface-sunk);
-  box-shadow: inset 3px 0 0 var(--ink-faint);
+  box-shadow: inset -3px 0 0 var(--ink-faint);
   color: var(--ink-muted);
 }
 
@@ -1508,7 +1510,7 @@ textarea.form-control {
   overflow-wrap: anywhere;
   /* Physical right, not "end": a Hebrew value sets its own direction, and
      "end" would follow it to the left edge. */
-  text-align: right;
+  text-align: end;
   unicode-bidi: plaintext;
   white-space: pre-line;
 }
@@ -1525,7 +1527,7 @@ textarea.form-control {
 
 .fact-row--flagged {
   background: linear-gradient(180deg, var(--warning-soft), #fdf8ec);
-  box-shadow: inset 3px 0 0 var(--warning);
+  box-shadow: inset -3px 0 0 var(--warning);
 }
 
 .fact-row--flagged + .fact-row {
@@ -1613,7 +1615,7 @@ textarea.form-control {
 
 .form-select__menu {
   min-width: 0;
-  right: 0;
+  inset-inline-end: 0;
 }
 
 .filter-menu__item.is-selected {
@@ -2002,7 +2004,7 @@ textarea.form-control {
 /* Clear of the code block's own scrollbar. */
 .tech-json__tools {
   position: absolute;
-  right: 1.375rem;
+  inset-inline-end: 1.375rem;
   top: 0.5rem;
 }
 
@@ -2124,7 +2126,7 @@ textarea.form-control {
   .details-field input[type="date"] {
     appearance: none;
     background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='%2355555f' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Crect width='18' height='18' x='3' y='4' rx='2'/%3E%3Cpath d='M8 2v4'/%3E%3Cpath d='M16 2v4'/%3E%3Cpath d='M3 10h18'/%3E%3C/svg%3E");
-    background-position: right 0.75rem center;
+    background-position: left 0.75rem center;
     background-repeat: no-repeat;
     background-size: 0.9375rem;
     display: flex;
@@ -2139,7 +2141,7 @@ textarea.form-control {
   .form-select__native {
     appearance: none;
     background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='%238b8b95' stroke-width='2.4' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
-    background-position: right 0.75rem center;
+    background-position: left 0.75rem center;
     background-repeat: no-repeat;
     background-size: 0.75rem;
     padding-inline-end: 2.25rem;
@@ -2303,7 +2305,7 @@ textarea.form-control {
   box-shadow: inset 0 -1px 0 var(--line);
   font-size: 0.8125rem;
   padding: 0.375rem 0.875rem;
-  text-align: left;
+  text-align: start;
 }
 
 /* 38px rows. Density is the feature. */
@@ -2354,19 +2356,19 @@ textarea.form-control {
 .data-table tbody tr.is-attention td:first-child {
   box-shadow:
     inset 0 -1px 0 var(--line),
-    inset 2px 0 0 var(--warning);
+    inset -2px 0 0 var(--warning);
 }
 
 .data-table tbody tr.is-failed td:first-child {
   box-shadow:
     inset 0 -1px 0 var(--line),
-    inset 2px 0 0 var(--danger);
+    inset -2px 0 0 var(--danger);
 }
 
 .data-table tbody tr.is-processing td:first-child {
   box-shadow:
     inset 0 -1px 0 var(--line),
-    inset 2px 0 0 var(--info);
+    inset -2px 0 0 var(--info);
 }
 
 /* Empty is an em dash, and an em dash is not a link. */
@@ -2380,7 +2382,7 @@ textarea.form-control {
   font-family: var(--font-mono, ui-monospace), Menlo, monospace;
   font-variant-numeric: tabular-nums;
   font-feature-settings: "tnum";
-  text-align: right;
+  text-align: end;
 }
 
 .data-table th.is-numeric {
@@ -2572,7 +2574,7 @@ textarea.form-control {
     font-size: 0.5rem;
     height: 0.875rem;
     min-width: 0.875rem;
-    right: -0.1875rem;
+    inset-inline-end: -0.1875rem;
     top: -0.1875rem;
   }
 
@@ -2978,9 +2980,9 @@ textarea.form-control {
 .upload-tray {
   background: var(--surface);
   bottom: calc(3.25rem + env(safe-area-inset-bottom));
-  left: 0;
+  inset-inline-start: 0;
   position: fixed;
-  right: 0;
+  inset-inline-end: 0;
   z-index: 11;
 }
 
@@ -3307,7 +3309,7 @@ textarea.form-control {
   min-width: 1rem;
   padding: 0 0.25rem;
   position: absolute;
-  right: 0.25rem;
+  inset-inline-end: 0.25rem;
   top: 0.25rem;
 }
 
@@ -3354,7 +3356,7 @@ textarea.form-control {
   flex: 1 1 auto;
   font-size: 0.8125rem;
   font-weight: 600;
-  text-align: left;
+  text-align: start;
 }
 
 .upload-tray-summary__dismiss {
@@ -3385,8 +3387,8 @@ textarea.form-control {
     border-radius: 1.25rem;
     bottom: 1.5rem;
     box-shadow: var(--e4), var(--lip);
-    left: auto;
-    right: 1.5rem;
+    inset-inline-start: auto;
+    inset-inline-end: 1.5rem;
     width: 28rem;
   }
 
@@ -3564,14 +3566,14 @@ textarea.form-control {
 }
 
 .category-row__actions-label {
-  text-align: right;
+  text-align: end;
 }
 
 /* Selected and dragged rows say so with an accent lip, never a border. */
 .category-row[data-selected] {
   background: rgb(74 58 128 / 5.5%);
   box-shadow:
-    inset 2px 0 0 var(--accent),
+    inset -2px 0 0 var(--accent),
     inset 0 1px 0 var(--line);
 }
 
@@ -3697,10 +3699,10 @@ textarea.form-control {
   display: grid;
   gap: 0.375rem;
   grid-template-columns: 1fr auto;
-  left: 0.75rem;
+  inset-inline-start: 0.75rem;
   padding: 0.4375rem 0.5rem 0.5rem;
   position: fixed;
-  right: 0.75rem;
+  inset-inline-end: 0.75rem;
   z-index: 8;
 }
 
@@ -3708,8 +3710,8 @@ textarea.form-control {
   color: rgb(255 255 255 / 72%);
   font-size: 0.6875rem;
   font-weight: 600;
-  margin-right: 0.25rem;
-  padding-left: 0.125rem;
+  margin-inline-end: 0.25rem;
+  padding-inline-start: 0.125rem;
 }
 
 .selection-bar__divider {
@@ -3865,7 +3867,7 @@ textarea.form-control {
   .selection-bar__count {
     color: inherit;
     font-size: 0.75rem;
-    padding-left: 0;
+    padding-inline-start: 0;
   }
 
   .selection-bar__actions {
@@ -3897,7 +3899,7 @@ textarea.form-control {
   .selection-bar__dismiss {
     background: rgb(255 255 255 / 10%);
     height: 1.75rem;
-    margin-left: 0.25rem;
+    margin-inline-start: 0.25rem;
     width: 1.75rem;
   }
 }
@@ -4147,7 +4149,7 @@ textarea.form-control {
   background: var(--surface);
   border-radius: var(--radius-sm);
   box-shadow: var(--e3), var(--lip);
-  left: 0;
+  inset-inline-start: 0;
   margin-top: 0.375rem;
   min-width: 11rem;
   padding: 0.25rem;
@@ -4319,7 +4321,7 @@ textarea.form-control {
    box opened the document. The label claims it back, up to the type tile. */
 .doc-row__select::after {
   content: "";
-  inset: -0.625rem -0.5rem -0.625rem -0.75rem;
+  inset: -0.625rem -0.75rem -0.625rem -0.5rem;
   position: absolute;
 }
 
@@ -4415,7 +4417,7 @@ textarea.form-control {
 
 .doc-row[data-selected] {
   background: rgb(74 58 128 / 5.5%);
-  box-shadow: inset 2px 0 0 var(--accent);
+  box-shadow: inset -2px 0 0 var(--accent);
 }
 
 /*
@@ -4489,9 +4491,9 @@ textarea.form-control {
   color: var(--ink);
 }
 
-.doc-sort--right {
+.doc-sort--end {
   justify-content: flex-end;
-  padding-right: 0.875rem;
+  padding-inline-end: 0.875rem;
 }
 
 /*
@@ -4653,7 +4655,7 @@ textarea.form-control {
 
   .filter-more__panel {
     grid-template-columns: repeat(2, minmax(0, 1fr));
-    left: 0;
+    inset-inline-start: 0;
     margin-top: 0.5rem;
     position: absolute;
     top: 100%;
@@ -4711,7 +4713,7 @@ textarea.form-control {
   }
 
   .doc-row__select::after {
-    inset: 0 -0.5rem 0 -0.625rem;
+    inset: 0 -0.625rem 0 -0.5rem;
   }
 
   /* Money columns align under their own right-aligned header label. */
@@ -4719,8 +4721,8 @@ textarea.form-control {
   .doc-row__vat {
     font-size: 0.78125rem;
     justify-self: stretch;
-    padding-right: 0.875rem;
-    text-align: right;
+    padding-inline-end: 0.875rem;
+    text-align: end;
   }
 
   .doc-row__total {
@@ -5070,7 +5072,7 @@ textarea.form-control {
   color: var(--ink-muted);
   font-size: 0.6875rem;
   margin: 0.125rem 0 0;
-  padding-left: 1.125rem;
+  padding-inline-start: 1.125rem;
 }
 
 /* What it is on the left, the one control for it on the right. */

@@ -110,7 +110,7 @@ export function NavigationProgress() {
         size={13}
         strokeWidth={2.4}
       />
-      Loading…
+      טוען…
     </div>
   );
 }

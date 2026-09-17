@@ -1,6 +1,7 @@
 import { reviewReasonSentence } from "../../domain/documents/attention-reasons";
 import type { DocumentFile, Extraction } from "../../domain/documents/types";
 import { formatBytes, humanizeEnumValue } from "../../lib/format";
+import { countOf, fileKindLabel } from "../../lib/labels";
 import { CopyButton } from "../ui/copy-button";
 import { LocalDateTime } from "../ui/local-date-time";
 
@@ -16,7 +17,9 @@ function Json({ label, value }: { label: string; value: unknown }) {
         <div className="tech-json__tools">
           <CopyButton label={label} value={text} />
         </div>
-        <pre className="code-block">{text}</pre>
+        <pre className="code-block" dir="ltr">
+          {text}
+        </pre>
       </div>
     </details>
   );
@@ -42,18 +45,18 @@ export function DocumentTechnical({
     <details className="tech-card">
       <summary className="disclosure__summary tech-card__summary">
         <span>
-          <span className="tech-card__title">Technical details</span>
+          <span className="tech-card__title">פרטים טכניים</span>
           <span className="tech-card__note">
-            Extraction runs, raw AI output and file records
+            הרצות חילוץ, פלט ה־AI הגולמי ורשומות הקבצים
           </span>
         </span>
       </summary>
 
       <div className="tech-card__body">
         <section className="tech-section">
-          <h3 className="lbl">Extraction runs</h3>
+          <h3 className="lbl">הרצות חילוץ</h3>
           {extractions.length === 0 ? (
-            <p className="detail-card__empty">Not read yet.</p>
+            <p className="detail-card__empty">עדיין לא נקרא.</p>
           ) : (
             <ol className="tech-runs">
               {extractions.map((extraction, index) => {
@@ -86,14 +89,14 @@ export function DocumentTechnical({
                       </div>
                       <div className="tech-run__meta">
                         <span>
-                          schema{" "}
+                          סכימה{" "}
                           <span className="num">
                             {extraction.schemaVersion}
                           </span>
                         </span>
                         {confidence ? (
                           <span>
-                            confidence <span className="num">{confidence}</span>
+                            ביטחון <span className="num">{confidence}</span>
                           </span>
                         ) : null}
                         {failure ? (
@@ -102,12 +105,15 @@ export function DocumentTechnical({
                           </span>
                         ) : reasons.length === 0 ? (
                           <span className="status-badge status-badge--success">
-                            Clean
+                            נקי
                           </span>
                         ) : (
                           <span className="status-badge status-badge--warning">
-                            {reasons.length} review{" "}
-                            {reasons.length === 1 ? "reason" : "reasons"}
+                            {countOf(
+                              reasons.length,
+                              "סיבת בדיקה אחת",
+                              "סיבות לבדיקה",
+                            )}
                           </span>
                         )}
                       </div>
@@ -131,23 +137,23 @@ export function DocumentTechnical({
 
         {latest ? (
           <section className="tech-section">
-            <h3 className="lbl">Latest run output</h3>
-            <Json label="Normalised result" value={latest.normalizedResult} />
-            <Json label="Raw model output" value={latest.rawResult} />
+            <h3 className="lbl">פלט ההרצה האחרונה</h3>
+            <Json label="תוצאה מנורמלת" value={latest.normalizedResult} />
+            <Json label="פלט המודל הגולמי" value={latest.rawResult} />
           </section>
         ) : null}
 
         <section className="tech-section">
-          <h3 className="lbl">Files</h3>
+          <h3 className="lbl">קבצים</h3>
           {files.length === 0 ? (
-            <p className="detail-card__empty">No file on record.</p>
+            <p className="detail-card__empty">אין קובץ רשום.</p>
           ) : (
             <ul className="tech-files">
               {files.map((file) => (
                 <li className="tech-file" key={file.id}>
                   <div className="tech-file__head">
                     <span className="tech-file__kind">
-                      {humanizeEnumValue(file.kind)}
+                      {fileKindLabel(file.kind)}
                     </span>
                     <span className="tech-file__meta">
                       {file.mimeType} ·{" "}
@@ -156,7 +162,7 @@ export function DocumentTechnical({
                     </span>
                   </div>
                   <div className="tech-file__row">
-                    <span className="tech-file__label">Uploaded</span>
+                    <span className="tech-file__label">הועלה</span>
                     <LocalDateTime value={file.createdAt} />
                   </div>
                   <div className="tech-file__row">
@@ -167,11 +173,11 @@ export function DocumentTechnical({
                     <CopyButton label="SHA-256" value={file.sha256} />
                   </div>
                   <div className="tech-file__row">
-                    <span className="tech-file__label">Object key</span>
+                    <span className="tech-file__label">מפתח אובייקט</span>
                     <span className="tech-hash num" title={file.objectKey}>
                       {file.objectKey}
                     </span>
-                    <CopyButton label="object key" value={file.objectKey} />
+                    <CopyButton label="מפתח האובייקט" value={file.objectKey} />
                   </div>
                 </li>
               ))}
@@ -180,11 +186,11 @@ export function DocumentTechnical({
         </section>
 
         <section className="tech-section">
-          <h3 className="lbl">Identifiers</h3>
+          <h3 className="lbl">מזהים</h3>
           <div className="tech-file__row">
-            <span className="tech-file__label">Document ID</span>
+            <span className="tech-file__label">מזהה מסמך</span>
             <span className="tech-hash num">{documentId}</span>
-            <CopyButton label="document ID" value={documentId} />
+            <CopyButton label="מזהה המסמך" value={documentId} />
           </div>
         </section>
       </div>

@@ -45,7 +45,7 @@ describe("server upload file validation", () => {
         bytes: new Uint8Array([0xff, 0xd8, 0xff]),
         mimeType: "application/pdf",
       }),
-    ).toThrow("Declared file type does not match file bytes.");
+    ).toThrow("סוג הקובץ המוצהר אינו תואם לתוכן הקובץ.");
   });
 });
 

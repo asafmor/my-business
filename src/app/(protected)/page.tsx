@@ -5,7 +5,8 @@ import { ProportionBars } from "../../components/charts/proportion-bars";
 import { OpenTrayButton } from "../../components/uploads/open-tray-button";
 import { attentionReasons } from "../../domain/documents/attention-reasons";
 import { currentReportingMonth } from "../../domain/documents/dashboard";
-import { formatDate, formatMoney, humanizeEnumValue } from "../../lib/format";
+import { formatDate, formatMoney } from "../../lib/format";
+import { documentStatusLabel } from "../../lib/labels";
 import { DrizzleDashboardRepository } from "../../server/documents/dashboard-repository";
 import { DrizzleInboxQueryRepository } from "../../server/documents/inbox-query-repository";
 import { requireSession } from "../../server/auth/service";
@@ -30,11 +31,11 @@ export default async function DashboardPage() {
         <ContentState
           action={
             <Link className="button button--primary" href="/upload">
-              Upload your first document
+              העלאת המסמך הראשון
             </Link>
           }
-          description="Upload a receipt or invoice to start tracking expenses."
-          title="No documents yet"
+          description="העלו קבלה או חשבונית כדי להתחיל לעקוב אחרי ההוצאות."
+          title="אין מסמכים עדיין"
         />
       </>
     );
@@ -55,13 +56,13 @@ export default async function DashboardPage() {
     <div className="page">
       <ul className="dashboard-stats">
         <Kpi
-          label="Total expenses"
+          label="סך ההוצאות"
           value={formatMoney(summary.totalExpenses, null)}
         />
-        <Kpi label="VAT" value={formatMoney(summary.vatTotal, null)} />
-        <Kpi label="Documents" value={String(summary.documentCount)} />
+        <Kpi label='מע"מ' value={formatMoney(summary.vatTotal, null)} />
+        <Kpi label="מסמכים" value={String(summary.documentCount)} />
         <Kpi
-          label="Waiting for review"
+          label="ממתינים לבדיקה"
           tone={summary.needsReviewCount > 0 ? "attention" : undefined}
           value={String(summary.needsReviewCount)}
         />
@@ -70,13 +71,13 @@ export default async function DashboardPage() {
       <div className="dashboard-grid">
         <section className="dashboard-section">
           <div className="dashboard-section__header">
-            <h2>Needs attention</h2>
+            <h2>דורשים טיפול</h2>
             <OpenTrayButton className="text-button">
-              View all in tray
+              הצגת הכול במגש
             </OpenTrayButton>
           </div>
           {needsAttention.length === 0 ? (
-            <p className="content-state">Nothing needs review right now.</p>
+            <p className="content-state">אין כרגע מסמכים שדורשים בדיקה.</p>
           ) : (
             <ul className="data-list">
               {needsAttention.map((row) => (
@@ -87,7 +88,7 @@ export default async function DashboardPage() {
                   >
                     <div className="data-list__item-header">
                       <span className="data-list__item-title">
-                        {row.supplierName ?? "Unknown supplier"}
+                        {row.supplierName ?? "ספק לא ידוע"}
                       </span>
                       <span className="num">
                         {formatMoney(row.total, row.currency)}
@@ -110,13 +111,13 @@ export default async function DashboardPage() {
 
         <section className="dashboard-section">
           <div className="dashboard-section__header">
-            <h2>Categories</h2>
-            <span className="dashboard-section__note">this month</span>
+            <h2>קטגוריות</h2>
+            <span className="dashboard-section__note">החודש</span>
           </div>
           <ProportionBars
-            empty="No expenses recorded this month."
+            empty="לא נרשמו הוצאות החודש."
             rows={categoryBreakdown.map((row) => ({
-              label: row.categoryName ?? "Uncategorized",
+              label: row.categoryName ?? "ללא קטגוריה",
               value: row.total,
             }))}
           />
@@ -124,14 +125,14 @@ export default async function DashboardPage() {
 
         <section className="dashboard-section">
           <div className="dashboard-section__header">
-            <h2>Recently uploaded</h2>
+            <h2>הועלו לאחרונה</h2>
           </div>
           <RecentDocumentsList rows={recentlyUploaded} />
         </section>
 
         <section className="dashboard-section">
           <div className="dashboard-section__header">
-            <h2>Recently edited</h2>
+            <h2>נערכו לאחרונה</h2>
           </div>
           <RecentDocumentsList rows={recentlyEdited} />
         </section>
@@ -139,10 +140,10 @@ export default async function DashboardPage() {
 
       <div className="dashboard-quick-actions">
         <OpenTrayButton className="button button--secondary">
-          Open tray
+          פתיחת המגש
         </OpenTrayButton>
         <Link className="button button--secondary" href="/reports">
-          Monthly report
+          דוח חודשי
         </Link>
       </div>
     </div>
@@ -176,7 +177,7 @@ function RecentDocumentsList({
   rows: { at: Date; id: string; status: string; supplierName: string | null }[];
 }) {
   if (rows.length === 0) {
-    return <p className="content-state">No documents yet.</p>;
+    return <p className="content-state">אין מסמכים עדיין.</p>;
   }
 
   return (
@@ -186,12 +187,12 @@ function RecentDocumentsList({
           <Link className="data-list__item-link" href={`/documents/${row.id}`}>
             <div className="data-list__item-header">
               <span className="data-list__item-title">
-                {row.supplierName ?? "Unknown supplier"}
+                {row.supplierName ?? "ספק לא ידוע"}
               </span>
               <span
                 className={`status-badge status-badge--${statusTone(row.status)}`}
               >
-                {humanizeEnumValue(row.status)}
+                {documentStatusLabel(row.status)}
               </span>
             </div>
             <div className="data-list__item-meta">{formatDate(row.at)}</div>

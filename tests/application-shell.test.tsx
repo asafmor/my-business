@@ -164,9 +164,9 @@ describe("protected application shell", () => {
     expect(markup).toContain('href="#main-content"');
     expect(markup).toContain('id="main-content"');
     expect(markup).toContain('href="/upload"');
-    expect(markup).toContain(">Upload<");
-    expect(markup).toContain('aria-label="Log out"');
-    expect(markup).toContain('aria-label="Upload tray"');
+    expect(markup).toContain(">העלאה<");
+    expect(markup).toContain('aria-label="התנתקות"');
+    expect(markup).toContain('aria-label="מגש העלאות"');
   });
 
   it("gives mobile its own thumb-reachable navigation and capture action", async () => {
@@ -174,8 +174,8 @@ describe("protected application shell", () => {
       await ProtectedLayout({ children: <p>Workspace content</p> }),
     );
 
-    expect(markup).toContain('aria-label="Quick navigation"');
-    expect(markup).toContain('aria-label="Upload a document"');
+    expect(markup).toContain('aria-label="ניווט מהיר"');
+    expect(markup).toContain('aria-label="העלאת מסמך"');
     expect(markup).toContain("tab-bar__capture");
   });
 });
@@ -187,22 +187,22 @@ describe("application navigation", () => {
     );
 
     expect(markup).toMatch(
-      /aria-current="page" class="app-navigation__link is-current" title="Documents" href="\/documents"/,
+      /aria-current="page" class="app-navigation__link is-current" title="מסמכים" href="\/documents"/,
     );
     expect(markup.match(/aria-current="page"/g)).toHaveLength(1);
     expect(markup).toContain('href="/settings"');
   });
 
   it("titles the header from the route, longest prefix first", () => {
-    expect(pageHeaderFor("/")).toMatchObject({ title: "Dashboard" });
-    expect(pageHeaderFor("/documents")).toMatchObject({ title: "Documents" });
+    expect(pageHeaderFor("/")).toMatchObject({ title: "לוח בקרה" });
+    expect(pageHeaderFor("/documents")).toMatchObject({ title: "מסמכים" });
     expect(pageHeaderFor("/documents/abc")).toMatchObject({
-      title: "Document",
+      title: "מסמך",
     });
     expect(pageHeaderFor("/upload")).toMatchObject({
-      title: "Upload documents",
+      title: "העלאת מסמכים",
     });
-    expect(pageHeaderFor("/nowhere")).toMatchObject({ title: "My Business" });
+    expect(pageHeaderFor("/nowhere")).toMatchObject({ title: "העסק שלי" });
   });
 
   it("provides a labelled modal drawer and wraps keyboard focus", () => {
@@ -218,7 +218,7 @@ describe("application navigation", () => {
 
     expect(markup).toContain('role="dialog"');
     expect(markup).toContain('aria-modal="true"');
-    expect(markup).toContain('aria-label="Close navigation"');
+    expect(markup).toContain('aria-label="סגירת הניווט"');
     expect(getNextDrawerFocusIndex(0, 4, true)).toBe(3);
     expect(getNextDrawerFocusIndex(3, 4, false)).toBe(0);
     expect(getNextDrawerFocusIndex(-1, 4, false)).toBe(0);
@@ -254,12 +254,12 @@ describe("application UI states", () => {
       </UploadTrayProvider>,
     );
 
-    expect(markup).toContain("Drop files here");
+    expect(markup).toContain("גררו קבצים לכאן");
     expect(markup).toContain(
       'accept="image/jpeg,image/png,image/webp,application/pdf"',
     );
-    expect(markup).toContain("Choose files");
-    expect(markup).toContain("Take photo");
+    expect(markup).toContain("בחירת קבצים");
+    expect(markup).toContain("צילום");
   });
 
   it("hands what a share ingested to the upload tray, refusals included", async () => {
@@ -298,8 +298,8 @@ describe("application UI states", () => {
         </UploadTrayProvider>,
       );
 
-    expect(await render("empty")).toContain("No files were shared");
-    expect(await render("unreadable")).toContain("The share could not be read");
+    expect(await render("empty")).toContain("לא שותפו קבצים");
+    expect(await render("unreadable")).toContain("לא ניתן היה לקרוא את השיתוף");
   });
 });
 

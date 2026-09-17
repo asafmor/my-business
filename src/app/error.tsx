@@ -36,15 +36,15 @@ export default function Error({
               onClick={reset}
               type="button"
             >
-              Try again
+              נסו שוב
             </button>
             <Link className="button button--primary" href="/">
-              Back to dashboard
+              חזרה ללוח הבקרה
             </Link>
           </>
         }
-        description="Please try again, or go back to the dashboard. If this keeps happening, contact support."
-        title="Something went wrong"
+        description="נסו שוב, או חזרו ללוח הבקרה. אם זה חוזר על עצמו, פנו לתמיכה."
+        title="משהו השתבש"
         tone="error"
       />
     </div>

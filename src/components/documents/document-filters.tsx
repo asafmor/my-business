@@ -4,7 +4,12 @@ import { Search, SlidersHorizontal, X } from "lucide-react";
 import { useEffect, useState } from "react";
 
 import { documentStatuses, documentTypes } from "../../domain/documents/types";
-import { humanizeEnumValue } from "../../lib/format";
+import { formatMonth } from "../../lib/format";
+import {
+  countOf,
+  documentStatusLabel,
+  documentTypeLabel,
+} from "../../lib/labels";
 import type { DocumentListQuery } from "../../domain/documents/query";
 import {
   activeFilterCount,
@@ -79,15 +84,15 @@ export function DocumentFilters({
         <div className="filter-search">
           <Search aria-hidden size={13} strokeWidth={1.9} />
           <input
-            aria-label="Search documents"
+            aria-label="חיפוש מסמכים"
             onChange={(event) => setSearch(event.target.value)}
-            placeholder="Search documents"
+            placeholder="חיפוש מסמכים"
             type="search"
             value={search}
           />
           {search ? (
             <button
-              aria-label="Clear search"
+              aria-label="ניקוי החיפוש"
               className="filter-search__clear"
               onClick={() => setSearch("")}
               type="button"
@@ -98,16 +103,16 @@ export function DocumentFilters({
         </div>
 
         <FilterSelect
-          label="Type"
+          label="סוג"
           onChange={(value) => setParams({ type: value })}
           options={documentTypes.map((type) => ({
-            label: humanizeEnumValue(type),
+            label: documentTypeLabel(type),
             value: type,
           }))}
           value={query.type ?? ""}
         />
         <FilterSelect
-          label="Category"
+          label="קטגוריה"
           onChange={(value) => setParams({ category: value })}
           options={categories.map((category) => ({
             label: category.name,
@@ -116,10 +121,10 @@ export function DocumentFilters({
           value={query.categoryId ?? ""}
         />
         <FilterSelect
-          label="Status"
+          label="סטטוס"
           onChange={(value) => setParams({ status: value })}
           options={documentStatuses.map((status) => ({
-            label: humanizeEnumValue(status),
+            label: documentStatusLabel(status),
             value: status,
           }))}
           value={query.status ?? ""}
@@ -127,12 +132,12 @@ export function DocumentFilters({
 
         <FilterPopover
           isOn={query.month !== null}
-          label={query.month ? `Month: ${query.month}` : "Month"}
+          label={query.month ? `חודש: ${formatMonth(query.month)}` : "חודש"}
         >
           {() => (
             <div className="filter-menu__grid">
               <div className="filter-field filter-field--full">
-                <label htmlFor="month">Month</label>
+                <label htmlFor="month">חודש</label>
                 <input
                   className="filter-field__input"
                   defaultValue={query.month ?? ""}
@@ -148,7 +153,7 @@ export function DocumentFilters({
         <FilterPopover
           icon={<SlidersHorizontal aria-hidden size={12} strokeWidth={2} />}
           isOn={moreActive > 0}
-          label={moreActive > 0 ? `More: ${moreActive}` : "More"}
+          label={moreActive > 0 ? `עוד: ${moreActive}` : "עוד"}
           wide
         >
           {(close) => (
@@ -156,7 +161,7 @@ export function DocumentFilters({
               <div className="filter-menu__grid">
                 <MoreField
                   id="dateFrom"
-                  label="From"
+                  label="מתאריך"
                   onCommit={(value) =>
                     setParams({ dateFrom: value, month: null })
                   }
@@ -165,7 +170,7 @@ export function DocumentFilters({
                 />
                 <MoreField
                   id="dateTo"
-                  label="To"
+                  label="עד תאריך"
                   onCommit={(value) =>
                     setParams({ dateTo: value, month: null })
                   }
@@ -174,7 +179,7 @@ export function DocumentFilters({
                 />
                 <MoreField
                   id="amountMin"
-                  label="Min amount"
+                  label="סכום מינימלי"
                   onCommit={(value) => setParams({ amountMin: value })}
                   step="0.01"
                   type="number"
@@ -182,14 +187,14 @@ export function DocumentFilters({
                 />
                 <MoreField
                   id="amountMax"
-                  label="Max amount"
+                  label="סכום מקסימלי"
                   onCommit={(value) => setParams({ amountMax: value })}
                   step="0.01"
                   type="number"
                   value={query.amountMax ?? ""}
                 />
                 <div className="filter-field filter-field--full">
-                  <label htmlFor="supplier">Supplier</label>
+                  <label htmlFor="supplier">ספק</label>
                   <input
                     className="filter-field__input"
                     defaultValue={query.supplier ?? ""}
@@ -205,7 +210,7 @@ export function DocumentFilters({
                   query can only honour one. Say which one won. */}
               {query.month ? (
                 <p className="filter-menu__note">
-                  A month is set, so From and To are ignored.
+                  נבחר חודש, ולכן טווח התאריכים אינו נלקח בחשבון.
                 </p>
               ) : null}
               <div className="filter-menu__foot">
@@ -224,14 +229,14 @@ export function DocumentFilters({
                   }}
                   type="button"
                 >
-                  Reset these
+                  איפוס השדות האלה
                 </button>
                 <button
                   className="button button--secondary button--small"
                   onClick={close}
                   type="button"
                 >
-                  Done
+                  סיום
                 </button>
               </div>
             </>
@@ -251,7 +256,7 @@ export function DocumentFilters({
           >
             <X aria-hidden size={11} strokeWidth={2.4} />
             <span className="filter-chip__text">
-              Clear {active} filter{active === 1 ? "" : "s"}
+              ניקוי {countOf(active, "מסנן אחד", "מסננים")}
             </span>
           </button>
         ) : null}

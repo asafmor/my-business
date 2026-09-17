@@ -52,12 +52,14 @@ type Pending = {
 
 const copy = {
   deactivate: {
-    body: "It disappears from category pickers. Documents already filed under it keep it.",
-    label: "Deactivate",
+    body: "היא תיעלם מבוררי הקטגוריות. מסמכים שכבר תויקו תחתיה ישמרו אותה.",
+    label: "השבתה",
+    one: "להשבית",
   },
   delete: {
-    body: "This cannot be undone. Categories in use stay; deactivate those instead.",
-    label: "Delete",
+    body: "אי אפשר לבטל את הפעולה. קטגוריות בשימוש נשארות; אותן אפשר להשבית.",
+    label: "מחיקה",
+    one: "למחוק",
   },
 } as const;
 
@@ -70,9 +72,9 @@ export function confirmTitle(
   const { ids, verb } = pending;
   if (ids.length === 1) {
     const only = items.find((item) => item.id === ids[0]);
-    return `${copy[verb].label} “${only?.name ?? "this category"}”?`;
+    return `${copy[verb].one} את “${only?.name ?? "הקטגוריה הזו"}”?`;
   }
-  return `${copy[verb].label} ${ids.length} categories?`;
+  return `${copy[verb].one} ${ids.length} קטגוריות?`;
 }
 
 export function CategoriesTable({
@@ -216,13 +218,13 @@ export function CategoriesTable({
         onPointerUp={handleGripPointerUp}
         ref={listRef}
         role="table"
-        aria-label="Expense categories"
+        aria-label="קטגוריות הוצאה"
       >
         <div className="category-row category-row--head" role="row">
           <span />
           <span className="category-row__select">
             <input
-              aria-label="Select all categories"
+              aria-label="בחירת כל הקטגוריות"
               checked={allSelected}
               className="checkbox"
               onChange={() =>
@@ -231,10 +233,10 @@ export function CategoriesTable({
               type="checkbox"
             />
           </span>
-          <span className="lbl">Category</span>
-          <span className="lbl">Description</span>
-          <span className="lbl">Status</span>
-          <span className="lbl category-row__actions-label">Actions</span>
+          <span className="lbl">קטגוריה</span>
+          <span className="lbl">תיאור</span>
+          <span className="lbl">סטטוס</span>
+          <span className="lbl category-row__actions-label">פעולות</span>
         </div>
 
         {items.map((category) => {
@@ -250,7 +252,7 @@ export function CategoriesTable({
               role="row"
             >
               <button
-                aria-label={`Reorder ${category.name}. Use the arrow keys, or drag.`}
+                aria-label={`שינוי סדר של ${category.name}. אפשר להשתמש במקשי החצים או לגרור.`}
                 className="category-row__grip"
                 onKeyDown={(event) => handleGripKeyDown(event, category.id)}
                 onPointerDown={(event) =>
@@ -263,7 +265,7 @@ export function CategoriesTable({
 
               <span className="category-row__select">
                 <input
-                  aria-label={`Select ${category.name}`}
+                  aria-label={`בחירת ${category.name}`}
                   checked={isSelected}
                   className="checkbox"
                   onChange={(event) =>
@@ -278,7 +280,7 @@ export function CategoriesTable({
               </span>
 
               <input
-                aria-label={`Name of ${category.name}`}
+                aria-label={`השם של ${category.name}`}
                 className="cell-input cell-input--strong"
                 maxLength={120}
                 onBlur={() => commit(category.id)}
@@ -292,7 +294,7 @@ export function CategoriesTable({
               />
 
               <input
-                aria-label={`Description of ${category.name}`}
+                aria-label={`התיאור של ${category.name}`}
                 className="cell-input"
                 onBlur={() => commit(category.id)}
                 onChange={(event) =>
@@ -301,7 +303,7 @@ export function CategoriesTable({
                 onKeyDown={(event) => {
                   if (event.key === "Enter") event.currentTarget.blur();
                 }}
-                placeholder="What belongs here?"
+                placeholder="מה שייך לכאן?"
                 value={category.description ?? ""}
               />
 
@@ -313,7 +315,7 @@ export function CategoriesTable({
                       : "status-badge status-badge--neutral"
                   }
                 >
-                  {category.active ? "Active" : "Inactive"}
+                  {category.active ? "פעילה" : "לא פעילה"}
                 </span>
               </span>
 
@@ -321,8 +323,8 @@ export function CategoriesTable({
                 <button
                   aria-label={
                     category.active
-                      ? `Deactivate ${category.name}`
-                      : `Activate ${category.name}`
+                      ? `השבתת ${category.name}`
+                      : `הפעלת ${category.name}`
                   }
                   className="row-action"
                   onClick={() =>
@@ -332,7 +334,7 @@ export function CategoriesTable({
                           setCategoriesActiveAction([category.id], true),
                         )
                   }
-                  title={category.active ? "Deactivate" : "Activate"}
+                  title={category.active ? "השבתה" : "הפעלה"}
                   type="button"
                 >
                   {category.active ? (
@@ -342,12 +344,12 @@ export function CategoriesTable({
                   )}
                 </button>
                 <button
-                  aria-label={`Delete ${category.name}`}
+                  aria-label={`מחיקת ${category.name}`}
                   className="row-action row-action--danger"
                   onClick={() =>
                     setPending({ ids: [category.id], verb: "delete" })
                   }
-                  title="Delete"
+                  title="מחיקה"
                   type="button"
                 >
                   <Trash2 aria-hidden size={15} strokeWidth={1.8} />
@@ -377,18 +379,18 @@ export function CategoriesTable({
           </span>
           <span />
           <input
-            aria-label="New category name"
+            aria-label="שם הקטגוריה החדשה"
             className="cell-input cell-input--strong"
             maxLength={120}
             onChange={(event) =>
               setDraft((current) => ({ ...current, name: event.target.value }))
             }
-            placeholder="Add a category"
+            placeholder="הוספת קטגוריה"
             ref={newNameRef}
             value={draft.name}
           />
           <input
-            aria-label="New category description"
+            aria-label="תיאור הקטגוריה החדשה"
             className="cell-input"
             onChange={(event) =>
               setDraft((current) => ({
@@ -396,7 +398,7 @@ export function CategoriesTable({
                 description: event.target.value,
               }))
             }
-            placeholder="What belongs here?"
+            placeholder="מה שייך לכאן?"
             value={draft.description}
           />
           <span />
@@ -407,16 +409,16 @@ export function CategoriesTable({
               type="submit"
             >
               <Plus aria-hidden size={14} strokeWidth={2} />
-              Add
+              הוספה
             </button>
           </span>
         </form>
       </div>
 
       {selected.length > 0 ? (
-        <div className="selection-bar" role="group" aria-label="Bulk actions">
+        <div className="selection-bar" role="group" aria-label="פעולות מרובות">
           <span className="selection-bar__count num">
-            {selected.length} selected
+            {selected.length} נבחרו
           </span>
           <span aria-hidden="true" className="selection-bar__divider" />
           <div className="selection-bar__actions">
@@ -429,7 +431,7 @@ export function CategoriesTable({
             >
               <CircleCheck aria-hidden size={14} strokeWidth={1.9} />
               <span>
-                Activate<span className="selection-bar__scope"> selected</span>
+                הפעלה<span className="selection-bar__scope"> של הנבחרות</span>
               </span>
             </button>
             <button
@@ -439,8 +441,8 @@ export function CategoriesTable({
             >
               <CircleSlash2 aria-hidden size={14} strokeWidth={1.9} />
               <span>
-                Deactivate
-                <span className="selection-bar__scope"> selected</span>
+                השבתה
+                <span className="selection-bar__scope"> של הנבחרות</span>
               </span>
             </button>
             <button
@@ -450,12 +452,12 @@ export function CategoriesTable({
             >
               <Trash2 aria-hidden size={14} strokeWidth={1.9} />
               <span>
-                Delete<span className="selection-bar__scope"> selected</span>
+                מחיקה<span className="selection-bar__scope"> של הנבחרות</span>
               </span>
             </button>
           </div>
           <button
-            aria-label="Clear selection"
+            aria-label="ביטול הבחירה"
             className="selection-bar__dismiss"
             onClick={() => setSelected([])}
             type="button"
@@ -480,7 +482,7 @@ export function CategoriesTable({
             onClick={() => setPending(null)}
             type="button"
           >
-            Cancel
+            ביטול
           </button>
           <button
             className="button button--danger"
@@ -502,7 +504,7 @@ export function CategoriesTable({
             ) : (
               <Trash2 aria-hidden size={14} strokeWidth={2} />
             )}
-            {pending ? copy[pending.verb].label : "Delete"}
+            {pending ? copy[pending.verb].label : "מחיקה"}
           </button>
         </div>
       </dialog>

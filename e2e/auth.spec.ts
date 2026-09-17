@@ -5,12 +5,12 @@ import { signIn } from "./support/auth";
 test.describe("login", () => {
   test("rejects an incorrect password", async ({ page }) => {
     await page.goto("/login");
-    await page.getByLabel("Password").fill("definitely-wrong-password");
-    await page.getByRole("button", { name: "Sign in" }).click();
+    await page.getByLabel("סיסמה").fill("definitely-wrong-password");
+    await page.getByRole("button", { name: "התחברות" }).click();
 
     // The route announcer Next.js renders on navigation is also role="alert";
     // scope to the login form's own message.
-    await expect(page.getByText("Invalid login.")).toBeVisible();
+    await expect(page.getByText("פרטי ההתחברות שגויים.")).toBeVisible();
     await expect(page).toHaveURL(/\/login$/);
   });
 
@@ -22,8 +22,8 @@ test.describe("login", () => {
     );
 
     await page.goto("/login");
-    await page.getByLabel("Password").fill(password as string);
-    await page.getByRole("button", { name: "Sign in" }).click();
+    await page.getByLabel("סיסמה").fill(password as string);
+    await page.getByRole("button", { name: "התחברות" }).click();
 
     await expect(page).toHaveURL("/");
   });
@@ -61,18 +61,18 @@ test.describe("logout", () => {
     // Log out lives in the shell's account card: in the sidebar on wide
     // viewports, behind the navigation drawer on narrow ones. The settings
     // page renders its own button too, so scope to the shell's.
-    const menuButton = page.getByRole("button", { name: "Open navigation" });
+    const menuButton = page.getByRole("button", { name: "פתיחת הניווט" });
 
     if (await menuButton.isVisible()) {
       await menuButton.click();
       await page
         .getByRole("dialog")
-        .getByRole("button", { name: "Log out" })
+        .getByRole("button", { name: "התנתקות" })
         .click();
     } else {
       await page
-        .getByRole("complementary", { name: "Application navigation" })
-        .getByRole("button", { name: "Log out" })
+        .getByRole("complementary", { name: "ניווט היישום" })
+        .getByRole("button", { name: "התנתקות" })
         .click();
     }
     await expect(page).toHaveURL(/\/login$/);

@@ -1,5 +1,6 @@
 import { redirect } from "next/navigation";
 
+import { appName } from "../../../lib/labels";
 import { getSession } from "../../../server/auth/service";
 
 import { LoginForm } from "./login-form";
@@ -14,8 +15,8 @@ export default async function LoginPage() {
   return (
     <main className="login-page">
       <section aria-labelledby="login-title" className="login-panel">
-        <h1 id="login-title">My Business</h1>
-        <p>Sign in to continue.</p>
+        <h1 id="login-title">{appName}</h1>
+        <p>יש להתחבר כדי להמשיך.</p>
         <LoginForm />
       </section>
     </main>

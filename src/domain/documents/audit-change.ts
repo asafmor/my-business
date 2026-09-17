@@ -9,6 +9,7 @@ import {
   formatMoney,
   humanizeEnumValue,
 } from "../../lib/format";
+import { documentStatusLabel, documentTypeLabel } from "../../lib/labels";
 
 export type AuditFieldChange = {
   field: string | null;
@@ -18,20 +19,20 @@ export type AuditFieldChange = {
 
 /** What each audited field is called on screen, keyed by its audit name. */
 export const fieldLabels: Record<string, string> = {
-  businessUsePercentage: "Business use",
-  category: "Category",
-  categoryId: "Category",
-  currency: "Currency",
-  documentNumber: "Document number",
-  documentType: "Document type",
-  notes: "Notes",
-  paymentMethod: "Payment method",
-  subtotal: "Subtotal",
-  supplierName: "Supplier",
-  total: "Total",
-  transactionDate: "Date",
-  type: "Document type",
-  vat: "VAT",
+  businessUsePercentage: "שימוש עסקי",
+  category: "קטגוריה",
+  categoryId: "קטגוריה",
+  currency: "מטבע",
+  documentNumber: "מספר מסמך",
+  documentType: "סוג מסמך",
+  notes: "הערות",
+  paymentMethod: "אמצעי תשלום",
+  subtotal: 'לפני מע"מ',
+  supplierName: "ספק",
+  total: 'סה"כ',
+  transactionDate: "תאריך",
+  type: "סוג מסמך",
+  vat: 'מע"מ',
 };
 
 // auditField names from editableExpenseFieldMap (domain/expenses/edit.ts) and
@@ -54,7 +55,7 @@ function formatValue(
   if (field && percentageFields.has(field)) {
     return `${Number(value) || 0}%`;
   }
-  if (field && enumFields.has(field)) return humanizeEnumValue(String(value));
+  if (field && enumFields.has(field)) return documentTypeLabel(String(value));
   // CATEGORY_CHANGE audit rows store the category id (see editableExpenseFieldMap's
   // "category" -> categoryId mapping); resolve it to a name when we have one on
   // hand rather than querying for it.
@@ -78,7 +79,7 @@ export function formatAuditChange(
   if (change.oldValue === null && change.newValue === null) return null;
   const before = formatValue(change.oldValue, change.field, categoryNameById);
   const after = formatValue(change.newValue, change.field, categoryNameById);
-  return `${before} → ${after}`;
+  return `${before} ← ${after}`;
 }
 
 export type AuditEntryKind =
@@ -99,16 +100,20 @@ export type AuditEntry = {
   /** One sentence under the title, or null when the title says it all. */
   detail: string | null;
   kind: AuditEntryKind;
-  /** Who did it, in the reader's terms. */
+  /** Who did it, as the CSS tone key; sourceLabel is the word on screen. */
   source: "AI" | "System" | "You";
+  sourceLabel: string;
   title: string;
   tone: "danger" | "neutral" | "success" | "warning";
 };
 
-const sourceLabels: Record<AuditSource, AuditEntry["source"]> = {
-  AI: "AI",
-  SYSTEM: "System",
-  USER: "You",
+const sources: Record<
+  AuditSource,
+  Pick<AuditEntry, "source" | "sourceLabel">
+> = {
+  AI: { source: "AI", sourceLabel: "AI" },
+  SYSTEM: { source: "System", sourceLabel: "המערכת" },
+  USER: { source: "You", sourceLabel: "אתם" },
 };
 
 function asObject(value: JsonValue | null): Record<string, JsonValue> | null {
@@ -127,8 +132,12 @@ export function describeAuditEvent(
   event: AuditFieldChange & { action: AuditAction; source: AuditSource },
   categoryNameById: Record<string, string> = {},
 ): AuditEntry {
-  const source = sourceLabels[event.source];
-  const base = { after: null, before: null, detail: null, source };
+  const base = {
+    after: null,
+    before: null,
+    detail: null,
+    ...sources[event.source],
+  };
   const payload = asObject(event.newValue);
 
   switch (event.action) {
@@ -143,7 +152,7 @@ export function describeAuditEvent(
         ...base,
         detail: [name, size].filter(Boolean).join(" · ") || null,
         kind: "upload",
-        title: "Uploaded",
+        title: "הועלה",
         tone: "neutral",
       };
     }
@@ -155,7 +164,7 @@ export function describeAuditEvent(
           ...base,
           detail: failureReasonSentence(payload.failure),
           kind: "failure",
-          title: again ? "Reprocessing failed" : "Reading failed",
+          title: again ? "העיבוד החוזר נכשל" : "הקריאה נכשלה",
           tone: "danger",
         };
       }
@@ -168,10 +177,10 @@ export function describeAuditEvent(
       return {
         ...base,
         detail: needsReview
-          ? reasons.map(reviewReasonSentence).join(" ") || "Needs a look."
-          : "Every field was read with confidence.",
+          ? reasons.map(reviewReasonSentence).join(" ") || "דורש בדיקה."
+          : "כל השדות נקראו בביטחון.",
         kind: "extraction",
-        title: again ? "Read again by AI" : "Read by AI",
+        title: again ? "נקרא מחדש על ידי AI" : "נקרא על ידי AI",
         tone: needsReview ? "warning" : "success",
       };
     }
@@ -179,13 +188,13 @@ export function describeAuditEvent(
     case "CATEGORY_CHANGE": {
       const label = event.field
         ? (fieldLabels[event.field] ?? humanizeEnumValue(event.field))
-        : "Field";
+        : "שדה";
       return {
         ...base,
         after: formatValue(event.newValue, event.field, categoryNameById),
         before: formatValue(event.oldValue, event.field, categoryNameById),
         kind: event.action === "CATEGORY_CHANGE" ? "category" : "edit",
-        title: `${label} changed`,
+        title: `${label} השתנה`,
         tone: "neutral",
       };
     }
@@ -193,27 +202,32 @@ export function describeAuditEvent(
       return {
         ...base,
         kind: "review",
-        title: "Marked reviewed",
+        title: "סומן כנבדק",
         tone: "success",
       };
     case "ARCHIVE":
-      return { ...base, kind: "archive", title: "Archived", tone: "neutral" };
+      return {
+        ...base,
+        kind: "archive",
+        title: "הועבר לארכיון",
+        tone: "neutral",
+      };
     case "UNARCHIVE":
       return {
         ...base,
         detail:
           typeof event.newValue === "string"
-            ? `Back to ${humanizeEnumValue(event.newValue).toLowerCase()}.`
+            ? `חזר למצב "${documentStatusLabel(event.newValue)}".`
             : null,
         kind: "unarchive",
-        title: "Restored from the archive",
+        title: "שוחזר מהארכיון",
         tone: "success",
       };
     case "REPORT_GENERATION":
       return {
         ...base,
         kind: "report",
-        title: "Included in a report",
+        title: "נכלל בדוח",
         tone: "neutral",
       };
     default:

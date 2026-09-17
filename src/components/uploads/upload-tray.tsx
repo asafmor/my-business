@@ -11,6 +11,7 @@ import {
 } from "lucide-react";
 import { useRef, type PointerEvent as ReactPointerEvent } from "react";
 
+import { countOf } from "../../lib/labels";
 import {
   matchesFilter,
   statusGroup,
@@ -22,15 +23,15 @@ import {
 } from "./upload-tray-provider";
 
 const statusLabels: Record<TrayStatus, string> = {
-  complete: "Uploaded",
-  duplicate: "Possible duplicate",
-  failed: "Upload failed",
-  "needs-review": "Needs review",
-  processing: "Processing",
-  "processing-failed": "Processing failed",
-  queued: "Ready to upload",
-  rejected: "Not accepted",
-  uploading: "Uploading",
+  complete: "הועלה",
+  duplicate: "כפילות אפשרית",
+  failed: "ההעלאה נכשלה",
+  "needs-review": "דורש בדיקה",
+  processing: "בעיבוד",
+  "processing-failed": "העיבוד נכשל",
+  queued: "מוכן להעלאה",
+  rejected: "לא התקבל",
+  uploading: "מעלה",
 };
 
 type IconTone = "danger" | "neutral" | "success" | "warning";
@@ -93,10 +94,10 @@ function FilterIcon({ filter }: { filter: TrayFilter }) {
 }
 
 const filters: { label: string; value: TrayFilter }[] = [
-  { label: "All", value: "all" },
-  { label: "Processing", value: "processing" },
-  { label: "Review", value: "review" },
-  { label: "Failed", value: "failed" },
+  { label: "הכול", value: "all" },
+  { label: "בעיבוד", value: "processing" },
+  { label: "לבדיקה", value: "review" },
+  { label: "נכשלו", value: "failed" },
 ];
 
 const removableStatuses: readonly TrayStatus[] = [
@@ -121,7 +122,7 @@ function TrayItemRow({ item }: { item: TrayItem }) {
               className="upload-tray-item__action"
               href={`/documents/${item.documentId}`}
             >
-              Open
+              פתיחה
             </Link>
           ) : null}
           {item.status === "duplicate" ? (
@@ -130,7 +131,7 @@ function TrayItemRow({ item }: { item: TrayItem }) {
               onClick={() => allowDuplicateUpload(item)}
               type="button"
             >
-              Upload anyway
+              להעלות בכל זאת
             </button>
           ) : null}
           {item.status === "failed" ? (
@@ -139,7 +140,7 @@ function TrayItemRow({ item }: { item: TrayItem }) {
               onClick={() => retryUpload(item)}
               type="button"
             >
-              Retry
+              ניסיון חוזר
             </button>
           ) : null}
           {item.status === "processing-failed" ? (
@@ -148,12 +149,12 @@ function TrayItemRow({ item }: { item: TrayItem }) {
               onClick={() => retryProcessing(item)}
               type="button"
             >
-              Retry
+              ניסיון חוזר
             </button>
           ) : null}
           {removableStatuses.includes(item.status) ? (
             <button
-              aria-label={`Remove ${item.name}`}
+              aria-label={`הסרת ${item.name}`}
               className="upload-tray-item__dismiss"
               onClick={() => removeItem(item.id)}
               type="button"
@@ -197,10 +198,10 @@ function TrayItemRow({ item }: { item: TrayItem }) {
 }
 
 const groupLabels: Record<TrayStatusGroup, string> = {
-  complete: "Uploaded",
-  failed: "Failed",
-  processing: "Processing",
-  review: "Needs review",
+  complete: "הועלו",
+  failed: "נכשלו",
+  processing: "בעיבוד",
+  review: "דורשים בדיקה",
 };
 
 type ListEntry =
@@ -246,10 +247,11 @@ function summaryText(counts: {
   review: number;
 }): string {
   if (counts.processing > 0)
-    return `Processing ${counts.processing} item${counts.processing === 1 ? "" : "s"}`;
-  if (counts.review > 0) return `${counts.review} need review`;
-  if (counts.failed > 0) return `${counts.failed} failed`;
-  return counts.all > 0 ? "All caught up" : "No uploads yet";
+    return `מעבד ${countOf(counts.processing, "פריט אחד", "פריטים")}`;
+  if (counts.review > 0)
+    return countOf(counts.review, "אחד דורש בדיקה", "דורשים בדיקה");
+  if (counts.failed > 0) return countOf(counts.failed, "אחד נכשל", "נכשלו");
+  return counts.all > 0 ? "הכול טופל" : "אין העלאות עדיין";
 }
 
 export function UploadTray() {
@@ -280,7 +282,7 @@ export function UploadTray() {
   if (view === "minimized") {
     return (
       <section
-        aria-label="Upload tray"
+        aria-label="מגש העלאות"
         className="upload-tray upload-tray--minimized"
       >
         <div
@@ -310,7 +312,7 @@ export function UploadTray() {
             {summaryText(counts)}
           </span>
           <span
-            aria-label="Dismiss upload tray"
+            aria-label="סגירת מגש ההעלאות"
             className="upload-tray-summary__dismiss"
             onClick={(event) => {
               event.stopPropagation();
@@ -335,7 +337,7 @@ export function UploadTray() {
 
   return (
     <section
-      aria-label="Upload tray"
+      aria-label="מגש העלאות"
       className="upload-tray upload-tray--expanded"
     >
       <div
@@ -353,10 +355,10 @@ export function UploadTray() {
         </button>
       </div>
       <div className="upload-tray__header">
-        <h2>Uploads</h2>
+        <h2>העלאות</h2>
         <div className="upload-tray__header-actions">
           <button
-            aria-label="Minimize"
+            aria-label="מזעור"
             className="icon-button upload-tray__chevron"
             onClick={toggleSize}
             type="button"
@@ -364,7 +366,7 @@ export function UploadTray() {
             <ChevronDown aria-hidden size={16} strokeWidth={1.8} />
           </button>
           <button
-            aria-label="Dismiss upload tray"
+            aria-label="סגירת מגש ההעלאות"
             className="icon-button"
             onClick={dismiss}
             type="button"
@@ -376,7 +378,7 @@ export function UploadTray() {
       <div
         className="upload-tray__filters"
         role="group"
-        aria-label="Filter uploads"
+        aria-label="סינון העלאות"
       >
         {filters.map((entry) => (
           <button
@@ -393,7 +395,7 @@ export function UploadTray() {
       </div>
       <ul aria-live="polite" className="upload-tray__list">
         {visibleItems.length === 0 ? (
-          <li className="upload-tray__empty">Nothing matches this filter.</li>
+          <li className="upload-tray__empty">אין פריטים שמתאימים לסינון.</li>
         ) : filter === "all" ? (
           withGroupLabels(visibleItems).map((entry) =>
             entry.kind === "group-label" ? (

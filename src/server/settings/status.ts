@@ -32,14 +32,14 @@ export type StatusCheck = {
 export async function checkDatabaseStatus(): Promise<StatusCheck> {
   try {
     await getDatabase().execute(sql`select 1`);
-    return { detail: "Connected to the application database.", ok: true };
+    return { detail: "מחובר למסד הנתונים של היישום.", ok: true };
   } catch (error) {
     // A driver connect failure names the pooler host, and often the user and
     // database too. The operator gets that in the log; the browser gets a
     // sentence - this page renders into HTML a browser can read.
     logError("settings.database_check_failed", error);
     return {
-      detail: "The application database did not answer. Check the server logs.",
+      detail: "מסד הנתונים של היישום לא ענה. יש לבדוק את יומני השרת.",
       ok: false,
     };
   }
@@ -52,13 +52,10 @@ export function checkStorageConfiguration(
 ): StatusCheck {
   try {
     assertR2Environment(environment);
-    return { detail: "R2 storage is configured.", ok: true };
+    return { detail: "אחסון R2 מוגדר.", ok: true };
   } catch (error) {
     return {
-      detail:
-        error instanceof Error
-          ? error.message
-          : "R2 storage is not configured.",
+      detail: error instanceof Error ? error.message : "אחסון R2 אינו מוגדר.",
       ok: false,
     };
   }

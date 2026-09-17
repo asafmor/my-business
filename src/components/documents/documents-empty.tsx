@@ -20,14 +20,13 @@ export function DocumentsEmpty({ isFiltered }: { isFiltered: boolean }) {
         <span aria-hidden="true" className="empty-state__tile">
           <FileStack size={20} strokeWidth={1.5} />
         </span>
-        <h2 className="empty-state__title">No documents yet</h2>
+        <h2 className="empty-state__title">אין מסמכים עדיין</h2>
         <p className="empty-state__body">
-          Drop in a receipt or an invoice. It is read, filed and left here for
-          you to confirm.
+          גררו לכאן קבלה או חשבונית. היא תיקרא, תתויק ותחכה כאן לאישור שלכם.
         </p>
         <Link className="button button--primary" href="/upload">
           <Upload aria-hidden size={14} strokeWidth={2} />
-          Upload a document
+          העלאת מסמך
         </Link>
       </div>
     );
@@ -38,9 +37,9 @@ export function DocumentsEmpty({ isFiltered }: { isFiltered: boolean }) {
       <span aria-hidden="true" className="empty-state__tile">
         <SearchX size={20} strokeWidth={1.5} />
       </span>
-      <h2 className="empty-state__title">Nothing matches these filters</h2>
+      <h2 className="empty-state__title">אין מסמכים שמתאימים לסינון</h2>
       <p className="empty-state__body">
-        Every document is still here — this combination just has no rows in it.
+        כל המסמכים עדיין כאן — פשוט אין שורות שמתאימות לשילוב הזה.
       </p>
       <button
         className="button button--secondary"
@@ -48,7 +47,7 @@ export function DocumentsEmpty({ isFiltered }: { isFiltered: boolean }) {
         type="button"
       >
         <X aria-hidden size={14} strokeWidth={2} />
-        Clear filters
+        ניקוי הסינון
       </button>
     </div>
   );

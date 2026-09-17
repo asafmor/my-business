@@ -15,13 +15,13 @@ export function CopyButton({ label, value }: { label: string; value: string }) {
 
   return (
     <button
-      aria-label={copied ? `${label} copied` : `Copy ${label}`}
+      aria-label={copied ? `${label} הועתק` : `העתקת ${label}`}
       className="copy-button"
       data-copied={copied ? "" : undefined}
       onClick={() => {
         void navigator.clipboard.writeText(value).then(() => setCopied(true));
       }}
-      title={copied ? "Copied" : `Copy ${label}`}
+      title={copied ? "הועתק" : `העתקת ${label}`}
       type="button"
     >
       {copied ? (

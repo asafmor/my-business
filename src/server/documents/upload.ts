@@ -50,7 +50,7 @@ export async function uploadDocumentFiles(
   for (const file of entries.filter(isFile)) {
     try {
       if (file.size > maximumUploadBytes) {
-        throw new FileValidationError("File exceeds the maximum upload size.");
+        throw new FileValidationError("הקובץ חורג מגודל ההעלאה המרבי.");
       }
 
       const result = await service.upload({
@@ -74,7 +74,7 @@ export async function uploadDocumentFiles(
       logError("upload.failed", error, { fileName: file.name });
       results.push({
         fileName: file.name,
-        message: "The file could not be uploaded. Please try again.",
+        message: "לא ניתן היה להעלות את הקובץ. נסו שוב.",
         status: "failed",
       });
     }
@@ -110,7 +110,7 @@ export async function uploadDocumentCopy(
     logError("upload.copy_failed", error, { documentId });
     return {
       fileName,
-      message: "The file could not be copied. Please try again.",
+      message: "לא ניתן היה להעתיק את הקובץ. נסו שוב.",
       status: "failed",
     };
   }

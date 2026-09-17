@@ -33,8 +33,8 @@ describe("categories table", () => {
       <CategoriesTable categories={[category({})]} />,
     );
 
-    expect(markup).toContain("Deactivate Software");
-    expect(markup).toContain("Delete Software");
+    expect(markup).toContain("השבתת Software");
+    expect(markup).toContain("מחיקת Software");
     expect(markup.match(/class="confirm-dialog"/g)).toHaveLength(1);
   });
 });
@@ -44,13 +44,13 @@ describe("confirm title", () => {
 
   it("names the one category and counts a batch", () => {
     expect(confirmTitle({ ids: ["a"], verb: "delete" }, items)).toBe(
-      "Delete “Software”?",
+      "למחוק את “Software”?",
     );
     expect(confirmTitle({ ids: ["a"], verb: "deactivate" }, items)).toBe(
-      "Deactivate “Software”?",
+      "להשבית את “Software”?",
     );
     expect(confirmTitle({ ids: ["a", "b"], verb: "deactivate" }, items)).toBe(
-      "Deactivate 2 categories?",
+      "להשבית 2 קטגוריות?",
     );
   });
 

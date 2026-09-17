@@ -3,11 +3,11 @@
 import { ChevronLeft, ChevronRight } from "lucide-react";
 
 import { documentListPageSizes } from "../../domain/documents/query";
-import { formatMoney } from "../../lib/format";
+import { formatMoney, locale } from "../../lib/format";
 import type { CurrencyTotal } from "../../server/documents/documents-query-repository";
 import { useDocumentParams } from "./use-document-params";
 
-const counter = new Intl.NumberFormat("en-US");
+const counter = new Intl.NumberFormat(locale);
 
 function Totals({ label, totals }: { label: string; totals: CurrencyTotal[] }) {
   if (totals.length === 0) return null;
@@ -61,16 +61,16 @@ export function Pagination({
   const showMatched = !sameTotals(pageTotals, matchedTotals);
 
   return (
-    <nav aria-label="Pagination" className="table-foot">
-      <span className="num table-foot__range">
-        {counter.format(first)}–{counter.format(last)} of{" "}
+    <nav aria-label="דפדוף" className="table-foot">
+      <span className="num table-foot__range" dir="ltr">
+        {counter.format(first)}–{counter.format(last)} מתוך{" "}
         {counter.format(total)}
       </span>
       <span aria-hidden="true" className="table-foot__divider" />
       <label className="table-foot__rows">
-        Rows
+        שורות
         <select
-          aria-label="Rows per page"
+          aria-label="שורות בעמוד"
           className="table-foot__select"
           onChange={(event) =>
             setParams({ page: "1", pageSize: event.target.value })
@@ -87,34 +87,32 @@ export function Pagination({
 
       <span className="table-foot__spacer" />
 
-      <Totals
-        label={showMatched ? "Page total" : "Total"}
-        totals={pageTotals}
-      />
+      <Totals label={showMatched ? 'סה"כ בעמוד' : 'סה"כ'} totals={pageTotals} />
       {showMatched ? (
-        <Totals label="All matches" totals={matchedTotals} />
+        <Totals label="כל התוצאות" totals={matchedTotals} />
       ) : null}
 
+      {/* Right-to-left: "previous" points right, "next" points left. */}
       <button
-        aria-label="Previous page"
+        aria-label="העמוד הקודם"
         className="table-foot__step"
         disabled={page <= 1}
         onClick={() => setParams({ page: String(page - 1) })}
         type="button"
       >
-        <ChevronLeft aria-hidden size={12} strokeWidth={2.2} />
+        <ChevronRight aria-hidden size={12} strokeWidth={2.2} />
       </button>
-      <span className="num table-foot__page">
+      <span className="num table-foot__page" dir="ltr">
         {page} / {totalPages}
       </span>
       <button
-        aria-label="Next page"
+        aria-label="העמוד הבא"
         className="table-foot__step"
         disabled={page >= totalPages}
         onClick={() => setParams({ page: String(page + 1) })}
         type="button"
       >
-        <ChevronRight aria-hidden size={12} strokeWidth={2.2} />
+        <ChevronLeft aria-hidden size={12} strokeWidth={2.2} />
       </button>
     </nav>
   );

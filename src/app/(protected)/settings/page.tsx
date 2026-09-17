@@ -54,33 +54,31 @@ export default async function SettingsPage() {
       <section className="settings-card">
         <div className="settings-card__header">
           <div>
-            <h2 className="settings-card__title">System health</h2>
-            <p className="settings-card__note">
-              Checked when this page loaded.
-            </p>
+            <h2 className="settings-card__title">תקינות המערכת</h2>
+            <p className="settings-card__note">נבדק בעת טעינת העמוד.</p>
           </div>
           <RecheckButton />
         </div>
         <ul className="health-strip">
           <HealthTile
             icon={Database}
-            label="Database"
-            state={database.ok ? "Connected" : "Unreachable"}
+            label="מסד נתונים"
+            state={database.ok ? "מחובר" : "לא זמין"}
             tone={statusBadgeTone(database.ok)}
           >
             <p>{database.ok ? "Neon Postgres" : database.detail}</p>
           </HealthTile>
           <HealthTile
             icon={Cloud}
-            label="File storage"
-            state={storage.ok ? "Configured" : "Not configured"}
+            label="אחסון קבצים"
+            state={storage.ok ? "מוגדר" : "לא מוגדר"}
             tone={statusBadgeTone(storage.ok)}
           >
             <p>{storage.ok ? "Cloudflare R2" : storage.detail}</p>
           </HealthTile>
           <HealthTile
             icon={DatabaseBackup}
-            label="Database backup"
+            label="גיבוי מסד הנתונים"
             state={backupWord(backup.database)}
             tone={backupBadgeTone(backup.database)}
           >
@@ -88,7 +86,7 @@ export default async function SettingsPage() {
           </HealthTile>
           <HealthTile
             icon={Archive}
-            label="File backup"
+            label="גיבוי קבצים"
             state={backupWord(backup.objects)}
             tone={backupBadgeTone(backup.objects)}
           >
@@ -100,14 +98,14 @@ export default async function SettingsPage() {
       <section className="settings-card">
         <div className="settings-card__header">
           <div>
-            <h2 className="settings-card__title">Storage limits</h2>
+            <h2 className="settings-card__title">מגבלות אחסון</h2>
             <p className="settings-card__note">
-              Storage used against each provider&rsquo;s free plan
+              האחסון בשימוש מול התוכנית החינמית של כל ספק
               {usage.ok ? (
                 <>
-                  {", across "}
+                  {", על פני "}
                   <span className="num">{usage.objectCount}</span>
-                  {" files."}
+                  {" קבצים."}
                 </>
               ) : (
                 "."
@@ -123,11 +121,10 @@ export default async function SettingsPage() {
           <p className="settings-status__detail">{usage.detail}</p>
         )}
         <details className="settings-details">
-          <summary>Other free plan limits</summary>
+          <summary>מגבלות נוספות של התוכניות החינמיות</summary>
           <div className="settings-details__body">
             <p className="settings-card__note">
-              Current figures for these live in each provider&rsquo;s own
-              dashboard.
+              הנתונים העדכניים לאלה נמצאים בלוח הבקרה של כל ספק.
             </p>
             {freeTierAllowances.map((allowance) => (
               <div className="allowance" key={allowance.provider}>
@@ -153,32 +150,31 @@ export default async function SettingsPage() {
       <section className="settings-card">
         <div className="settings-card__header">
           <div>
-            <h2 className="settings-card__title">Manage</h2>
+            <h2 className="settings-card__title">ניהול</h2>
             <p className="settings-card__note">
-              Categories live on their own page; the session ends here.
+              לקטגוריות יש עמוד משלהן; ההתנתקות מכאן.
             </p>
           </div>
         </div>
         <div className="settings-row">
           <div className="settings-row__text">
-            <span className="settings-row__label">Expense categories</span>
+            <span className="settings-row__label">קטגוריות הוצאה</span>
             <p className="settings-row__note">
-              The categories used across documents and reports.
+              הקטגוריות שבשימוש במסמכים ובדוחות.
             </p>
           </div>
           <Link
             className="button button--secondary button--small"
             href="/categories"
           >
-            Manage
+            ניהול
           </Link>
         </div>
         <div className="settings-row">
           <div className="settings-row__text">
-            <span className="settings-row__label">This session</span>
+            <span className="settings-row__label">ההתחברות הנוכחית</span>
             <p className="settings-row__note">
-              The password is set in environment configuration; there is no
-              self-service change yet.
+              הסיסמה מוגדרת בהגדרות הסביבה; עדיין אין אפשרות לשנות אותה מכאן.
             </p>
           </div>
           <form action={logoutAction}>
@@ -187,7 +183,7 @@ export default async function SettingsPage() {
               type="submit"
             >
               <LogOut aria-hidden size={13} strokeWidth={1.8} />
-              Log out
+              התנתקות
             </button>
           </form>
         </div>
@@ -196,24 +192,24 @@ export default async function SettingsPage() {
       <section className="settings-card">
         <div className="settings-card__header">
           <div>
-            <h2 className="settings-card__title">About</h2>
+            <h2 className="settings-card__title">אודות</h2>
             <p className="settings-card__note">
-              Read only — these come from the build and the environment.
+              לקריאה בלבד — הנתונים מגיעים מהבנייה ומהסביבה.
             </p>
           </div>
         </div>
         <dl className="spec-list">
           <div className="spec-list__row">
-            <dt>Application</dt>
+            <dt>יישום</dt>
             <dd>{packageJson.name}</dd>
           </div>
           <div className="spec-list__row">
-            <dt>Version</dt>
+            <dt>גרסה</dt>
             <dd className="num">{packageJson.version}</dd>
           </div>
           <div className="spec-list__row">
-            <dt>Environment</dt>
-            <dd>{process.env.APP_ENV ?? "unknown"}</dd>
+            <dt>סביבה</dt>
+            <dd>{process.env.APP_ENV ?? "לא ידוע"}</dd>
           </div>
         </dl>
       </section>
@@ -222,8 +218,8 @@ export default async function SettingsPage() {
 }
 
 function backupWord(run: BackupRun | null): string {
-  if (!run) return "Never run";
-  return run.stale ? "Overdue" : "Verified";
+  if (!run) return "לא רץ מעולם";
+  return run.stale ? "באיחור" : "אומת";
 }
 
 /*
@@ -269,7 +265,10 @@ function UsageMeterRow({ meter }: { meter: UsageMeter }) {
       <div className="usage-meter__head">
         <span className="usage-meter__provider">{meter.provider}</span>
         <span className="usage-meter__figure num">
-          {formatBytes(meter.usedBytes)} of {formatBytes(meter.limitBytes)}
+          {/* bdi: "13.4 MB" is a number then Latin, which the RTL line would
+              otherwise flip to "MB 13.4". */}
+          <bdi>{formatBytes(meter.usedBytes)}</bdi> מתוך{" "}
+          <bdi>{formatBytes(meter.limitBytes)}</bdi>
         </span>
       </div>
       <meter
@@ -283,7 +282,7 @@ function UsageMeterRow({ meter }: { meter: UsageMeter }) {
       <p className="usage-meter__note">
         <span className="usage-meter__measure">{meter.measure}</span>
         {" · "}
-        <span className="num">{percent}%</span> used · {meter.caveat}
+        <span className="num">{percent}%</span> בשימוש · {meter.caveat}
       </p>
     </div>
   );
@@ -292,7 +291,7 @@ function UsageMeterRow({ meter }: { meter: UsageMeter }) {
 /* The date is the whole detail line here, so it gets the reader's own time
  * zone rather than a sentence about itself. */
 function BackupTime({ run }: { run: BackupRun | null }) {
-  if (!run) return <p className="settings-empty">No run recorded</p>;
+  if (!run) return <p className="settings-empty">לא נרשמה הרצה</p>;
   return (
     <p>
       <LocalDateTime value={run.ranAt} />
