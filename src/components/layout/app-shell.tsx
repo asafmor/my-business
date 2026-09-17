@@ -8,7 +8,7 @@ import {
   LayoutGrid,
   LogOut,
   Menu,
-  PanelLeft,
+  PanelRight,
   Search,
   Settings,
   Tags,
@@ -28,6 +28,7 @@ import {
 } from "react";
 
 import { logoutAction } from "../../app/(protected)/actions";
+import { appName, countOf } from "../../lib/labels";
 import { NavigationProgress } from "./navigation-progress";
 import { UploadTray } from "../uploads/upload-tray";
 import {
@@ -43,17 +44,17 @@ type NavigationItem = {
 
 /* One flat rail, no section labels: four destinations do not need chapters. */
 export const navigationItems: readonly NavigationItem[] = [
-  { href: "/", icon: LayoutGrid, label: "Dashboard" },
-  { href: "/documents", icon: FileText, label: "Documents" },
-  { href: "/categories", icon: Tags, label: "Categories" },
-  { href: "/reports", icon: ChartColumn, label: "Reports" },
+  { href: "/", icon: LayoutGrid, label: "לוח בקרה" },
+  { href: "/documents", icon: FileText, label: "מסמכים" },
+  { href: "/categories", icon: Tags, label: "קטגוריות" },
+  { href: "/reports", icon: ChartColumn, label: "דוחות" },
 ];
 
 /* Settings lives at the foot of the rail, above the account card. */
 const settingsItem: NavigationItem = {
   href: "/settings",
   icon: Settings,
-  label: "Settings",
+  label: "הגדרות",
 };
 
 /*
@@ -62,13 +63,13 @@ const settingsItem: NavigationItem = {
  * prefix wins, which leaves document detail with the generic "Document".
  */
 const pageTitles: Record<string, string> = {
-  "/": "Dashboard",
-  "/categories": "Categories",
-  "/documents": "Documents",
-  "/documents/": "Document",
-  "/reports": "Reports",
-  "/settings": "Settings",
-  "/upload": "Upload documents",
+  "/": "לוח בקרה",
+  "/categories": "קטגוריות",
+  "/documents": "מסמכים",
+  "/documents/": "מסמך",
+  "/reports": "דוחות",
+  "/settings": "הגדרות",
+  "/upload": "העלאת מסמכים",
 };
 
 export function pageHeaderFor(pathname: string): { title: string } {
@@ -77,7 +78,7 @@ export function pageHeaderFor(pathname: string): { title: string } {
     .sort((a, b) => b.length - a.length)
     .find((route) => route !== "/" || pathname === "/");
 
-  return { title: match ? pageTitles[match]! : "My Business" };
+  return { title: match ? pageTitles[match]! : appName };
 }
 
 const railStorageKey = "my-business:rail-collapsed";
@@ -118,7 +119,7 @@ export function ApplicationNavigation({
   };
 
   return (
-    <nav aria-label="Primary navigation" className="app-navigation">
+    <nav aria-label="ניווט ראשי" className="app-navigation">
       <ul>{navigationItems.map(link)}</ul>
       <ul className="app-navigation__foot">{link(settingsItem)}</ul>
     </nav>
@@ -184,9 +185,9 @@ export function MobileNavigationDrawer({
         role="dialog"
       >
         <div className="mobile-drawer__header">
-          <h2 id="mobile-navigation-title">Navigation</h2>
+          <h2 id="mobile-navigation-title">ניווט</h2>
           <button
-            aria-label="Close navigation"
+            aria-label="סגירת הניווט"
             className="icon-button"
             onClick={onClose}
             ref={closeButtonRef}
@@ -206,9 +207,9 @@ function LogoutForm() {
   return (
     <form action={logoutAction}>
       <button
-        aria-label="Log out"
+        aria-label="התנתקות"
         className="icon-button"
-        title="Log out"
+        title="התנתקות"
         type="submit"
       >
         <LogOut aria-hidden size={14} strokeWidth={1.8} />
@@ -218,10 +219,10 @@ function LogoutForm() {
 }
 
 const tabBarItems: readonly NavigationItem[] = [
-  { href: "/", icon: LayoutGrid, label: "Home" },
-  { href: "/documents", icon: FileText, label: "Docs" },
-  { href: "/reports", icon: ChartColumn, label: "Reports" },
-  { href: "/settings", icon: Settings, label: "Settings" },
+  { href: "/", icon: LayoutGrid, label: "בית" },
+  { href: "/documents", icon: FileText, label: "מסמכים" },
+  { href: "/reports", icon: ChartColumn, label: "דוחות" },
+  { href: "/settings", icon: Settings, label: "הגדרות" },
 ];
 
 /*
@@ -230,7 +231,7 @@ const tabBarItems: readonly NavigationItem[] = [
  */
 function MobileTabBar({ pathname }: { pathname: string }) {
   const { minimize } = useUploadTray();
-  const [left, right] = [tabBarItems.slice(0, 2), tabBarItems.slice(2)];
+  const [first, second] = [tabBarItems.slice(0, 2), tabBarItems.slice(2)];
 
   const tab = (item: NavigationItem) => {
     const current = isCurrentRoute(item.href, pathname);
@@ -252,19 +253,15 @@ function MobileTabBar({ pathname }: { pathname: string }) {
   };
 
   return (
-    <nav aria-label="Quick navigation" className="tab-bar">
+    <nav aria-label="ניווט מהיר" className="tab-bar">
       <ul>
-        {left.map(tab)}
+        {first.map(tab)}
         <li className="tab-bar__capture">
-          <Link
-            aria-label="Upload a document"
-            href="/upload"
-            onClick={minimize}
-          >
+          <Link aria-label="העלאת מסמך" href="/upload" onClick={minimize}>
             <Upload aria-hidden size={22} strokeWidth={2} />
           </Link>
         </li>
-        {right.map(tab)}
+        {second.map(tab)}
       </ul>
     </nav>
   );
@@ -284,18 +281,18 @@ function WorkspaceMark({
         <House size={15} strokeWidth={1.9} />
       </span>
       <span className="workspace-mark__identity">
-        <span className="workspace-mark__name">My Business</span>
-        <span className="workspace-mark__note">Private workspace</span>
+        <span className="workspace-mark__name">{appName}</span>
+        <span className="workspace-mark__note">סביבת עבודה פרטית</span>
       </span>
       <button
         aria-expanded={!isCollapsed}
-        aria-label={isCollapsed ? "Expand sidebar" : "Collapse sidebar"}
+        aria-label={isCollapsed ? "הרחבת סרגל הצד" : "כיווץ סרגל הצד"}
         className="workspace-mark__collapse"
         onClick={onToggle}
-        title={isCollapsed ? "Expand sidebar" : "Collapse sidebar"}
+        title={isCollapsed ? "הרחבת סרגל הצד" : "כיווץ סרגל הצד"}
         type="button"
       >
-        <PanelLeft aria-hidden size={18} strokeWidth={1.7} />
+        <PanelRight aria-hidden size={18} strokeWidth={1.7} />
       </button>
     </div>
   );
@@ -303,13 +300,13 @@ function WorkspaceMark({
 
 function SidebarSearch() {
   return (
-    <label className="global-search" title="Search everything">
-      <span className="sr-only">Global search</span>
+    <label className="global-search" title="חיפוש בכל המערכת">
+      <span className="sr-only">חיפוש כללי</span>
       <Search aria-hidden size={13} strokeWidth={1.9} />
       <input
-        aria-label="Global search, coming soon"
+        aria-label="חיפוש כללי, בקרוב"
         disabled
-        placeholder="Search everything"
+        placeholder="חיפוש בכל המערכת"
         type="search"
       />
     </label>
@@ -320,11 +317,11 @@ function AccountCard() {
   return (
     <div className="account-card">
       <span aria-hidden="true" className="account-card__avatar">
-        MB
+        ע
       </span>
       <span className="account-card__identity">
-        <span className="account-card__name">My Business</span>
-        <span className="account-card__role">Owner</span>
+        <span className="account-card__name">{appName}</span>
+        <span className="account-card__role">בעלים</span>
       </span>
       <LogoutForm />
     </div>
@@ -339,8 +336,8 @@ function UploadTrayToggleButton() {
       aria-expanded={view !== "dismissed"}
       aria-label={
         counts.all > 0
-          ? `Upload tray, ${counts.all} item${counts.all === 1 ? "" : "s"}`
-          : "Upload tray"
+          ? `מגש העלאות, ${countOf(counts.all, "פריט אחד", "פריטים")}`
+          : "מגש העלאות"
       }
       className="icon-button upload-tray-toggle"
       onClick={toggleOpen}
@@ -427,13 +424,13 @@ export function AppShell({ children }: { children: ReactNode }) {
     <UploadTrayProvider>
       <div className="app-shell">
         <a className="skip-link" href="#main-content">
-          Skip to main content
+          דילוג לתוכן הראשי
         </a>
         <div
           className="app-frame"
           data-rail={isRailCollapsed ? "collapsed" : undefined}
         >
-          <aside className="app-sidebar" aria-label="Application navigation">
+          <aside className="app-sidebar" aria-label="ניווט היישום">
             <div className="app-sidebar__head">
               <WorkspaceMark
                 isCollapsed={isRailCollapsed}
@@ -454,7 +451,7 @@ export function AppShell({ children }: { children: ReactNode }) {
               <button
                 aria-controls="mobile-navigation"
                 aria-expanded={isDrawerOpen}
-                aria-label="Open navigation"
+                aria-label="פתיחת הניווט"
                 className="icon-button app-header__menu-button"
                 onClick={() => setIsDrawerOpen(true)}
                 ref={navigationButtonRef}
@@ -467,7 +464,7 @@ export function AppShell({ children }: { children: ReactNode }) {
                 <UploadTrayToggleButton />
                 <Link className="button button--primary" href="/upload">
                   <Upload aria-hidden size={14} strokeWidth={2} />
-                  <span>Upload</span>
+                  <span>העלאה</span>
                 </Link>
               </div>
             </header>

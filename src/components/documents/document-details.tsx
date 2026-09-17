@@ -6,12 +6,8 @@ import { useActionState, useEffect, useState } from "react";
 import type { DocumentEditFormState } from "../../app/(protected)/documents/[id]/actions";
 import { fieldLabels } from "../../domain/documents/audit-change";
 import { documentTypes } from "../../domain/documents/types";
-import {
-  currencySymbol,
-  formatDateLong,
-  formatMoney,
-  humanizeEnumValue,
-} from "../../lib/format";
+import { currencySymbol, formatDateLong, formatMoney } from "../../lib/format";
+import { documentTypeLabel } from "../../lib/labels";
 import { FormSelect } from "../ui/form-select";
 
 export type DocumentValues = {
@@ -48,7 +44,7 @@ const fields: Field[] = [
 ];
 
 /* Three groups, in the order a bookkeeper reads a receipt. */
-const groups: { fields: Field[]; label: string }[] = [
+const groups: { fields: Field[]; id: string; label: string }[] = [
   {
     fields: [
       "supplierName",
@@ -56,12 +52,18 @@ const groups: { fields: Field[]; label: string }[] = [
       "documentNumber",
       "transactionDate",
     ],
-    label: "Document",
+    id: "document",
+    label: "מסמך",
   },
-  { fields: ["currency", "subtotal", "vat", "total"], label: "Amounts" },
+  {
+    fields: ["currency", "subtotal", "vat", "total"],
+    id: "amounts",
+    label: "סכומים",
+  },
   {
     fields: ["categoryId", "businessUsePercentage", "paymentMethod", "notes"],
-    label: "Bookkeeping",
+    id: "bookkeeping",
+    label: "הנהלת חשבונות",
   },
 ];
 
@@ -101,10 +103,10 @@ export function reconcileAmounts(
   if (subtotal === null || vat === null || total === null) return null;
   const sum = subtotal + vat;
   if (sum === total)
-    return { ok: true, text: "Subtotal and VAT add up to the total." };
+    return { ok: true, text: 'הסכום לפני מע"מ והמע"מ מסתכמים לסה"כ.' };
   return {
     ok: false,
-    text: `Subtotal and VAT add up to ${formatMoney((sum / 100).toFixed(2), currency)}, not the total.`,
+    text: `הסכום לפני מע"מ והמע"מ מסתכמים ל־${formatMoney((sum / 100).toFixed(2), currency)}, לא לסה"כ.`,
   };
 }
 
@@ -183,7 +185,7 @@ export function DocumentDetails({
     const value = values[field];
     switch (field) {
       case "documentType":
-        return { empty: false, text: humanizeEnumValue(values.documentType) };
+        return { empty: false, text: documentTypeLabel(values.documentType) };
       case "transactionDate":
         return { empty: value === null, text: formatDateLong(value) };
       case "subtotal":
@@ -196,7 +198,7 @@ export function DocumentDetails({
       case "categoryId":
         return {
           empty: categoryName === null,
-          text: categoryName ?? "Uncategorised",
+          text: categoryName ?? "ללא קטגוריה",
         };
       case "businessUsePercentage":
         return {
@@ -213,9 +215,9 @@ export function DocumentDetails({
       <span className="details-label">
         {fieldLabels[field]}
         {edited.includes(field) ? (
-          <span className="details-edited" title="Corrected by hand">
+          <span className="details-edited" title="תוקן ידנית">
             <Pencil aria-hidden size={11} strokeWidth={2} />
-            <span className="sr-only">Edited</span>
+            <span className="sr-only">נערך</span>
           </span>
         ) : null}
       </span>
@@ -268,7 +270,7 @@ export function DocumentDetails({
             {...select}
             onChange={(value) => set(field, value)}
             options={documentTypes.map((type) => ({
-              label: humanizeEnumValue(type),
+              label: documentTypeLabel(type),
               value: type,
             }))}
             value={draft.documentType}
@@ -280,7 +282,7 @@ export function DocumentDetails({
             {...select}
             onChange={(value) => set(field, value)}
             options={[
-              { label: "Uncategorised", value: "" },
+              { label: "ללא קטגוריה", value: "" },
               ...categories.map((category) => ({
                 label: category.name,
                 value: category.id,
@@ -308,7 +310,7 @@ export function DocumentDetails({
             {...select}
             onChange={(value) => set(field, value)}
             options={codes.map((code) => ({
-              label: code === "" ? "Not set" : code,
+              label: code === "" ? "לא הוגדר" : code,
               value: code,
             }))}
             value={draft.currency}
@@ -383,12 +385,12 @@ export function DocumentDetails({
       <header className="detail-card__header">
         <div>
           <h2 className="detail-card__title" id="details-title">
-            Details
+            פרטים
           </h2>
           <p className="detail-card__note">
             {flaggedCount > 0
-              ? `${flaggedCount} ${flaggedCount === 1 ? "field needs" : "fields need"} a look. Fix what is wrong.`
-              : "Read by AI. Fix what is wrong."}
+              ? `${flaggedCount === 1 ? "שדה אחד דורש" : `${flaggedCount} שדות דורשים`} בדיקה. תקנו את מה ששגוי.`
+              : "נקרא על ידי AI. תקנו את מה ששגוי."}
           </p>
         </div>
         {!editing ? (
@@ -398,7 +400,7 @@ export function DocumentDetails({
             type="button"
           >
             <Pencil aria-hidden size={12} strokeWidth={2} />
-            Edit
+            עריכה
           </button>
         ) : null}
       </header>
@@ -406,7 +408,7 @@ export function DocumentDetails({
       {/* Read mode: a phone's first view of the fields. */}
       <div className="details-read">
         {groups.map((group) => (
-          <div className="details-group" key={group.label}>
+          <div className="details-group" key={group.id}>
             <span className="lbl details-group__label">{group.label}</span>
             {group.fields.map((field) => {
               const value = readValue(field);
@@ -447,15 +449,12 @@ export function DocumentDetails({
             what a group needs. */}
         {groups.map((group) => (
           <div
-            aria-labelledby={`group-${group.label}`}
+            aria-labelledby={`group-${group.id}`}
             className="details-group details-fieldset"
-            key={group.label}
+            key={group.id}
             role="group"
           >
-            <span
-              className="lbl details-group__label"
-              id={`group-${group.label}`}
-            >
+            <span className="lbl details-group__label" id={`group-${group.id}`}>
               {group.label}
             </span>
             {group.fields.map((field) => (
@@ -470,7 +469,7 @@ export function DocumentDetails({
                 {note(field)}
               </div>
             ))}
-            {group.label === "Amounts" && reconcile ? (
+            {group.id === "amounts" && reconcile ? (
               <p
                 className={`details-reconcile details-reconcile--${reconcile.ok ? "ok" : "off"}`}
               >
@@ -478,7 +477,7 @@ export function DocumentDetails({
                   <Check aria-hidden size={12} strokeWidth={2.4} />
                 ) : null}
                 {reconcile.text}
-                {rate ? ` VAT is ${rate} of the subtotal.` : ""}
+                {rate ? ` המע"מ הוא ${rate} מהסכום לפני מע"מ.` : ""}
               </p>
             ) : null}
           </div>
@@ -493,11 +492,11 @@ export function DocumentDetails({
             {state.error ? (
               state.error
             ) : dirty ? (
-              "Unsaved changes"
+              "שינויים שלא נשמרו"
             ) : state.saved > 0 ? (
               <>
                 <Check aria-hidden size={12} strokeWidth={2.4} />
-                Saved
+                נשמר
               </>
             ) : null}
           </p>
@@ -506,7 +505,7 @@ export function DocumentDetails({
             onClick={discard}
             type="button"
           >
-            Cancel
+            ביטול
           </button>
           {dirty ? (
             <button
@@ -515,7 +514,7 @@ export function DocumentDetails({
               onClick={discard}
               type="button"
             >
-              Discard
+              ביטול השינויים
             </button>
           ) : null}
           <button
@@ -531,7 +530,7 @@ export function DocumentDetails({
                 strokeWidth={2}
               />
             ) : null}
-            {pending ? "Saving…" : "Save"}
+            {pending ? "שומר…" : "שמירה"}
           </button>
         </div>
       </form>

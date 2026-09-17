@@ -21,9 +21,9 @@ async function checkNoOverflowAndReachableNav(
   );
   expect(scrollWidth).toBeLessThanOrEqual((viewport?.width ?? 0) + 1);
 
-  const menuButton = page.getByRole("button", { name: "Open navigation" });
+  const menuButton = page.getByRole("button", { name: "פתיחת הניווט" });
   const sidebarNav = page.getByRole("navigation", {
-    name: "Primary navigation",
+    name: "ניווט ראשי",
   });
   // Wide viewports show the persistent sidebar; narrow ones collapse it
   // behind the menu button - either is an acceptable "reachable" state.
@@ -42,8 +42,8 @@ test("the upload tray opens on mobile without causing horizontal overflow", asyn
   page,
 }) => {
   await page.goto("/");
-  await page.getByRole("button", { name: /Upload tray/ }).click();
-  await expect(page.getByRole("region", { name: "Upload tray" })).toBeVisible();
+  await page.getByRole("button", { name: /מגש העלאות/ }).click();
+  await expect(page.getByRole("region", { name: "מגש העלאות" })).toBeVisible();
 
   const viewport = page.viewportSize();
   const scrollWidth = await page.evaluate(
@@ -67,6 +67,8 @@ test("a click in the row's left gutter ticks the row instead of opening it", asy
   const box = (await row.boundingBox())!;
   await page.mouse.click(box.x + 1, box.y + box.height / 2);
 
-  await expect(page.getByRole("group", { name: "Bulk actions" })).toBeVisible();
+  await expect(
+    page.getByRole("group", { name: "פעולות מרובות" }),
+  ).toBeVisible();
   expect(new URL(page.url()).pathname).toBe("/documents");
 });

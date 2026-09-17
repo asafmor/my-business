@@ -12,8 +12,9 @@ import {
   formatDate,
   formatDateTime,
   formatMoney,
-  humanizeEnumValue,
+  formatMonth,
 } from "../../../lib/format";
+import { documentStatusLabel } from "../../../lib/labels";
 import { createPrivateReadUrl } from "../../../server/storage/private-access";
 import { getR2ObjectStorage } from "../../../server/storage/object-storage";
 import { parseObjectKey } from "../../../server/storage/object-keys";
@@ -68,33 +69,35 @@ export default async function ReportsPage({
 
   return (
     <div className="page">
-      <nav aria-label="Reporting month" className="month-nav">
+      {/* Right-to-left: the earlier month sits on the right, the later on the
+          left, and each arrow points the way its month lies. */}
+      <nav aria-label="חודש הדיווח" className="month-nav">
         <Link
           className="month-nav__step"
           href={`/reports?month=${previousMonth}`}
         >
-          <span aria-hidden="true">&larr;</span> {previousMonth}
+          <span aria-hidden="true">&rarr;</span> {formatMonth(previousMonth)}
         </Link>
-        <strong aria-current="page" className="month-nav__current num">
-          {month}
+        <strong aria-current="page" className="month-nav__current">
+          {formatMonth(month)}
         </strong>
         <Link className="month-nav__step" href={`/reports?month=${nextMonth}`}>
-          {nextMonth} <span aria-hidden="true">&rarr;</span>
+          {formatMonth(nextMonth)} <span aria-hidden="true">&larr;</span>
         </Link>
       </nav>
 
       <section className="dashboard-section">
         <div className="dashboard-section__header">
-          <h2>Summary</h2>
-          <span className="dashboard-section__note">{month}</span>
+          <h2>סיכום</h2>
+          <span className="dashboard-section__note">{formatMonth(month)}</span>
         </div>
         <ul className="dashboard-stats">
-          <Stat label="Documents" value={String(summary.documentCount)} />
-          <Stat label="Gross" value={formatMoney(summary.grossTotal, null)} />
-          <Stat label="Net" value={formatMoney(summary.netTotal, null)} />
-          <Stat label="VAT" value={formatMoney(summary.vatTotal, null)} />
+          <Stat label="מסמכים" value={String(summary.documentCount)} />
+          <Stat label="ברוטו" value={formatMoney(summary.grossTotal, null)} />
+          <Stat label="נטו" value={formatMoney(summary.netTotal, null)} />
+          <Stat label='מע"מ' value={formatMoney(summary.vatTotal, null)} />
           <Stat
-            label="Needs review"
+            label="דורשים בדיקה"
             tone={summary.reviewProblemCount > 0 ? "attention" : undefined}
             value={String(summary.reviewProblemCount)}
           />
@@ -104,12 +107,12 @@ export default async function ReportsPage({
       <div className="dashboard-grid">
         <section className="dashboard-section">
           <div className="dashboard-section__header">
-            <h2>By category</h2>
+            <h2>לפי קטגוריה</h2>
           </div>
           <ProportionBars
-            empty="No expenses recorded this month."
+            empty="לא נרשמו הוצאות החודש."
             rows={categoryBreakdown.map((row) => ({
-              label: row.categoryName ?? "Uncategorized",
+              label: row.categoryName ?? "ללא קטגוריה",
               value: row.total,
             }))}
           />
@@ -117,12 +120,12 @@ export default async function ReportsPage({
 
         <section className="dashboard-section">
           <div className="dashboard-section__header">
-            <h2>By supplier</h2>
+            <h2>לפי ספק</h2>
           </div>
           <ProportionBars
-            empty="No expenses recorded this month."
+            empty="לא נרשמו הוצאות החודש."
             rows={supplierBreakdown.map((row) => ({
-              label: row.supplierName ?? "Unknown supplier",
+              label: row.supplierName ?? "ספק לא ידוע",
               value: row.total,
             }))}
           />
@@ -130,13 +133,13 @@ export default async function ReportsPage({
 
         <section className="dashboard-section">
           <div className="dashboard-section__header">
-            <h2>Needs attention</h2>
+            <h2>דורשים טיפול</h2>
             <OpenTrayButton className="text-button">
-              View all in tray
+              הצגת הכול במגש
             </OpenTrayButton>
           </div>
           {problematicDocuments.length === 0 ? (
-            <p className="content-state">Nothing needs review this month.</p>
+            <p className="content-state">אין מסמכים שדורשים בדיקה החודש.</p>
           ) : (
             <ul className="data-list">
               {problematicDocuments.map((row) => (
@@ -147,12 +150,12 @@ export default async function ReportsPage({
                   >
                     <div className="data-list__item-header">
                       <span className="data-list__item-title">
-                        {row.supplierName ?? "Unknown supplier"}
+                        {row.supplierName ?? "ספק לא ידוע"}
                       </span>
                       <span
                         className={`status-badge status-badge--${statusTone(row.status)}`}
                       >
-                        {humanizeEnumValue(row.status)}
+                        {documentStatusLabel(row.status)}
                       </span>
                     </div>
                     <div className="data-list__item-meta">
@@ -175,19 +178,19 @@ export default async function ReportsPage({
 
         <section className="dashboard-section">
           <div className="dashboard-section__header">
-            <h2>Export</h2>
+            <h2>ייצוא</h2>
           </div>
           <div className="dashboard-section__body">
             <a
               className="button button--secondary"
               href={`/api/reports/csv?month=${month}`}
             >
-              Export CSV
+              ייצוא CSV
             </a>
             <form action={generateReportAction}>
               <input name="month" type="hidden" value={month} />
               <button className="button button--primary" type="submit">
-                Generate PDF
+                יצירת PDF
               </button>
             </form>
           </div>
@@ -195,15 +198,13 @@ export default async function ReportsPage({
               one click away rather than letting it own the page. */}
           <details className="archive disclosure">
             <summary className="disclosure__summary">
-              <span>Generated PDFs</span>
+              <span>קובצי PDF שנוצרו</span>
               <span className="count-pill">
                 {storedReportsWithLinks.length}
               </span>
             </summary>
             {storedReportsWithLinks.length === 0 ? (
-              <p className="content-state">
-                No PDF report generated for this month yet.
-              </p>
+              <p className="content-state">עדיין לא נוצר דוח PDF לחודש הזה.</p>
             ) : (
               <ul className="data-list">
                 {storedReportsWithLinks.map((report) => (
@@ -221,7 +222,7 @@ export default async function ReportsPage({
                       rel="noreferrer"
                       target="_blank"
                     >
-                      Download
+                      הורדה
                     </a>
                   </li>
                 ))}

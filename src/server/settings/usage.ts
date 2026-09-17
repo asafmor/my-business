@@ -76,13 +76,13 @@ export async function checkFreeTierUsage(): Promise<FreeTierUsage> {
     const databaseBytes = Number(row.database_bytes);
 
     return {
-      detail: "Measured when this page loaded.",
+      detail: "נמדד בעת טעינת העמוד.",
       meters: [
         {
-          caveat: "Document files stored by this app.",
+          caveat: "קובצי המסמכים שהיישום שומר.",
           id: "r2",
           limitBytes: r2FreeStorageBytes,
-          measure: "Object storage",
+          measure: "אחסון אובייקטים",
           provider: "Cloudflare R2",
           usedBytes: objectBytes,
         },
@@ -90,18 +90,18 @@ export async function checkFreeTierUsage(): Promise<FreeTierUsage> {
           // The nightly dump is compressed, so the mirror is smaller than the
           // sum of its sources. Estimating high is the safe direction for a
           // number whose whole job is to warn before a cap arrives.
-          caveat: "Estimated: every document file plus the database dump.",
+          caveat: "הערכה: כל קובצי המסמכים בתוספת גיבוי מסד הנתונים.",
           id: "b2",
           limitBytes: b2FreeStorageBytes,
-          measure: "Backup mirror",
+          measure: "עותק גיבוי",
           provider: "Backblaze B2",
           usedBytes: objectBytes + databaseBytes,
         },
         {
-          caveat: "Records and indexes. Document files are held in R2.",
+          caveat: "רשומות ואינדקסים. קובצי המסמכים נשמרים ב־R2.",
           id: "neon",
           limitBytes: neonFreeStorageBytes,
-          measure: "Database",
+          measure: "מסד נתונים",
           provider: "Neon",
           usedBytes: databaseBytes,
         },
@@ -114,7 +114,7 @@ export async function checkFreeTierUsage(): Promise<FreeTierUsage> {
     // roles, so it goes to the log and a sentence goes to the browser.
     logError("settings.usage_check_failed", error);
     return {
-      detail: "Usage could not be measured. Check the server logs.",
+      detail: "לא ניתן היה למדוד את השימוש. יש לבדוק את יומני השרת.",
       meters: [],
       objectCount: 0,
       ok: false,
@@ -155,37 +155,37 @@ export const freeTierAllowances: ProviderAllowance[] = [
   {
     href: "https://developers.cloudflare.com/r2/pricing/",
     items: [
-      "1,000,000 writes and listings a month",
-      "10,000,000 reads a month",
-      "Unlimited downloads",
+      "1,000,000 כתיבות ורישומים בחודש",
+      "10,000,000 קריאות בחודש",
+      "הורדות ללא הגבלה",
     ],
     provider: "Cloudflare R2",
   },
   {
     href: "https://www.backblaze.com/cloud-storage/pricing",
     items: [
-      "Downloads free up to 3× the average stored size",
-      "Unlimited uploads, listings and downloads",
-      "2,500 bucket management calls a day",
+      "הורדות בחינם עד פי 3 מהנפח הממוצע המאוחסן",
+      "העלאות, רישומים והורדות ללא הגבלה",
+      "2,500 קריאות ניהול דליים ביום",
     ],
     provider: "Backblaze B2",
   },
   {
     href: "https://neon.com/docs/introduction/plans",
     items: [
-      "100 compute hours a month",
-      "5 GB of data transfer a month",
-      "10 branches, with idle compute paused automatically",
+      "100 שעות מחשוב בחודש",
+      "5 GB תעבורת נתונים בחודש",
+      "10 ענפים, עם השהיה אוטומטית של מחשוב לא פעיל",
     ],
     provider: "Neon",
   },
   {
     href: "https://vercel.com/docs/limits/fair-use-guidelines",
     items: [
-      "100 GB of data transfer a month",
-      "1,000,000 function calls a month",
-      "4 hours of active CPU a month",
-      "100 deployments a day",
+      "100 GB תעבורת נתונים בחודש",
+      "1,000,000 קריאות פונקציה בחודש",
+      "4 שעות CPU פעיל בחודש",
+      "100 פריסות ביום",
     ],
     provider: "Vercel Hobby",
   },

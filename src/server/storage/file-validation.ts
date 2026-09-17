@@ -65,27 +65,25 @@ export function validateUploadFile(
 ): ValidatedUploadFile {
   const { bytes } = input;
   if (bytes.byteLength === 0) {
-    throw new FileValidationError("File must not be empty.");
+    throw new FileValidationError("הקובץ לא יכול להיות ריק.");
   }
 
   if (bytes.byteLength > maximumUploadBytes) {
-    throw new FileValidationError("File exceeds the maximum upload size.");
+    throw new FileValidationError("הקובץ חורג מגודל ההעלאה המרבי.");
   }
 
   const detectedMimeType = detectFileMimeType(bytes);
   if (!detectedMimeType) {
-    throw new FileValidationError("File type is not supported.");
+    throw new FileValidationError("סוג הקובץ אינו נתמך.");
   }
 
   const declaredMimeType = input.mimeType?.trim().toLowerCase();
   if (declaredMimeType && !isAllowedMimeType(declaredMimeType)) {
-    throw new FileValidationError("Declared file type is not supported.");
+    throw new FileValidationError("סוג הקובץ המוצהר אינו נתמך.");
   }
 
   if (declaredMimeType && declaredMimeType !== detectedMimeType) {
-    throw new FileValidationError(
-      "Declared file type does not match file bytes.",
-    );
+    throw new FileValidationError("סוג הקובץ המוצהר אינו תואם לתוכן הקובץ.");
   }
 
   return { mimeType: detectedMimeType, sizeBytes: bytes.byteLength };

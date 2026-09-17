@@ -1,7 +1,7 @@
 import {
   Archive,
   ArchiveRestore,
-  ArrowRight,
+  ArrowLeft,
   CircleCheck,
   FileText,
   Pencil,
@@ -47,11 +47,9 @@ export function DocumentActivity({
       <header className="detail-card__header">
         <div>
           <h2 className="detail-card__title" id="activity-title">
-            Activity
+            פעילות
           </h2>
-          <p className="detail-card__note">
-            Everything that has happened to this document, newest first.
-          </p>
+          <p className="detail-card__note">כל מה שקרה למסמך הזה, מהחדש לישן.</p>
         </div>
         {events.length > 0 ? (
           <span className="count-pill num">{events.length}</span>
@@ -59,7 +57,7 @@ export function DocumentActivity({
       </header>
 
       {events.length === 0 ? (
-        <p className="detail-card__empty">Nothing has happened yet.</p>
+        <p className="detail-card__empty">עדיין לא קרה דבר.</p>
       ) : (
         <ol className="activity">
           {events.map((event) => {
@@ -79,13 +77,13 @@ export function DocumentActivity({
                     <span
                       className={`activity__source activity__source--${entry.source.toLowerCase()}`}
                     >
-                      {entry.source}
+                      {entry.sourceLabel}
                     </span>
                   </div>
                   {entry.before !== null && entry.after !== null ? (
                     <div className="activity__change">
                       <span className="activity__before">{entry.before}</span>
-                      <ArrowRight aria-hidden size={11} strokeWidth={2} />
+                      <ArrowLeft aria-hidden size={11} strokeWidth={2} />
                       <span className="activity__after">{entry.after}</span>
                     </div>
                   ) : null}

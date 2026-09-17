@@ -19,7 +19,7 @@ test("a valid file uploads and reaches a processing state", async ({
 }) => {
   await page.goto("/upload");
   await page
-    .getByLabel("Add documents")
+    .getByLabel("הוספת מסמכים")
     .locator('input[type="file"]:not([capture])')
     .setInputFiles({
       buffer: minimalPdf,
@@ -29,7 +29,7 @@ test("a valid file uploads and reaches a processing state", async ({
   const item = page.locator(".upload-tray-item", {
     hasText: "e2e-receipt.pdf",
   });
-  await expect(item).toContainText(/Processing|Needs review|Uploaded/, {
+  await expect(item).toContainText(/בעיבוד|דורש בדיקה|הועלה/, {
     timeout: 15_000,
   });
 });
@@ -39,7 +39,7 @@ test("an unsupported file is rejected with a clear message", async ({
 }) => {
   await page.goto("/upload");
   await page
-    .getByLabel("Add documents")
+    .getByLabel("הוספת מסמכים")
     .locator('input[type="file"]:not([capture])')
     .setInputFiles({
       buffer: Buffer.from("just some text, not a document"),
@@ -47,6 +47,6 @@ test("an unsupported file is rejected with a clear message", async ({
       name: "e2e-notes.txt",
     });
   const item = page.locator(".upload-tray-item", { hasText: "e2e-notes.txt" });
-  await expect(item).toContainText("Not accepted");
-  await expect(item).toContainText("File type is not supported.");
+  await expect(item).toContainText("לא התקבל");
+  await expect(item).toContainText("סוג הקובץ אינו נתמך.");
 });

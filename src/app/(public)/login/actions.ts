@@ -23,7 +23,7 @@ export async function login(
   );
 
   if (!result.success) {
-    return { error: "Invalid login." };
+    return { error: "פרטי ההתחברות שגויים." };
   }
 
   setSessionCookie(await cookies(), result.session);

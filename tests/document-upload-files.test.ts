@@ -88,7 +88,7 @@ describe("uploadDocumentFiles", () => {
     expect(results).toEqual([
       {
         fileName: "huge.jpg",
-        message: "File exceeds the maximum upload size.",
+        message: "הקובץ חורג מגודל ההעלאה המרבי.",
         status: "rejected",
       },
     ]);
@@ -114,7 +114,7 @@ describe("uploadDocumentFiles", () => {
       },
       {
         fileName: "receipt.jpg",
-        message: "The file could not be uploaded. Please try again.",
+        message: "לא ניתן היה להעלות את הקובץ. נסו שוב.",
         status: "failed",
       },
     ]);
@@ -172,7 +172,7 @@ describe("uploadDocumentCopy", () => {
 
     expect(result).toEqual({
       fileName: "shared.jpg",
-      message: "The file could not be copied. Please try again.",
+      message: "לא ניתן היה להעתיק את הקובץ. נסו שוב.",
       status: "failed",
     });
     expect(logger.logError).toHaveBeenCalledWith(

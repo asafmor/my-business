@@ -46,7 +46,7 @@ test("navigation-progress: selecting a row does not leave the indicator up", asy
   // The first tick comes from the box; from then on the whole row is a tick
   // box, and its link cancels the navigation it looks like it will make.
   await page
-    .getByRole("checkbox", { name: `Select ${seeded.supplierName}` })
+    .getByRole("checkbox", { name: `בחירת ${seeded.supplierName}` })
     .check();
   await page.getByRole("link", { name: seeded.supplierName }).click();
 

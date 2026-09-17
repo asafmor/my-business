@@ -78,7 +78,7 @@ export function DocumentActions({
   );
 
   return (
-    <div aria-label="Document actions" className="record-actions" role="group">
+    <div aria-label="פעולות על המסמך" className="record-actions" role="group">
       {archived ? (
         <button
           className={buttonClass("restore")}
@@ -91,7 +91,7 @@ export function DocumentActions({
           ) : (
             <ArchiveRestore aria-hidden size={14} strokeWidth={2} />
           )}
-          {running === "restore" ? "Restoring…" : "Restore"}
+          {running === "restore" ? "משחזר…" : "שחזור"}
         </button>
       ) : (
         <>
@@ -107,7 +107,7 @@ export function DocumentActions({
               ) : (
                 <CircleCheck aria-hidden size={14} strokeWidth={2} />
               )}
-              {running === "review" ? "Marking reviewed…" : "Mark reviewed"}
+              {running === "review" ? "מסמן כנבדק…" : "סימון כנבדק"}
             </button>
           ) : null}
           <button
@@ -121,7 +121,7 @@ export function DocumentActions({
             ) : (
               <RefreshCw aria-hidden size={14} strokeWidth={2} />
             )}
-            {running === "reprocess" ? "Queueing…" : "Read again"}
+            {running === "reprocess" ? "מכניס לתור…" : "קריאה מחדש"}
           </button>
           <button
             className="button button--ghost record-actions__archive"
@@ -134,7 +134,7 @@ export function DocumentActions({
             ) : (
               <Archive aria-hidden size={14} strokeWidth={1.9} />
             )}
-            {running === "archive" ? "Archiving…" : "Archive"}
+            {running === "archive" ? "מעביר לארכיון…" : "העברה לארכיון"}
           </button>
         </>
       )}
@@ -146,17 +146,15 @@ export function DocumentActions({
         onClose={() => setConfirming(false)}
         ref={dialogRef}
       >
-        <h2 id="archive-dialog-title">Archive “{name}”?</h2>
-        <p>
-          It leaves the list and reports. The file is kept and can be restored.
-        </p>
+        <h2 id="archive-dialog-title">להעביר את “{name}” לארכיון?</h2>
+        <p>המסמך יוסר מהרשימה ומהדוחות. הקובץ נשמר וניתן לשחזר אותו.</p>
         <div className="confirm-dialog__actions">
           <button
             className="button button--secondary"
             onClick={() => setConfirming(false)}
             type="button"
           >
-            Cancel
+            ביטול
           </button>
           <button
             className="button button--danger"
@@ -167,7 +165,7 @@ export function DocumentActions({
             type="button"
           >
             <Archive aria-hidden size={14} strokeWidth={2} />
-            Archive
+            העברה לארכיון
           </button>
         </div>
       </dialog>

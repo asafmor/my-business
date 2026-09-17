@@ -2,11 +2,11 @@
 
 import { useEffect, useState } from "react";
 
-import { formatDateTimeLong } from "../../lib/format";
+import { formatDateTimeLong, locale, timeZone } from "../../lib/format";
 
 /**
- * A timestamp in the reader's own time zone. The server renders it in UTC (the
- * only zone it can be sure of), then the browser re-renders it locally after
+ * A timestamp in the reader's own time zone. The server renders it in Israel's
+ * zone (the one it can assume), then the browser re-renders it locally after
  * hydration - the same text almost everywhere, and never a hydration mismatch.
  */
 export function LocalDateTime({
@@ -25,7 +25,7 @@ export function LocalDateTime({
     const date = new Date(iso);
     setLocal({
       text: formatDateTimeLong(date),
-      title: date.toLocaleString("en-GB", {
+      title: date.toLocaleString(locale, {
         dateStyle: "full",
         timeStyle: "long",
       }),
@@ -34,7 +34,7 @@ export function LocalDateTime({
 
   return (
     <time className={className} dateTime={iso} title={local?.title}>
-      {local?.text ?? formatDateTimeLong(value, "UTC")}
+      {local?.text ?? formatDateTimeLong(value, timeZone)}
     </time>
   );
 }

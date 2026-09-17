@@ -29,10 +29,10 @@ export async function setDocumentsCategoryAction(
   categoryId: string,
 ): Promise<DocumentActionResult> {
   await requireSession();
-  if (!uuidPattern.test(categoryId)) return { error: "Pick a category." };
+  if (!uuidPattern.test(categoryId)) return { error: "יש לבחור קטגוריה." };
 
   const ids = validIds(documentIds);
-  if (ids.length === 0) return { error: "Select at least one document." };
+  if (ids.length === 0) return { error: "יש לבחור לפחות מסמך אחד." };
 
   await repository.setCategory(ids, categoryId);
   for (const id of ids) revalidatePath(`/documents/${id}`);
@@ -44,7 +44,7 @@ export async function markDocumentsReviewedAction(
 ): Promise<DocumentActionResult> {
   await requireSession();
   const ids = validIds(documentIds);
-  if (ids.length === 0) return { error: "Select at least one document." };
+  if (ids.length === 0) return { error: "יש לבחור לפחות מסמך אחד." };
 
   // Sequential on purpose: each call takes a row lock, and a batch here is a
   // page of documents, not a migration.
@@ -60,7 +60,7 @@ export async function archiveDocumentsAction(
 ): Promise<DocumentActionResult> {
   await requireSession();
   const ids = validIds(documentIds);
-  if (ids.length === 0) return { error: "Select at least one document." };
+  if (ids.length === 0) return { error: "יש לבחור לפחות מסמך אחד." };
 
   for (const id of ids) {
     await repository.archive(id);
@@ -74,7 +74,7 @@ export async function unarchiveDocumentsAction(
 ): Promise<DocumentActionResult> {
   await requireSession();
   const ids = validIds(documentIds);
-  if (ids.length === 0) return { error: "Select at least one document." };
+  if (ids.length === 0) return { error: "יש לבחור לפחות מסמך אחד." };
 
   for (const id of ids) {
     await repository.unarchive(id);

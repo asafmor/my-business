@@ -23,17 +23,17 @@ test.afterEach(async () => {
 /* A phone reads the details first and edits on request; desktop shows the
    form outright. Either way, the fields are open once this returns. */
 async function startEditing(page: Page): Promise<void> {
-  const edit = page.getByRole("button", { exact: true, name: "Edit" });
+  const edit = page.getByRole("button", { exact: true, name: "עריכה" });
   if (await edit.isVisible()) await edit.click();
   await expect(page.locator("#supplierName")).toBeVisible();
 }
 
 async function save(page: Page): Promise<void> {
-  await page.getByRole("button", { name: "Save" }).click();
+  await page.getByRole("button", { name: "שמירה" }).click();
   // "Saving…" while the server action is pending; the status line settles on
   // "Saved" once the write is through, so a reload cannot race it.
   await expect(
-    page.getByRole("status").filter({ hasText: "Saved" }),
+    page.getByRole("status").filter({ hasText: /^נשמר$/ }),
   ).toBeVisible();
 }
 
@@ -41,11 +41,11 @@ test("review-document: a NEEDS_REVIEW document shows its review banner and can b
   page,
 }) => {
   await page.goto(`/documents/${seeded.id}`);
-  await expect(page.getByText("Needs your review")).toBeVisible();
+  await expect(page.getByText("דורש את הבדיקה שלכם")).toBeVisible();
 
-  await page.getByRole("button", { name: "Mark reviewed" }).click();
-  await expect(page.getByText("Needs your review")).not.toBeVisible();
-  await expect(page.getByText("Marked reviewed")).toBeVisible();
+  await page.getByRole("button", { name: "סימון כנבדק" }).click();
+  await expect(page.getByText("דורש את הבדיקה שלכם")).not.toBeVisible();
+  await expect(page.getByText("סומן כנבדק")).toBeVisible();
 });
 
 test("correct-field: editing a field persists it and marks it edited", async ({
@@ -67,7 +67,7 @@ test("correct-field: editing a field persists it and marks it edited", async ({
   await expect(
     page.locator('label[for="supplierName"] .details-edited'),
   ).toBeVisible();
-  await expect(page.getByText("Supplier changed")).toBeVisible();
+  await expect(page.getByText("ספק השתנה")).toBeVisible();
 });
 
 test("categorize-expense: assigning a category persists across reload", async ({

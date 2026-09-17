@@ -33,12 +33,12 @@ function normalizeMoney(value: string | null): string | null {
 
 // The zod messages describe the schema; these describe the fix.
 const fieldMessages: Record<string, string> = {
-  businessUsePercentage: "Enter a percentage between 0 and 100.",
-  currency: "Use a three-letter code such as ILS or USD.",
-  subtotal: "Enter an amount such as 280.00.",
-  total: "Enter an amount such as 280.00.",
-  transactionDate: "Enter a valid date.",
-  vat: "Enter an amount such as 42.71.",
+  businessUsePercentage: "יש להזין אחוז בין 0 ל־100.",
+  currency: "יש להשתמש בקוד בן שלוש אותיות, למשל ILS או USD.",
+  subtotal: "יש להזין סכום, למשל 280.00.",
+  total: "יש להזין סכום, למשל 280.00.",
+  transactionDate: "יש להזין תאריך תקין.",
+  vat: "יש להזין סכום, למשל 42.71.",
 };
 
 export async function saveDocumentEditAction(
@@ -70,11 +70,11 @@ export async function saveDocumentEditAction(
     for (const issue of parsed.error.issues) {
       const key = issue.path[0];
       if (typeof key === "string" && !fieldErrors[key]) {
-        fieldErrors[key] = fieldMessages[key] ?? issue.message;
+        fieldErrors[key] = fieldMessages[key] ?? "הערך אינו תקין.";
       }
     }
     return {
-      error: "Some fields need attention before this can be saved.",
+      error: "כמה שדות דורשים תיקון לפני השמירה.",
       fieldErrors,
       saved: previousState.saved,
     };

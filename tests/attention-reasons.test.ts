@@ -15,10 +15,7 @@ describe("attentionReasons", () => {
         ...base,
         reviewReasons: ["MISSING_TOTAL", "SUSPICIOUS_VAT"],
       }),
-    ).toEqual([
-      "Amount could not be determined.",
-      "VAT differs from the expected calculation.",
-    ]);
+    ).toEqual(["לא ניתן היה לקבוע את הסכום.", 'המע"מ שונה מהחישוב הצפוי.']);
   });
 
   it("falls back to a humanized enum value for unmapped review reasons", () => {
@@ -34,13 +31,13 @@ describe("attentionReasons", () => {
         isDuplicate: true,
         reviewReasons: ["MISSING_VAT"],
       }),
-    ).toEqual(["Possible duplicate detected.", "VAT could not be determined."]);
+    ).toEqual(["זוהה כפילות אפשרית.", 'לא ניתן היה לקבוע את המע"מ.']);
   });
 
   it("humanizes a known failure code", () => {
     expect(
       attentionReasons({ ...base, lastErrorCode: "STORAGE_FAILURE" }),
-    ).toEqual(["The original file could not be read."]);
+    ).toEqual(["לא ניתן היה לקרוא את הקובץ המקורי."]);
   });
 
   it("falls back to a humanized enum value for an unmapped failure code", () => {

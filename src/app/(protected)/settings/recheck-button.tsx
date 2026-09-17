@@ -26,7 +26,7 @@ export function RecheckButton() {
         size={13}
         strokeWidth={2}
       />
-      {isChecking ? "Checking…" : "Re-check"}
+      {isChecking ? "בודק…" : "בדיקה מחדש"}
     </button>
   );
 }

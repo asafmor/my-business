@@ -187,7 +187,7 @@ export function backlogToTrayItems(backlog: InboxBacklogResponse): TrayItem[] {
       id: row.id,
       kind: "document" as const,
       meta: backlogRowMeta(row),
-      name: row.supplierName ?? "Unknown supplier",
+      name: row.supplierName ?? "ספק לא ידוע",
       reasons: row.reasons,
       status: backlogSectionStatus[section],
     })),
@@ -196,8 +196,7 @@ export function backlogToTrayItems(backlog: InboxBacklogResponse): TrayItem[] {
 
 type UploadApiResult = Omit<SharedUploadResult, "fileName">;
 
-const duplicateNotice =
-  "An identical original is already in your document archive.";
+const duplicateNotice = "מקור זהה כבר נמצא בארכיון המסמכים שלכם.";
 
 /*
  * One result, one tray row, whichever door the file came through: the browser
@@ -278,14 +277,14 @@ function uploadFile(
         UploadApiResult | undefined;
       resolve(
         result ?? {
-          message: "The file could not be uploaded. Please try again.",
+          message: "לא ניתן היה להעלות את הקובץ. נסו שוב.",
           status: "failed",
         },
       );
     });
     request.addEventListener("error", () => {
       resolve({
-        message: "The upload was interrupted. Please try again.",
+        message: "ההעלאה נקטעה. נסו שוב.",
         status: "failed",
       });
     });
@@ -621,13 +620,13 @@ export function UploadTrayProvider({ children }: { children: ReactNode }) {
           const result = (await response.json()) as { queued?: boolean };
           if (!response.ok || !result.queued) {
             updateSessionItem(item.id, {
-              message: "Processing could not be queued. Please try again.",
+              message: "לא ניתן היה להכניס את העיבוד לתור. נסו שוב.",
               status: "processing-failed",
             });
           }
         } catch {
           updateSessionItem(item.id, {
-            message: "Processing could not be queued. Please try again.",
+            message: "לא ניתן היה להכניס את העיבוד לתור. נסו שוב.",
             status: "processing-failed",
           });
         }

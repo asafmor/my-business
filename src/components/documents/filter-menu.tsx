@@ -114,25 +114,23 @@ export function FilterSelect({
     >
       {(close) => (
         <ul className="filter-menu__list">
-          {[{ label: `Any ${label.toLowerCase()}`, value: "" }, ...options].map(
-            (option) => (
-              <li key={option.value}>
-                <button
-                  className="filter-menu__item"
-                  onClick={() => {
-                    onChange(option.value);
-                    close();
-                  }}
-                  type="button"
-                >
-                  <span className="filter-menu__item-text">{option.label}</span>
-                  {option.value === value ? (
-                    <Check aria-hidden size={12} strokeWidth={2.6} />
-                  ) : null}
-                </button>
-              </li>
-            ),
-          )}
+          {[{ label: `כל ${label}`, value: "" }, ...options].map((option) => (
+            <li key={option.value}>
+              <button
+                className="filter-menu__item"
+                onClick={() => {
+                  onChange(option.value);
+                  close();
+                }}
+                type="button"
+              >
+                <span className="filter-menu__item-text">{option.label}</span>
+                {option.value === value ? (
+                  <Check aria-hidden size={12} strokeWidth={2.6} />
+                ) : null}
+              </button>
+            </li>
+          ))}
         </ul>
       )}
     </FilterPopover>

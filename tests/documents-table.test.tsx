@@ -71,7 +71,7 @@ describe("documents table", () => {
     const markup = render([row({ id: "a" }), row({ id: "b" })]);
 
     expect(markup.match(/type="checkbox"/g)).toHaveLength(3);
-    expect(markup).toContain("Select all documents on this page");
+    expect(markup).toContain("בחירת כל המסמכים בעמוד");
   });
 
   it("makes the whole select cell the checkbox's hit area", () => {
@@ -83,8 +83,8 @@ describe("documents table", () => {
   it("offers the row's own verbs without opening the document", () => {
     const markup = render([row({ id: "a", supplierName: "Acme" })]);
 
-    expect(markup).toContain("Mark Acme reviewed");
-    expect(markup).toContain("Archive Acme");
+    expect(markup).toContain("סימון Acme כנבדק");
+    expect(markup).toContain("העברת Acme לארכיון");
   });
 
   it("leaves an unread supplier as an em dash", () => {
@@ -107,14 +107,14 @@ describe("empty state", () => {
   it("offers a way out of the filters, not an uploader", () => {
     const markup = renderToStaticMarkup(<DocumentsEmpty isFiltered />);
 
-    expect(markup).toContain("Nothing matches these filters");
-    expect(markup).toContain("Clear filters");
+    expect(markup).toContain("אין מסמכים שמתאימים לסינון");
+    expect(markup).toContain("ניקוי הסינון");
   });
 
   it("invites a first upload when nothing is filtered", () => {
     const markup = renderToStaticMarkup(<DocumentsEmpty isFiltered={false} />);
 
-    expect(markup).toContain("No documents yet");
+    expect(markup).toContain("אין מסמכים עדיין");
     expect(markup).toContain('href="/upload"');
   });
 });

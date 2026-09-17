@@ -1,6 +1,6 @@
 import {
   Archive,
-  ArrowLeft,
+  ArrowRight,
   CircleAlert,
   LoaderCircle,
   TriangleAlert,
@@ -29,8 +29,8 @@ import {
   defaultCurrency,
   formatDateLong,
   formatMoney,
-  humanizeEnumValue,
 } from "../../../../lib/format";
+import { documentStatusLabel, documentTypeLabel } from "../../../../lib/labels";
 import { parseObjectKey } from "../../../../server/storage/object-keys";
 import { createPrivateReadUrl } from "../../../../server/storage/private-access";
 import { getR2ObjectStorage } from "../../../../server/storage/object-storage";
@@ -124,13 +124,13 @@ export default async function DocumentDetailPage({
     detail.categories.map((category) => [category.id, category.name]),
   );
 
-  const name = values.supplierName ?? "Supplier not detected";
+  const name = values.supplierName ?? "הספק לא זוהה";
   const currency = values.currency ?? defaultCurrency;
   const meta = [
-    humanizeEnumValue(detail.document.type),
-    values.documentNumber ? `No. ${values.documentNumber}` : null,
+    documentTypeLabel(detail.document.type),
+    values.documentNumber ? `מס׳ ${values.documentNumber}` : null,
     values.transactionDate ? formatDateLong(values.transactionDate) : null,
-    detail.categoryName ?? "Uncategorised",
+    detail.categoryName ?? "ללא קטגוריה",
   ].filter((item): item is string => item !== null);
 
   const reading = status === "UPLOADED" || status === "PROCESSING";
@@ -141,8 +141,8 @@ export default async function DocumentDetailPage({
 
       <header className="record-header">
         <Link className="record-header__back" href="/documents">
-          <ArrowLeft aria-hidden size={13} strokeWidth={2.2} />
-          Documents
+          <ArrowRight aria-hidden size={13} strokeWidth={2.2} />
+          מסמכים
         </Link>
         <div className="record-header__row">
           <div className="record-header__identity">
@@ -156,13 +156,13 @@ export default async function DocumentDetailPage({
                 other status is news the review does not cover. */}
             {status === "READY" && detail.document.reviewedAt ? (
               <span className="status-badge status-badge--success record-header__badge">
-                Reviewed <LocalDateTime value={detail.document.reviewedAt} />
+                נבדק <LocalDateTime value={detail.document.reviewedAt} />
               </span>
             ) : (
               <span
                 className={`status-badge status-badge--${statusTone(status)} record-header__badge`}
               >
-                {humanizeEnumValue(status)}
+                {documentStatusLabel(status)}
               </span>
             )}
             <p className="record-header__meta">
@@ -174,7 +174,7 @@ export default async function DocumentDetailPage({
             </p>
           </div>
           <div className="record-header__amount">
-            <span className="lbl">Total</span>
+            <span className="lbl">סה&quot;כ</span>
             <span
               className={`record-header__value num${values.total ? "" : " is-empty"}`}
             >
@@ -182,7 +182,7 @@ export default async function DocumentDetailPage({
             </span>
             {values.vat ? (
               <span className="record-header__sub">
-                incl. VAT{" "}
+                כולל מע&quot;מ{" "}
                 <span className="num">{formatMoney(values.vat, currency)}</span>
               </span>
             ) : null}
@@ -209,11 +209,8 @@ export default async function DocumentDetailPage({
             strokeWidth={2}
           />
           <div className="record-banner__body">
-            <p className="record-banner__title">Reading the document…</p>
-            <p>
-              The fields fill in on their own when it is done, usually within a
-              minute.
-            </p>
+            <p className="record-banner__title">קורא את המסמך…</p>
+            <p>השדות יתמלאו מעצמם בסיום, בדרך כלל תוך דקה.</p>
           </div>
         </div>
       ) : null}
@@ -227,7 +224,7 @@ export default async function DocumentDetailPage({
             strokeWidth={2}
           />
           <div className="record-banner__body">
-            <p className="record-banner__title">Needs your review</p>
+            <p className="record-banner__title">דורש את הבדיקה שלכם</p>
             {generalReasons.length + anomalies.length > 0 ? (
               <ul className="record-banner__list">
                 {generalReasons.map((reason) => (
@@ -240,10 +237,9 @@ export default async function DocumentDetailPage({
             ) : null}
             <p>
               {flaggedCount > 0
-                ? `${flaggedCount} ${flaggedCount === 1 ? "field is" : "fields are"} flagged in the details. `
+                ? `${flaggedCount === 1 ? "שדה אחד מסומן" : `${flaggedCount} שדות מסומנים`} בפרטים. `
                 : ""}
-              Check the details against the original, correct what is wrong,
-              then mark it reviewed.
+              השוו את הפרטים למקור, תקנו את מה ששגוי, ואז סמנו כנבדק.
             </p>
           </div>
         </div>
@@ -258,10 +254,10 @@ export default async function DocumentDetailPage({
             strokeWidth={2}
           />
           <div className="record-banner__body">
-            <p className="record-banner__title">Reading failed</p>
+            <p className="record-banner__title">הקריאה נכשלה</p>
             <p>
               {failure ? `${failure} ` : ""}
-              Read it again, or fill in the details by hand.
+              אפשר לקרוא שוב, או למלא את הפרטים ידנית.
             </p>
           </div>
         </div>
@@ -276,10 +272,9 @@ export default async function DocumentDetailPage({
             strokeWidth={2}
           />
           <div className="record-banner__body">
-            <p className="record-banner__title">Archived</p>
+            <p className="record-banner__title">בארכיון</p>
             <p>
-              Not counted in reports and hidden from the documents list. Restore
-              it to bring it back.
+              לא נספר בדוחות ומוסתר מרשימת המסמכים. שחזרו אותו כדי להחזיר אותו.
             </p>
           </div>
         </div>

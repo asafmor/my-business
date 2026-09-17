@@ -29,27 +29,27 @@ import type {
 } from "../../domain/documents/query";
 import { splitSort } from "../../domain/documents/query";
 import { statusRowState, statusTone } from "../../domain/documents/status-tone";
+import { defaultCurrency, formatDate, formatMoney } from "../../lib/format";
 import {
-  defaultCurrency,
-  formatDate,
-  formatMoney,
-  humanizeEnumValue,
-} from "../../lib/format";
+  countOf,
+  documentStatusLabel,
+  documentTypeLabel,
+} from "../../lib/labels";
 import type { DocumentListRow } from "../../server/documents/documents-query-repository";
 import { signalNavigationCancel } from "../layout/navigation-progress";
 import { useDocumentParams } from "./use-document-params";
 
 const columns: {
-  align?: "right";
+  align?: "end";
   key: DocumentListSortColumn;
   label: string;
 }[] = [
-  { key: "date", label: "Date" },
-  { key: "type", label: "Type" },
-  { key: "category", label: "Category" },
-  { align: "right", key: "vat", label: "VAT" },
-  { align: "right", key: "total", label: "Total" },
-  { key: "status", label: "Status" },
+  { key: "date", label: "תאריך" },
+  { key: "type", label: "סוג" },
+  { key: "category", label: "קטגוריה" },
+  { align: "end", key: "vat", label: 'מע"מ' },
+  { align: "end", key: "total", label: 'סה"כ' },
+  { key: "status", label: "סטטוס" },
 ];
 
 /** A new column starts on the reading most people want first. */
@@ -136,6 +136,8 @@ export function DocumentsTable({
     );
   }
 
+  const selectedCount = countOf(selected.length, "מסמך אחד", "מסמכים");
+
   return (
     <>
       {error ? (
@@ -146,7 +148,7 @@ export function DocumentsTable({
 
       <div
         aria-busy={isPending}
-        aria-label="Documents"
+        aria-label="מסמכים"
         className="doc-table"
         role="table"
       >
@@ -154,7 +156,7 @@ export function DocumentsTable({
           {/* A label, not a span: the whole cell is the checkbox's hit area. */}
           <label className="doc-row__select">
             <input
-              aria-label="Select all documents on this page"
+              aria-label="בחירת כל המסמכים בעמוד"
               checked={allSelected}
               className="checkbox"
               onChange={() =>
@@ -173,7 +175,7 @@ export function DocumentsTable({
             onClick={() => setParams({ sort: nextSort("supplier", sort) })}
             type="button"
           >
-            Document
+            מסמך
             {active.column === "supplier" ? (
               active.direction === "asc" ? (
                 <ChevronUp aria-hidden size={10} strokeWidth={3} />
@@ -190,8 +192,8 @@ export function DocumentsTable({
                   : undefined
               }
               className={
-                column.align === "right"
-                  ? "lbl doc-sort doc-sort--right"
+                column.align === "end"
+                  ? "lbl doc-sort doc-sort--end"
                   : "lbl doc-sort"
               }
               key={column.key}
@@ -227,7 +229,7 @@ export function DocumentsTable({
             >
               <label className="doc-row__select">
                 <input
-                  aria-label={`Select ${name}`}
+                  aria-label={`בחירת ${name}`}
                   checked={isSelected}
                   className="checkbox"
                   onChange={() => toggle(row.id)}
@@ -264,7 +266,7 @@ export function DocumentsTable({
                 {formatDate(row.transactionDate)}
               </span>
               <span className="cell doc-row__type">
-                {humanizeEnumValue(row.type)}
+                {documentTypeLabel(row.type)}
               </span>
               <span
                 className={
@@ -285,7 +287,7 @@ export function DocumentsTable({
                 <span
                   className={`status-badge status-badge--${statusTone(row.status)}`}
                 >
-                  {humanizeEnumValue(row.status)}
+                  {documentStatusLabel(row.status)}
                 </span>
               </span>
 
@@ -293,13 +295,13 @@ export function DocumentsTable({
                   focus, above the stretched link so they stay clickable. */}
               <span className="doc-row__actions">
                 <button
-                  aria-label={`Mark ${name} reviewed`}
+                  aria-label={`סימון ${name} כנבדק`}
                   className="doc-row__action"
                   disabled={isPending}
                   onClick={() =>
                     run(() => markDocumentsReviewedAction([row.id]))
                   }
-                  title="Mark reviewed"
+                  title="סימון כנבדק"
                   type="button"
                 >
                   <CircleCheck aria-hidden size={13} strokeWidth={1.9} />
@@ -308,27 +310,27 @@ export function DocumentsTable({
                   /* Restoring is itself reversible, so it skips the dialog
                      that archiving needs. */
                   <button
-                    aria-label={`Restore ${name}`}
+                    aria-label={`שחזור ${name}`}
                     className="doc-row__action"
                     disabled={isPending}
                     onClick={() =>
                       run(() => unarchiveDocumentsAction([row.id]))
                     }
-                    title="Restore"
+                    title="שחזור"
                     type="button"
                   >
                     <ArchiveRestore aria-hidden size={13} strokeWidth={1.9} />
                   </button>
                 ) : (
                   <button
-                    aria-label={`Archive ${name}`}
+                    aria-label={`העברת ${name} לארכיון`}
                     className="doc-row__action doc-row__action--danger"
                     disabled={isPending}
                     onClick={() => {
                       setSelected([row.id]);
                       setDialog("archive");
                     }}
-                    title="Archive"
+                    title="העברה לארכיון"
                     type="button"
                   >
                     <Archive aria-hidden size={13} strokeWidth={1.9} />
@@ -341,9 +343,9 @@ export function DocumentsTable({
       </div>
 
       {selected.length > 0 ? (
-        <div aria-label="Bulk actions" className="selection-bar" role="group">
+        <div aria-label="פעולות מרובות" className="selection-bar" role="group">
           <span className="selection-bar__count num">
-            {selected.length} selected
+            {selected.length} נבחרו
           </span>
           <span aria-hidden="true" className="selection-bar__divider" />
           <div className="selection-bar__actions">
@@ -357,8 +359,8 @@ export function DocumentsTable({
             >
               <Tags aria-hidden size={14} strokeWidth={1.9} />
               <span>
-                Categorise
-                <span className="selection-bar__scope"> selected</span>
+                שיוך לקטגוריה
+                <span className="selection-bar__scope"> לנבחרים</span>
               </span>
             </button>
             <button
@@ -367,7 +369,7 @@ export function DocumentsTable({
               type="button"
             >
               <CircleCheck aria-hidden size={14} strokeWidth={1.9} />
-              <span>Mark reviewed</span>
+              <span>סימון כנבדק</span>
             </button>
             {restorable ? (
               <button
@@ -377,7 +379,7 @@ export function DocumentsTable({
               >
                 <ArchiveRestore aria-hidden size={14} strokeWidth={1.9} />
                 <span>
-                  Restore<span className="selection-bar__scope"> selected</span>
+                  שחזור<span className="selection-bar__scope"> הנבחרים</span>
                 </span>
               </button>
             ) : (
@@ -388,13 +390,13 @@ export function DocumentsTable({
               >
                 <Archive aria-hidden size={14} strokeWidth={1.9} />
                 <span>
-                  Archive<span className="selection-bar__scope"> selected</span>
+                  לארכיון<span className="selection-bar__scope"> הנבחרים</span>
                 </span>
               </button>
             )}
           </div>
           <button
-            aria-label="Clear selection"
+            aria-label="ביטול הבחירה"
             className="selection-bar__dismiss"
             onClick={() => setSelected([])}
             type="button"
@@ -413,13 +415,10 @@ export function DocumentsTable({
       >
         {dialog === "archive" ? (
           <>
-            <h2 id="documents-dialog-title">
-              Archive {selected.length} document
-              {selected.length === 1 ? "" : "s"}?
-            </h2>
+            <h2 id="documents-dialog-title">להעביר {selectedCount} לארכיון?</h2>
             <p>
-              They leave the list and reports. Files are kept and can be
-              restored from the Archived filter.
+              הם יוסרו מהרשימה ומהדוחות. הקבצים נשמרים וניתן לשחזר אותם דרך
+              הסינון &quot;בארכיון&quot;.
             </p>
             <div className="confirm-dialog__actions">
               <button
@@ -427,7 +426,7 @@ export function DocumentsTable({
                 onClick={() => setDialog(null)}
                 type="button"
               >
-                Cancel
+                ביטול
               </button>
               <button
                 className="button button--danger"
@@ -439,18 +438,15 @@ export function DocumentsTable({
                 type="button"
               >
                 <Archive aria-hidden size={14} strokeWidth={2} />
-                Archive
+                העברה לארכיון
               </button>
             </div>
           </>
         ) : (
           <>
-            <h2 id="documents-dialog-title">
-              File {selected.length} document
-              {selected.length === 1 ? "" : "s"} under
-            </h2>
+            <h2 id="documents-dialog-title">לתייק {selectedCount} תחת</h2>
             <div className="field">
-              <label htmlFor="bulk-category">Category</label>
+              <label htmlFor="bulk-category">קטגוריה</label>
               <select
                 className="form-control"
                 id="bulk-category"
@@ -470,7 +466,7 @@ export function DocumentsTable({
                 onClick={() => setDialog(null)}
                 type="button"
               >
-                Cancel
+                ביטול
               </button>
               <button
                 className="button button--primary"
@@ -484,7 +480,7 @@ export function DocumentsTable({
                 type="button"
               >
                 <Tags aria-hidden size={14} strokeWidth={2} />
-                Apply
+                החלה
               </button>
             </div>
           </>

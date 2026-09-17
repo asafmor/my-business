@@ -11,7 +11,7 @@ export function LoginForm() {
 
   return (
     <form action={formAction} className="auth-form">
-      <label htmlFor="password">Password</label>
+      <label htmlFor="password">סיסמה</label>
       <input
         autoComplete="current-password"
         id="password"
@@ -25,7 +25,7 @@ export function LoginForm() {
         disabled={pending}
         type="submit"
       >
-        Sign in
+        התחברות
       </button>
     </form>
   );

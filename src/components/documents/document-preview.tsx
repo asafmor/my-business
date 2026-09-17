@@ -32,8 +32,8 @@ export function DocumentPreview({
 }) {
   if (!file || !url) {
     return (
-      <section aria-label="Original document" className="preview-card">
-        <p className="detail-card__empty">No file on record.</p>
+      <section aria-label="המסמך המקורי" className="preview-card">
+        <p className="detail-card__empty">אין קובץ רשום.</p>
       </section>
     );
   }
@@ -44,13 +44,13 @@ export function DocumentPreview({
   const kind = fileKindLabel(file.mimeType);
 
   return (
-    <section aria-label="Original document" className="preview-card">
+    <section aria-label="המסמך המקורי" className="preview-card">
       <header className="preview-card__bar">
         <span aria-hidden="true" className="preview-card__tile">
           <Icon size={13} strokeWidth={1.7} />
         </span>
         <span className="preview-card__name">
-          Original · {kind} ·{" "}
+          מקור · {kind} ·{" "}
           <span className="num">{formatBytes(file.sizeBytes)}</span>
         </span>
         <a
@@ -60,7 +60,7 @@ export function DocumentPreview({
           target="_blank"
         >
           <ExternalLink aria-hidden size={12} strokeWidth={2} />
-          Open
+          פתיחה
         </a>
       </header>
 
@@ -70,10 +70,10 @@ export function DocumentPreview({
           href={url}
           rel="noreferrer"
           target="_blank"
-          title="Open full size"
+          title="פתיחה בגודל מלא"
         >
           {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img alt={`Original document from ${name}`} src={url} />
+          <img alt={`המסמך המקורי מאת ${name}`} src={url} />
         </a>
       ) : isPdf ? (
         <>
@@ -81,7 +81,7 @@ export function DocumentPreview({
             className="preview-card__frame"
             loading="lazy"
             src={`${url}#toolbar=0&navpanes=0`}
-            title={`Original document from ${name}`}
+            title={`המסמך המקורי מאת ${name}`}
           />
           <a
             className="preview-card__file"
@@ -91,9 +91,9 @@ export function DocumentPreview({
           >
             <FileText aria-hidden size={28} strokeWidth={1.4} />
             <span className="preview-card__file-text">
-              <span className="preview-card__file-title">Open the PDF</span>
+              <span className="preview-card__file-title">פתיחת ה־PDF</span>
               <span className="preview-card__file-note">
-                Opens in a new tab with your PDF viewer.
+                נפתח בלשונית חדשה בצפיין ה־PDF שלכם.
               </span>
             </span>
           </a>
@@ -107,9 +107,9 @@ export function DocumentPreview({
         >
           <Paperclip aria-hidden size={28} strokeWidth={1.4} />
           <span className="preview-card__file-text">
-            <span className="preview-card__file-title">Open the file</span>
+            <span className="preview-card__file-title">פתיחת הקובץ</span>
             <span className="preview-card__file-note">
-              This type has no inline preview.
+              לסוג הקובץ הזה אין תצוגה מקדימה.
             </span>
           </span>
         </a>
